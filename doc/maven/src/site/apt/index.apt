@@ -1,0 +1,27 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+MyVD LDAP Virtual Directory
+
+ Welcome to the home of MyVD, a Java based LDAP Virtual Directory.
+ 
+ NEW: Utilize MyVirtualDirectory to {{{http://myvd.sourceforge.net/wiki/index.php/Linux2AD} integrate Linux with Active Directory}} 
+
+* What is a virtual directory?
+
+ A virtual directory is a service (typically provied via LDAP) that allows for the integration of multiple data repositories in a transparent manner to an application.  There are several use cases for a virtual directory including (but not limmited to):
+ 
+ * Creating a view of a user with attributes stored in multiple repositories
+
+ * Formatting user and group object for an application
+
+ * Creating a larger directory from smaller ones
+
+ []
+ 
+ To learn how a virtual directory can help integrate your applications with your identity data view some {{{usecases.html} virtual directory use cases}}
+
+[images/overview.png] MyVD Overview	

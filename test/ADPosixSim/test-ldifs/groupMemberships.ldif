@@ -1,0 +1,19 @@
+version: 1
+
+dn: cn=Domain Admins,cn=Users,o=mycompany,c=us
+gidnumber: 511
+
+dn: cn=ldapgroup,cn=Users,o=mycompany,c=us
+gidnumber: 516
+
+dn: cn=sudoers,cn=Users,o=mycompany,c=us
+gidnumber: 529
+
+dn: cn=Domain Users,cn=Users,o=mycompany,c=us
+gidnumber: 500
+
+dn: cn=CERTSVC_DCOM_ACCESS,cn=Users,o=mycompany,c=us
+gidnumber: 530
+
+
+

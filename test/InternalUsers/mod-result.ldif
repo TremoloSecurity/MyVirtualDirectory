@@ -1,0 +1,8 @@
+version: 1
+
+dn: cn=Test Group,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+cn: Test Group
+uniqueMember: uid=testuser1,ou=people,dc=domain,dc=com
+uniqueMember: uid=testuser2,ou=people,dc=domain,dc=com
+uniqueMember: uid=testuser5,ou=people,dc=domain,dc=com

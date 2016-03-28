@@ -1,0 +1,6 @@
+version: 1
+
+dn: cn=UNIX Users,cn=users,dc=domain,dc=com
+gidNumber: 200
+
+dn: cn=UNIX SUDO Users,cn=users,dc=domain,dc=com

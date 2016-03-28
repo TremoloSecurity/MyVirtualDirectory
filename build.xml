@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<!-- ====================================================================== 
+     Oct 12, 2005 3:59:40 PM                                                        
+
+     project    
+     description
+                   
+     mlb                                                                
+     ====================================================================== -->
+<project name="project" default="jar">
+    <description>
+            description
+    </description>
+
+	<target name="init">
+		<property name="src" value="src"/>
+		<property name="lib" value="dist/lib"/>
+		<property name="qslib" value="dist/qslib"/>
+		<property name="testlib" value="test/lib"/>
+		<property name="classes" value="classes"/>
+		<property name="docs" value="docs" />
+		<property name="bin" value="dist/jar" />
+		<property name="reports.tests" value="junit-reports" />
+	</target>
+	
+	
+	
+    <!-- ================================= 
+          target: default              
+         ================================= -->
+    <target name="build" depends="init" description="--> description">
+    	<delete dir="${classes}"/>
+    	<mkdir dir="${classes}"/>
+        <javac destdir="${classes}"  srcdir="${src}" debug="yes">
+        	<classpath>
+            	<fileset dir="${lib}">
+        	          <include name="**/*.jar" />
+        		</fileset>
+        		<fileset dir="${testlib}">
+        	          <include name="**/*.jar" />
+        		</fileset>
+        		<fileset dir="${qslib}">
+        	          <include name="**/*.jar" />
+        		</fileset>
+            </classpath>
+        </javac>
+    </target>
+	
+	<target name="jar" depends="build">
+		<mkdir dir="${bin}"/>
+		<delete file="${bin}/myvd.jar"/>
+		<jar jarfile="${bin}/myvd.jar">
+	            <fileset dir="${classes}" includes="**/*.class" excludes="net/sourceforge/myvd/test/**/*.class"/>
+		</jar>
+	</target>
+	
+	<target name="jar-tests" depends="build">
+			<mkdir dir="${bin}"/>
+			<delete file="${bin}/myvd-test.jar"/>
+			<jar jarfile="${bin}/myvd-test.jar">
+		            <fileset dir="${classes}" includes="net/sourceforge/myvd/test/**/*.class"/>
+			</jar>
+		</target>
+	
+	<target name="jar-embedd" depends="build">
+			<mkdir dir="${bin}"/>
+			<delete file="${bin}/myvd-embedded.jar"/>
+			<jar jarfile="${bin}/myvd-embedded.jar">
+		            <fileset dir="${classes}" includes="**/*.class" excludes="net/sourceforge/myvd/test/**/*.class,net/sourceforge/myvd/protocol/**/*.class"/>
+			</jar>
+		</target>
+	
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: depends                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="depends">
+    </target>
+
+	<target depends="build,jar,jar-tests" name="unit-test" description="Runs all JUnitTests">
+	        
+	        <delete dir="${reports.tests}" />
+	        <mkdir dir="${reports.tests}"/>
+	        <mkdir dir="${reports.tests}/html"/>
+	        <junit showoutput="yes" printsummary="yes" haltonfailure="no" fork="yes"  >
+	        	<env key="PROJ_DIR" value="${basedir}" />
+	        	<env key="SLAPD_PATH" value="/usr/sbin" />
+	        		<env key="SCHEMA_DIR" value="/etc/openldap" />
+	        	<batchtest fork="yes" todir="${reports.tests}">
+	        		        	    <fileset dir="${src}">
+	        		        	      <include name="net/sourceforge/myvd/test/**/*.java"/>
+	        		        	    	<exclude name="net/sourceforge/myvd/test/util/**/*.java"/>
+	        		        	      	
+	        		        	      	
+	        		        	    </fileset>
+	        		        	  </batchtest>
+	        	
+	        	<classpath>
+	            	<fileset dir="${lib}">
+	        	          <include name="**/*.jar" />
+	        		</fileset>
+	        		<fileset dir="${testlib}">
+	        	          <include name="**/*.jar" />
+	        		</fileset>
+	        		<fileset dir="${qslib}">
+	        	          <include name="**/*.jar" />
+	        		</fileset>
+	            	<fileset dir="${bin}">
+	        	          <include name="**/*.jar" />
+	        		</fileset>
+	            </classpath>
+	            <formatter type="xml" />
+	        </junit>
+	        
+	        
+
+	        <junitreport todir="${reports.tests}">
+	            <fileset dir="${reports.tests}">
+	                <include name="*.xml"/>
+	            </fileset>
+	            <report format="frames" todir="${reports.tests}/html"/>
+	        </junitreport>
+
+
+	    </target>
+	
+	<target depends="build,jar,jar-tests" name="single-test" description="Runs all JUnitTests">
+		        
+		        <delete dir="${reports.tests}" />
+		        <mkdir dir="${reports.tests}"/>
+		        <mkdir dir="${reports.tests}/html"/>
+		        <junit printsummary="yes" haltonfailure="no" fork="yes"  >
+		            
+		        	<test name="${cmd.testclass}" todir="${reports.tests}"/>
+		        	
+		        	
+		        
+		        	<classpath>
+		            	<fileset dir="${lib}">
+		        	          <include name="**/*.jar" />
+		        		</fileset>
+		        		<fileset dir="${testlib}">
+		        	          <include name="**/*.jar" />
+		        		</fileset>
+		        		<fileset dir="${qslib}">
+		        	          <include name="**/*.jar" />
+		        		</fileset>
+		            	<fileset dir="${bin}">
+		        	          <include name="**/*.jar" />
+		        		</fileset>
+		            </classpath>
+		            <formatter type="xml" />
+		        </junit>
+		        
+		        
+
+		        <junitreport todir="${reports.tests}">
+		            <fileset dir="${reports.tests}">
+		                <include name="*.xml"/>
+		            </fileset>
+		            <report format="frames" todir="${reports.tests}/html"/>
+		        </junitreport>
+
+
+		    </target>
+	
+			
+</project>
+

@@ -1,0 +1,16 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=internal,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+dn: cn=Test Bogus,ou=internal,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test Bogus
+sn: Bogus
+uid: tbogus
+userPassword: secret

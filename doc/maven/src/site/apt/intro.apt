@@ -1,0 +1,64 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Introduction to MyVD
+
+ MyVD is a java based virtual directory that utilizes a series of layers and routing to create an identity infrastructure. 
+
+* Components of MyVD
+
+ * Server - The server is the top level component that controls all of the parts of the virtual directory.
+
+ * Inserts - An insert is a module used to act on a request and optionally generate a response.  All functionality is derived from inserts.
+
+ * Chains - Chains are a sequential set of inserts that comprise a single data flow.
+
+ * Namespace - An area of the directory based on a DN.  For instance there is a global namespace for all namespaces and there may be additional namespaces such as "ou=people,dc=domain,dc=com".  Namepaces are used to route requests and contain chains of inserts.
+
+ * Router - The router combines the global namespace with local namespaces.  The router is not directly configurable but can be manipulated via inserts.
+
+* How The Pieces Fit
+
+ The above pieces of MyVD fit together to create a "flow" data.  To illustrate this lets show how the following virtual directory would work:
+ 
+ * User data is stored in a relational database
+
+ * Authentication is provided via ActiveDirectory
+
+ * Write operations are performed using a custom web service
+
+ []
+
+ In order to fulfill the above requirements a virtual directory will need to be built with:
+
+
+ * A routing insert to redirect all write operations
+
+ * Two namespaces to represent user data
+
+  * Master - ou=people,dc=domain,dc=com with a single insert
+
+   * Custom insert to call the web service needed to update the database
+
+  * DB - ou=people,dc=domain,dc=com with two inserts
+
+   * Kerberos insert for authenticating against ActiveDirectory
+
+   * Database insert to expose the database
+
+ []
+
+ We aren't going to cover the specific configuration in this section, but we will show how these pieces fit together:
+
+[images/sample1.png] MyVD Sample Setup
+
+ The above image shows all write operations (add, modify, delete rename) are directed towards the "Master" namespace while all read operations (search, modify) are sent to the DB namespace.  This decision is made by the routing insert.  Notice that the two namespaces have the same base (ou=people,dc=domain,dc=com).  MyVD allows for namespaces to overlap.  In this case there is no conflict because the routing plugin determines which namespace is utilized.
+
+ Once a namespace is determined, it's chain is executed.  The "Master" namespace has only a single insert which calls a custom web service to update a user's profile.  The "DB" namespace has two inserts on it's chain.  The first insert enables the use of Kerberos during the LDAP "bind" operation.  Since this insert handles the bind operation, execution stops there.  On searches and compares however the Kerberos insert "ignores" the request by passing it down through the chain to the database insert which is configured to work with the database storing user data.  
+
+* Next Steps
+
+ The above example shows how a complex identity requirement could be implemented using MyVD.  From here you can explore the various inserts that are currently provided or how to configure MyVD.

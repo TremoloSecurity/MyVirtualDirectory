@@ -1,0 +1,25 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Using SQL To Work With LDAP
+
+ While LDAP provides a standard interface for interacting with directories, it does not provide a standard query language the way most
+ relational databases do.  The Structured Query Language (SQL) is a mostly standard set of commands that allow for searches, additions, 
+ and updates of a database in a way that is consistent across vendors.  The JDBC-LDAP Bridge, first created by Octet String and now owned
+ by Oracle, provides this interface directory servers and servers.  There are two main components to the JDBC-LDAP Bridge:
+ 
+ [[1]] The JDBC LDAP Driver - The Type IV JDBC driver used to connect to directory services using LDAP, DSMLv2 and SPML and provides SQL 
+ support
+ 
+ [[2]] The SQL Diectory Browser - A browser built using the JDBC-LDAP driver that allows for they typing of SQL commands to interact with 
+ directory services and relational databases.
+ 
+ []
+ 
+ While the JDBC LDAP tools are owned by Oracle and maintained at OpenLDAP.org MyVirtualDirectory provides support for JDBC connections
+ inside of inserts in order to make it easier to develop inserts.  Enclosed is documentation for both using the bridge and the browser.
+ 
+ {{{downloads.html} JDBC-LDAP Downloads}} 

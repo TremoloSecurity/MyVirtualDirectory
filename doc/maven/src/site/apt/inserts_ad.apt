@@ -1,0 +1,184 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+Active Directory Inserts
+ 
+  These inserts help integrate MyVD with Active Directroy.  They provide services to help integrate applications with Active Directory to best
+  utilize Active Directory and simplify integration utilizing MyVirtualDirectory.
+  
+* ObjectGUID & ObjectSID To String
+
+ Nearly every object in Active Directory contains both an Object GUID and an Object SID.  The GUID is a unique identifier in Active Directory,
+ with the SID being a security identifier.  These are both binary attributes that are easiest to represent as strings.  This insert takes the 
+ binary version of the these attributes and re0works them to present the string based representation.  It also takes the string based 
+ representation in filters and translates it to a binary version.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.ObjectGuidToString     |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search, Post Search Entry                              |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|                                                       |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Primary Group ID
+
+ Every user has a primary group.  This group is noted in the Active Directory attribute primaryGroupID, which references the last
+ component of the of the primary group's objectsid attribute.  Users are not listed as members of their primary group.  This insert, 
+ when combined with the "ObjectGUID & ObjectSID to String" insert beneath it and the DynamicGroups insert above it will list all
+ members of a group, including those who note the group as its primary group.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.PrimaryGroup           |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search, Post Search Entry                              |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|searchBase                                             |The base to search for users, included in the url appended to all group entries|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupObjectClass                                       |The object class for groups, typically "group"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Generate Posix GID
+
+ This insert helps to integrate ActiveDirectory with posix systems.  It is configured on the same chain as a joiner and provides the 
+ following functions:
+ 
+   [[1]] Generate a users gidnumber based on the primaryGroupID
+   
+   [[2]] If a user or group exists in Active Directory but not in the database used to store posix attributes it creates the entry
+   
+   []
+   
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.GeneratePosixGID       |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search, Post Search Entry                              |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|userIdAttribute                                        |The user id number attribute, by default uidNumber|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupIdAttribute                                       |The group id number attribute, by default gidNumber|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |userObjectClass                                        |The object class that identifies users|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupObjectClass                                       |The object class that identifies groups|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |userAddBase                                            |The base for joined users|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupAddBase                                           |The base for joined adds|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |homeDirTemplate                                        |The template for home directories.  Enclose attributes in @@.  For instance to have the directory be /home/USERS_SAMACCOUNTNAME it would be '/home/@samaccountname@'|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Active Directory Insert
+
+ The active directory insert takes a Microsoft Active Directory and makes it appear to be a standard inetOrgPerson type directory.  This
+ insert utilizes the LDAP insert in order to communicate with Active Directory and includes additional mapping functions:
+ 
+ [[1]] DN Mapping
+ 
+ [[2]] ObjectGUID and ObjectSID mapping
+ 
+ [[3]] Embedded Groups
+ 
+ [[4]] Primary Group Listings
+ 
+ []
+   
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.ADInsert               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Modify, Delete, Rename, Search, Post Search Entry |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|ADBase                                                 |The domain's base                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |searchDn                                               |The user used to search AD.  This user should not have an search limit restrictions|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |searchPwd                                              |The password for the search user      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |remoteBase                                             |The remote base for dn mapping        |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |userAddBase                                            |The base for joined users|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupAddBase                                           |The base for joined adds|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |homeDirTemplate                                        |The template for home directories.  Enclose attributes in @@.  For instance to have the directory be /home/USERS_SAMACCOUNTNAME it would be '/home/@samaccountname@'|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |host|The host of the remote server.  If this insert is using DSMLV2 or SPML then this is the URL of the end point.                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |port|The port the remote ldap server is listening on.  Ignored for DSMLV2 and SPML|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |remoteBase|The base of the remote LDAP server that the insert would start at|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |minimumConnections|The minimum number of connections to keep in the pool|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maximumConnections|The maximum number of connections to keep in the pool|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |proxyDN|The DN of the user to connect as|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |proxyPass|The password of the remote directory|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |type|One of "ldap","ldaps","dsmlv2" or "spml"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |spmlImpl|When using SPML, the class name for the com.novell.ldap.spml.SPMLImpl interface|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |passBindOnly|"true" or "false" if the user's credentials should be utilized for only the "bind" process.  "false" if the credentials should be used on all operations.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |ignoreRefs|"true" if referrals should be ignored.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Posix DB
+
+ While this insert isn't directly associated with Active Directory, when combined with the Active Directory Joiner and the Active Directory
+ insert this insert provides additional posix attributes.
+ 
+   
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.PosixDB                |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Modify, Delete, Rename, Search, Post Search Entry |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|tableName                                              |The name of the posix table           |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |type                                                   |user or group|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|driver|The JDBC driver to use|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |url|The JDBC connection URL|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |user|The database user to connect as|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |password|The password to connect with|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maxCons|The maximum number of connections, default is 5|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maxIdleCon|The maximum amount of time a connection can remain idle before closing|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* AD Posix Joiner
+
+ The Active Directory / Posix Joiner is an insert that combines the general joiner with the mapping inserts and Active directory
+ inserts in order to create a view for posix integration.  This joiner is meant to join a namespace configured with the AD Insert 
+ and another namespace configured for users and groups using the PosixDB inserts.  For detailed configuration information see 
+ {{{http://myvd.sourceforge.net/wiki/index.php/Linux2AD} Integrating Linux and Active Directory using MyVirtualDirectory}}
+ 
+ 
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ad.ADPosixJoiner          |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search, Post Search Entry                              |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|activeDirectoryBase                                    |The base for the AD inserts|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |dnAttribs                                              |Optional, AD attributes.  Default uniqueMember,member,memberOf,distinguishedname,objectcategory|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |userAddBase                                            |The RDN of the user base|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |groupAddBase                                           |The object class that identifies groups|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |homeDirTemplate                                        |The template for home directories.  Enclose attributes in @@.  For instance to have the directory be /home/USERS_SAMACCOUNTNAME it would be '/home/@samaccountname@'|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |dbBase                                                 |The base for the PosixDB inserts|
+*---------------------+-------------------------------------------------------+--------------------------------------+

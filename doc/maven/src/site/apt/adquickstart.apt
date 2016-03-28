@@ -1,0 +1,38 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+ADQuickStart
+
+ The ADQuickStart quick start gives you everything you need to use MyVD to integrate Linux with Active Directory using MyVD.  This quick start
+ will setup an ApacheDB database, create the tables, integrate Active Directory an optionally setup SSL options.  Before running this quick 
+ start you need the following information:
+ 
+
+ 
+
+*--------+----------------+----------+
+|Option  | Description 	  |Example   |
+*--------+----------------+----------+
+|Active Directory domain controller host| 	The host of the AD system |	test.mydomain.com|
+*--------+----------------+----------+
+|AD Port |	The port of the AD system |	By default: 389 for non-ssl, 636 for ssl|
+*--------+----------------+----------+
+|AD Domain| 	The domain name |	test.mydomain.com|
+*--------+----------------+----------+
+|AD Search User| 	DN for user for MyVD to connect to AD. This user must have no search controls placed on it. Do not include the domain name in the dn |	cn=MyVDUser,cn=Users|
+*--------+----------------+----------+
+|AD Search Users Password| 	Password for the MyVD user |	password|
+*--------+----------------+----------+
+|AD User Base| 	The base for all users and groups, minus the domain name |	Typically “cn=Users”|
+*--------+----------------+----------+
+|Use SSL to connect to AD?| 	Determines if SSL will be used for connecting to AD| |
+*--------+----------------+----------+ 	
+|Use Kerberos for authentication| 	Determines if Kerberos should be used for authentication, useful when there is no AD SSL availability | |
+*--------+----------------+----------+ 	
+|Create Self Signed Certificate? |	Determines if a self signed certificate should be created for MyVD |	If you do not have a certificate authority or want to get up and running quickly|
+*--------+----------------+----------+ 
+
+ Once completed an LDAP search from the base you configure will pre-populate the database.

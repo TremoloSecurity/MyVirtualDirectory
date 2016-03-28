@@ -1,0 +1,26 @@
+version: 1
+
+dn: cn=Test1 User,CN=Users,dc=domain,dc=com
+joinedDNs: uid=tuser001,o=unix
+uidNumber: 550
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+homeDirectory: /home/tuser001
+shadowMax: 999999
+shadowLastChange: 1087
+shadowWarning: 7
+shadowInactive: -1
+shadowFlag: 0
+shadowExpire: -1
+shadowMin: 0
+gidNumber: 200
+gecos: Test User1
+primaryDN: cn=Test1 User,cn=users,o=ad
+cn: Test1 User
+sn: User
+uid: tuser001
+userPassword: secret
+primaryBase: o=ad
+joinedBases: o=unix

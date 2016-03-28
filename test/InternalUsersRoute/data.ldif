@@ -1,0 +1,37 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+
+dn: ou=internal,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+
+
+dn: ou=groups,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=Test Group,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+cn: Test Group
+uniqueMember: uid=testuser1,ou=people,dc=domain,dc=com
+uniqueMember: uid=testuser2,ou=people,dc=domain,dc=com
+
+dn: cn=Test User,ou=internal,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test User
+sn: User
+uid: testUser
+userPassword: secret
+
+dn: uid=internaluser,ou=internal,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: testrouting
+sn: User
+uid: internaluser
+mail: internaluser@internal.domain.com
+

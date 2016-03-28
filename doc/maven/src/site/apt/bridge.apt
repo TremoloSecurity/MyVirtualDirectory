@@ -1,0 +1,250 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+JDBC->LDAP Bridge
+
+ The JDBC->LDAP bridge is a Type IV JDBC driver that provides a JDBC interface to use SQL when interacting with database services.  The bridge
+ utilizes JLDAP to interact with directory services and so supports the following protocols:
+ 
+ [[1]] LDAPv3 - The standard Lightweight Directory Protocol Version 3
+ 
+ [[2]] DSMLv2 - Directory Service Markup Language Version 2, a web-services form of LDAPv3
+ 
+ [[3]] SPMLv1.1 - The Service Provisioning Markup Language Version 1.1, a web services utilized by many provisioning products
+ 
+ []
+ 
+ In order to provide these services the bridge has adapted the following SQL commands:
+ 
+*------------------+-------------+--------------------+------------------------+
+|Command           |SQL Standard?|Use                 |Example                 |
+*------------------+-------------+--------------------+------------------------+
+|SELECT            |Yes          |Searches            |SELECT * FROM subTreeScope;dc=domain,dc=com WHERE cn='Test User'|
+*------------------+-------------+--------------------+------------------------+
+|INSERT            |Yes          |Create objects      |INSERT INTO cn=Test User,dc=domain,dc=com (objectClass, cn, sn) VALUES ('person','Test User','User')|
+*------------------+-------------+--------------------+------------------------+
+|DELETE            |Yes          |Delete objects      |DELETE FROM cn=Test User,dc=domain,dc=com|
+*------------------+-------------+--------------------+------------------------+
+|UPDATE            |Yes          |Modify (replace) object attributes|UPDATE objectScope;cn=Test User,dc=domain,dc=com SET sn = 'New User'|
+*------------------+-------------+--------------------+------------------------+
+|UPDATE ENTRY      |No           |Modify (add, replace, delete) object attributes|UPDATE ENTRY objectScope;cn=Test User,dc=domain,dc=com DO ADD SET userPassword='secret'|
+*------------------+-------------+--------------------+------------------------+
+
+ Above there are four common SQL commands: SELECT, INSERT, UPDATE and DELETE along with a JDBC-LDAP Bridge specific command called UPDATE 
+ ENTRY.  The UPDATE ENTRY command is meant to allow for the update of individual attributes on an object that isn't natively supplied by 
+ SQL.  
+ 
+ The other major difference between more standard SQL and the above commands is the use of LDAP DNs and search scopes. There are two ways to 
+ specify what data an operation will work on:
+ 
+ [[1]] LDAP DN & Search Scope - Embed the standard LDAP DN and search scope in place of a table
+ 
+ [[2]] Map an LDAP DN & Search Scope to a table name - The bridge allows you to map a DN and search scope to a table name, making the SQL 
+ more like using a database.
+ 
+ []
+ 
+* Table Mapping
+
+ As stated above, a DN & scope can be mapped to a table name.  This is useful for integrating the bridge into applications that are expecting 
+ tables.  In order to perform this mapping you must create a file with the following format:
+ 
++----------+
+numTables=X
+
+table.1.name=Users
+table.1.base=ou=Users,dc=domain,dc=com
+table.1.scope=subTreeScope
+table.1.ocs=inetOrgPerson
+
+.
+.
+.
+
+table.X.name=Groups
+table.X.base=ou=Groups,dc=domain,dc=com
+table.X.scope=subTreeScope
+table.X.ocs=groupOfUniqueNames
++----------+ 
+ 
+* Creating a Connection
+
+ In order to create a connection you will need :
+ 
+ [[1]] Host
+ 
+ [[2]] Port
+ 
+ [[3]] Remote Base
+ 
+ [[4]] Credentials
+ 
+ []
+ 
+ In addition, you should know how you want results returned or if you are planning on using a table map.  The connection string is based on 
+ the standard LDAP URL format(RFC 2255). And it has the syntax:
+
++-----------+
+jdbc:ldap://host[:port]/basedn[?property1:=value1 &property2:=value2&propertyn:=valuen]
++-----------+
+
+ The below code is a sample to create a JDBC LDAP Connection:
+ 
++-----------+
+String ldapConnectString = "jdbc:ldap://localhost:389/dc=yourcompany,dc=com?SEARCH_SCOPE:=subTreeScope";
+java.sql.Connection con;
+con = DriverManager.getConnection(ldapConnectString,"cn=Admin","manager");
++-----------+
+
+ There are several options for the connection string:
+
+*------------------+---------------------------------------------+
+|Property          |Description                                  |
+*------------------+---------------------------------------------+ 
+|cache_statements  |set to true to cache SQL statements          |
+*------------------+---------------------------------------------+
+|secure            |set to true for TLS/SSL connections over LDAP|
+*------------------+---------------------------------------------+
+|concat_atts|set to true if attributes with multiple values should be concatenated into a single value surrounded by []. E.g. [val1][val2][val2]|
+*------------------+---------------------------------------------+
+|search_scope      | may be set to objectScope, oneLevelScope or subTreeScope as a default search scope.|
+*------------------+---------------------------------------------+
+|exp_rows          |set to true if multi-value attributes should be handled by creating more rows. This will create rows for every entry for every extra value for each attribute.|
+*------------------+---------------------------------------------+
+|pre_fetch         |set to false (default is true) to process each entry as it is required by the client application. This gives much better performance, but all metadata is not available until after all entries are processed. Setting this value to false will give a big performance boost in applications where all fields are known before the search is executed.|
+*------------------+---------------------------------------------+
+|size_limit|set to the maximum number of entries that may be retrieved. Default is 1000.|
+*------------------+---------------------------------------------+
+|time_limit        |set to the maximum amount of time an operation may take. Default is unlimited.|
+*------------------+---------------------------------------------+
+|ignore_transactions|set to true if calls to setAutoCommit(), commit() and rollback() should be ignored. Default is false.|
+*------------------+---------------------------------------------+
+|table_def		   |The path to the properties file that contains the table map|
+*------------------+---------------------------------------------+
+|no_soap           |Set to true when using DSMLv2 if you don't want to encase the message in a SOAP envelope|
+*------------------+---------------------------------------------+
+|dsml_base_dn      |The base DN for using DSMLv2 connections     |
+*------------------+---------------------------------------------+
+|spml_base_dn      |The base DN for using SPMLv2 connections, should be 'ou=Users,dc=spml,dc=com'|
+*------------------+---------------------------------------------+
+|spml_impl         |The authentication implementation class      |
+*------------------+---------------------------------------------+
+
+
+ In addition to the above options, you can replace the 'ldap' portion of the URL with 'dmlv' or 'spml' for web services.
+ 
+* SQL Commands
+
+ This section describes the various SQL commands as well as how to translate between an LDAP filter and a SQL WHERE clause.
+ 
+** SELECT
+ 
+ The SELECT command is used to perform searches.  It has a very basic structure:
+ 
++----------+
+SELECT [*|DN|attribute1,attribute2,...,attributeX] FROM [scope;]SearchBase WHERE attribute='value' [AND|OR] NOT attribute LIKE '%value%' [ORDER BY attributeName]
++----------+
+
+ The first part of the SELECT is the field choice.  If DN is specified, then only the DN will be returned.  If '*' is specified, all fields 
+ are returned.  Other wise an explicit list is specified.  The next clause, the FROM clause, specifies the search base (as either a DN or table
+ name specified in the table map.  If there is no default scope, then the scope must be specified.  Finally comes the WHERE clause.  The WHERE
+ clause is specified using SQL notation, not LDAP prefix reverse polish notation.  The below table shows how to specify certain filters in SQL:
+ 
+*-----------------------------+-----------------------------+-----------------------------------+
+|Filter Type                  |LDAP Filter                  |SQL WHERE Clause                   |
+*-----------------------------+-----------------------------+-----------------------------------+
+|Equality	                  |(cn=Some User)	            |... WHERE cn = 'Some User'         |
+*-----------------------------+-----------------------------+-----------------------------------+
+|Partial	                  |(cn=Marc*)	                |... WHERE cn LIKE 'Marc%'          |
+*-----------------------------+-----------------------------+-----------------------------------+
+|Presence	                  |(cn=*)	                    |... WHERE cn IS NOT NULL           |
+*-----------------------------+-----------------------------+-----------------------------------+
+|And	                      |(&(cn=Some User)(sn=User))	|... WHERE cn = 'Some User' AND sn = 'User'|
+*-----------------------------+-----------------------------+-----------------------------------+
+|Or	                          |(\|(cn=Some User)(sn=User))	|... WHERE cn = 'Some User' OR sn = 'User'|
+*-----------------------------+-----------------------------+-----------------------------------+
+|Not            	          |(!(sn=User))	                |... WHERE NOT sn = 'User'          |    
+*-----------------------------+-----------------------------+-----------------------------------+
+
+ In addition, and if the directory being connected to supports the sorting control, the ORDER BY clause could be specified to sort the results.
+
+*** Multi-Valued Attributes
+
+ Many LDAP attributes are multi-valued.  Since relational databases generally do not support multiple values per field, there needs to be a 
+ way to retrieve multiple values.  There are three methods:
+ 
+ [[1]] Field Expansion - When there are multiple values a new column is added for each value (the default)
+ 
+ [[2]] Attribute Concatenation - When there are multiple values, the values are concatenated into a single field using the pattern [value1|values2|value3], this option is set using the concat_atts connection setting.
+ 
+ [[3]] Row Expansion - A new row is created, repeating previous data, for each value, set using the exp_rows connection string option
+ 
+ []
+ 
+** INSERT 
+
+ The INSERT statement adds objects to the directory.  The INSERT statement:
+ 
++---------------+
+INSERT INTO rdn[=value],dncomp=val,dncomp=val,.. (rdn,objectClass,attribute1,attribute2,...) VALUES ('value','user','value1','value2)
++---------------+
+
+ The INSERT statement first must specify the DN being created.  The RDN can optional not have a value, to be specified later in the statement.
+ The next piece is the list of attributes to be created and finally the list of values for these attribute names.  
+ 
+** UPDATE
+
+ The UPDATE statement will perform a 'replace' modification on any objects included in it.  The UPDATE statement uses the following syntax:
+ 
++---------+
+UPDATE [scope;]SearchBase SET attribute1='val', attribute2='val' [WHERE attribute1 = 'value1']
++---------+
+
+ The UPDATE statement first performs a search to find the objects to perform work on.  The search is based on the optional scope, search
+ base and the WHERE clause.  It performs a replace on the attributes listed with the specified values.
+ 
+** UPDATE ENTRY
+ 
+ Like the UPDATE statement, the UPDATE ENTRY statement modifies attributes of an entry based on a search but unlike UPDATE is able to perform
+ an ADD or DELETE modification on an attribute.  Below is the syntax:
+ 
++-------------------------+
+UPDATE ENTRY [scope;]SearchBase DO [ADD|REPLACE|DELETE] SET attribute1[='val'] [WHERE attribute1 = 'val']
++-------------------------+
+
+ By specifying the action you can control an entry just as you would using LDAP.
+ 
+** Using JDBC-LDAP With Web-Services
+
+ The JDBC-LDAP bridge can be utilized for any web service supported by JLDAP, currently DSMLv2.  For the most part the JDBC-LDAP bridge can
+ be utilized the exact same for web services as for standard LDAP directories.
+ 
+*** DSMLv2
+
+ The JDBC-LDAP Bridge can utilize DSMLv2, or Directory Service Markup Language version 2, which is an XML version of the LDAP protocol.  In
+ order to utilize DSMLv2 the connection string needs to be changed.  The below string will connect to a DSMLv2 services:
+ 
++----------+
+jdbc:dsml://http://server:port/path/to/service?ATTR:=VAL&ATTR:=VAL...
++----------+   
+
+*** SPMLv1.1
+
+ SPML, the Service Provisioning Markup Language, is a standard XML dialect for provisioning users and user data, typically to an IDM system.
+ In order to utilize SPML use the below jdbc connection string:
+ 
++----------+
+jdbc:spml://http://server:port/path/to/service?ATTR:=VAL&ATTR:=VAL...
++----------+
+
+ Since SPML has no built in authentication mechanism so a mechanism is required.  Currently there are two supported mechansims that are 
+ configured via the spml_impl configuration parameter.  Currently there are two supported implementations:
+ 
+   [[]] Sun Identity Manager - com.novell.ldap.spml.SunIdm
+   
+   [[]] No Authentication - com.novell.ldap.spml.NoAuthImpl
+   
+   []

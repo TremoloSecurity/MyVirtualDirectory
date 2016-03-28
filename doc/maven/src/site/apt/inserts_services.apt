@@ -1,0 +1,237 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+Services and Access Management Inserts
+ 
+  These inserts are primarily concerned with the running of MyVD including access
+  management, server management and server tracking.
+  
+* Access Controls
+
+ The access controls for MyVD are based on a draft RFC.  The RFC can be read [[www.cnn.com] here].  The access control system utilizes a list of access control items.  Each item is structured as:
+
+** Configuring The Access Control Insert
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ldap.LDAPInterceptor      |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search,Compare,Bind,Add,Modify,Delete,Rename           |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|numACIs                                                | The number of ACIs to be processed   |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |aci.X                                                  | An ACI to process based on the below configuration.  "X" is the number of the ACI and should begin with 0.  |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+** Specifying an ACI 
+
++--------------+
+scope-base#scope#grant/deny:permisions#scope#users
++--------------+
+ 
+ The below table explains each part of the ACI:
+ 
+*-------------+----------------------------+----------------------------------------+
+|Component    |Description                 |Example                                 |
+*-------------+----------------------------+----------------------------------------+
+|scope-domain |The base of the scope this ACI applies to.  This ACI will only be considered for operations that are subordinates of this DN|ou=people,dc=domain,dc=com|
+*-------------+----------------------------+----------------------------------------+
+|scope        |The scope of this ACI.  The scope can either be "subtree" to apply to all subordinates of the scope-base or "entry" to apply only to the scope-domain.|subtree OR entry|
+*-------------+----------------------------+----------------------------------------+
+|grant/deny   |Determines if the outcome of this ACI should result in a grant or deny|grant OR deny|
+*-------------+----------------------------+----------------------------------------+
+|permisions   |Which permisions this ACI grants or denys. See the below table for a list of permisions|
+*-------------+----------------------------+----------------------------------------+
+|scope        |Whether this applies to entry results or attributes. The below table explains the different options|[entry] OR [all] OR a comma sepperated list of attribute names|
+*-------------+----------------------------+----------------------------------------+
+|users        |Which users this ACI applies to.  The below table lists the possible values for this option|See the below table|
+*-------------+----------------------------+----------------------------------------+
+
+*** Entry Permissions
+
+*--------------------+------------------+---------------------+
+|Permission           |Letter            |Description          |
+*--------------------+------------------+---------------------+
+|Create              |c                 |Determines if entries may be created|
+*--------------------+------------------+---------------------+
+|Delete              |d                 |Determines if the entry may be deleted|
+*--------------------+------------------+---------------------+
+|View                |v                 |Determines if the entry may be viewed|
+*--------------------+------------------+---------------------+
+|Rename              |n                 |Determines if the entry can be renamed|
+*--------------------+------------------+---------------------+
+
+*** Attribute Permissions
+
+*--------------------+------------------+---------------------+
+|Permission           |Letter            |Description          |
+*--------------------+------------------+---------------------+
+|Read                |r                 |Determines if the attribute can be read|
+*--------------------+------------------+---------------------+
+|Write               |w                 |Determines if the attribute can be written to|
+*--------------------+------------------+---------------------+
+|Obliterate          |o                 |Determines if the attribute can be removed from the entry|
+*--------------------+------------------+---------------------+
+|Search              |s                 |Determines if the attribute can be included in a search filter|
+*--------------------+------------------+---------------------+
+|Compare             |c                 |Determines if the attribute can be included in a compare operation|
+*--------------------+------------------+---------------------+
+|Presence Search     |p                 |Determines if a filter on the presence of the attribute in the entry|
+*--------------------+------------------+---------------------+
+
+*** Users Options
+
+*------------------+--------------------+--------------------+-------------------------+
+|Users Option      |Description         |Syntax              |Example                  |
+*------------------+--------------------+--------------------+-------------------------+
+|Sub Tree          |This ACI applies to all users beneath the given DN|subtree:DN|subtree:ou=users,dc=domain,dc=com|
+*------------------+--------------------+--------------------+--------------------------+
+|DN                |This ACI applies to the specified DN only|dn:DN|dn:cn=admin,ou=admins,dc=domain,dc=com|
+*------------------+--------------------+--------------------+--------------------------+
+|This              |The ACI applies to the currently bound user.  This is useful for permisions such as letting a user rest their own password|this:|
+*------------------+--------------------+--------------------+--------------------------+
+|Group             |An LDAP static group is used to apply this ACI|group:DN_OF_GROUP|group:cn=admins,ou=groups,dc=domain,dc=com|
+*------------------+--------------------+--------------------+--------------------------+
+|Dynamic Group     |An LDAP dynamic group is used to apply this ACI|dynamic-group:DN_OF_DYNAMIC_GROUP|dynamic-group:cn=admins,ou=groups,dc=domain,dc=com|
+*------------------+--------------------+--------------------+--------------------------+
+|Public            |This ACI applies to all users, bound an anonymous|
+*------------------+--------------------+--------------------+--------------------------+
+  
+* Access Log
+ 
+  The access log provides information about who is accessing MyVirtualDirectory.  The access log provides the ability to roll when the log reaches 
+  a certain size or at a certain time.  
+  
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.AccessLog                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |All                                                    |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|                                                       |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |fileName                                               |The path and name of the file, ie /var/log/myvd.log|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |type                                                   |rolling or periodic, based on if the log files should roll over based on the size of the log file or the time of the day.  If periodic the log will roll at midnight every nights|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maxFileSile											   |When rolling, the size when to roll.  Default is 100MB|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |backupIndex                                            |The maximum number of files to keep   |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+  
+* DumpTransaction
+
+ This insert dumps the details of a request to the log.  DumpTransaction is very useful when debugging a MyVD deployment. By placing this insert at various points in the server it's possible to see how requests and responses are effected.  Note that this insert can have an adverse effect on performance. 
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.DumpTransaction           |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |All                                                    |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|logLevel                                               |One of info,debug,error,warn          |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |label                                                  |A label to describe this DumpTransaction insert in the logs|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+* RootDSE Insert
+
+ This insert should be placed in a namespace with an empty "nameSpace" property in order to construct a root dse object.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.RootDSE                   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                     |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|supportedFeatures|Comma separated list|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |namingContexts|Pipe "\|" separated list of DNs|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |supportedControls|Comma separated list|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |supportedSaslMechanisms|Comma separated list|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |supportedExtensions|Comma separated list|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+* Password Change Operation
+
+ This insert is an example of how an extended operation could be implemented in MyVD.  The insert reconstructs the operation in order to make sure that the request is routed properly.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Extended Operation                                     |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|remoteBase|The final base of the operation|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |localBase|The base to expect in the operation|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+* Master Replica Router
+
+ The Master Replica Router is an insert that should be added to the global chain when you wish to seperate write operations from search operations, such as when utilizing MyVD in a master/replica environment.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.routing.MasterReplicaRouter|                                    |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Modify, Rename, Delete, Compare, Search, Bind, Extended Operations|                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|specifyToInclude|true or false, if the servers included by the readOnly option specifies the namespaces to be read only or those NOT to be considered read only.
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |readOnly|The names of namespaces configured that will be used for search operations|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |master|The nams of a namespace used to write operations|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+* Schema Insert
+
+ This insert allows for a schema ldif file to be used as a schema entry
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.SchemaInsert                   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                     |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|schemaLDIF|Path to the ldif file.  NOTE: this ldap file MUST contain a full schema entry, including DN and objectClasses.  The DN should match the root of this insert.  The first line of the ldif file MUST be "version: 1"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Route by Attribute Value
+
+ The Route by Attribute Value Router is an insert that should be added to the global chain when requests must be routed to a particular namespace based on an attribute value.  An example would be
+ when using MyVD to route requests to different directories based on an email suffix.  Additionaly, a default route can be used when no other routes are available.  This router is only executed on searches
+ who's filters are equality ("=").  This filter is not applied to substring filters.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.routing.RouteByAttributeValue|                                    |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search|                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|attributeName|The name of the attribute to check
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |useDefault|true or false, If true then if no route is found a default one is used.  If false then if not route is found then MyVD will no route the request to a specific namespace|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |defaultNameSpace|The namespace from MyVD's configuration (the name of the namespace, not the DN base) to route to if no routing rules match|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |ignorePattern|A pattern that identifies requests that should be ignored by this router|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |ignoreNegative|If set to true, then this insert will ignore anything that DOESN'T match the ignorePattern configuration option|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |numRoutes|The number of routing rules being configured|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |route.X|Where X is a number between 0 and (numRoutes - 1) inclusively.  The value is namepsace=regex.  The namespace is the name of the namespace in the MyVD configuration.  The regex is a Java regular expression that will be tested against the values for the named attribute in the search's LDAP filter.  {{{http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html} Here}} is the Java pattern language.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Required For Search
+
+ This insert should be installed on a namespace that should be allowed to fail when performing searches without causing an error to be returned to the client.  When an error does occur, it is logged
+ as a warning.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.routing.RequiredForSearch|                                    |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search|                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|required|true or false, If false, any errors that occur during a search are logged as a warning.  If true, this insert is not run.|
+*---------------------+-------------------------------------------------------+--------------------------------------+

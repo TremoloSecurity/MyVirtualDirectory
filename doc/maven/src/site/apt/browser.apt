@@ -1,0 +1,186 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+SQL Directory Browser
+
+[images/browser/browser.png] SQL Directory Browser
+
+ The SQL Directory Browser, first released by Octet String and now owned by Oracle, is a vey powerful tool for building virtual directories.  
+ This browser has several features that most LDAP Directory Browsers have, as well as a few extra features that make it well suited for working
+ with virtual directories (and notably MyVirtualDirectory).
+ 
+ [[]] Multiple browser tabs - The SQL Directory Browser supports multiple browsers in a single window with tabs (much like firefox). This is
+ very useful when working with virtual directories as you are generally working with multiple directories and databases to integrate them.
+ 
+ [[]] Relational Database Support - In addition to working with directories, this browser will interact with not only directories, but also 
+ with any JDBC accessible relational database (such as MySQL, SQL Server, etc, etc...).
+ 
+ [[]] Web Services Support - The SQL Directory Browser can work with DSMLv2 enabled services (Such as Tivoli Identity Manager) and SPML enabled 
+ services such as Sun's and Oracle's Identity Manager.
+ 
+ [[]] Multiple Data Views - In addition to the classic tree view, the SQL Directory Browser will also show a table form of search results.
+ 
+ [[]] Use either SQL or Directory Dialogs - What truly makes this browser unique is that it is built using the JDBC-LDAP Bridge, so you can eiher
+ use SQL or typical directory manipulation dialogs.
+ 
+ []
+ 
+* Overview
+
+ The SQL Directory Browser has several components as marked below:
+ 
+[images/browser/browserCaptions.png] SQL Directory Browser Main Window
+
+ [[]] Browser Tabs - Use these tabs to switch between browsers
+ 
+ [[]] Tree / Table View Tabs - Use these tabs to switch between the tree or table views of a search result
+ 
+ [[]] SQL Box - This is where you would type in the SQL to execute
+ 
+ [[]] Command History - This list tracks what commands have been executed
+ 
+ []
+ 
+ 
+* Connecting to a Directory
+
+ Connecting to a directory is straightforward.  First click the "New" button:
+ 
+[images/browser/newMainWindow.png] New Browser
+
+ Once you click "New" a dialog will pop-up asking for connection information:
+ 
+[images/browser/conWindow.png] Connection Window
+
+ The first item is a name for this connection.  Once you complete the connection information you can save the connection information for use
+ again later.  The window has the typical directory connection options.  Leave the Base blank to be able to view all bases from the RootDSE.  
+ In addition you can specify if the connection is secure or additional URL options as specified in the JDBC-LDAP Bridge documentation.
+
+ In addition to specifying directory information, you can instead choose to make this connection a JDBC, DSMLv2 or SPML connection.  When you 
+ click on any of these options the screen will change to reflect the connection type.
+ 
+* Performing Searches
+
+ In addition to walking through the directory using the browser, the SQL Directory Browser provides a powerful search capability.  There are two
+ ways to search:
+ 
+ [[]] Use the LDAP Search Dialog
+ 
+ [[]] Enter SQL into the SQL Box
+ 
+ []
+ 
+ In either case once the search is performed there are two ways to view the results.  The first, and more traditional, view is the Tree view
+ that shows results based on where they fit in the directory's DIT:
+ 
+[images/browser/searchResultsTree.png] Tree Base Search Results
+
+ The SQL Directory Browser will also display results using a table form.  This shows much more data in a single view and can be useful when
+ trying to compare entries.
+ 
+[images/browser/searchResultsTable.png] Table Base Search Results
+
+** SQL Searches
+
+ In order to perform an SQL search simply type in your SQL into the SQL box and click "Execute".  You can either specify the search scope in the
+ SQL or click on one of the scopes at the bottom of the browser.  The SQL will be recorded in your history list.
+ 
+** LDAP Dialog Searches
+
+ If SQL isn't to your taste, you can use the typical directory search daialog by right clicking on your search base and selecting "Generate
+ Search SQL..." which will present you with the following dialog:
+ 
+[images/browser/searchDialog.png]
+
+ Enter your search criteria and select "OK".  Once run this dialog will generate the SQL for your search and run it for you, storing the SQL
+ in your history window.
+
+** Exporting Search Results
+
+ In addition to viewing the results of your search in the browser, the SQL Directory Browser allows you to export the results of a search to 
+ either a CSV file or an LDIF File (for LDAP, DSMLv2 and SPML results only).
+ 
+* Updating the Directory
+ 
+ While the SQL Directory Browser is an effective tool for browsing and searching the directory, it is also a powerful tool for updating
+ a directory.  The SQL Directory Browser can be used to update a standard LDAP directory or database as well as used for a tool to test
+ Identity Management systems and workflows via DSMLv2 and SPML.
+ 
+** Using SQL To Update the Directory
+
+ Just as with searches, the SQL Directory Browser allows you to enter SQL to update the directory or database in the SQL box.
+ 
+** Add Dialog
+ 
+[images/browser/addDialog.png]
+ 
+ The Add dialog allows you to perform an add to the directory using a typical LDAP gui.  When creating an entry using the dialog, right click
+ on the base where you wish to add the entry and select "Generate ADD SQL...".  The above dialog will appear.  First specify the RDN attribute
+ and value.  Then click on the "+" button to add attributes and their values.  You can edit the attribute name and value inside of the table
+ like a spreadsheet.
+ 
+** Modify Dialog
+
+[images/browser/modifyDialog.png]
+ 
+ In order to modify an entry, right click on the entry you wish to modify and select "Generate SQL to Modify...".  The above dialog will appear.
+ Specify the attribute, value and change type and select "+" to add the modification.  When done select "Generate SQL" to perform the 
+ modification.
+ 
+** Deleting an Entry
+
+ There is no dialog to delete an entry.  To delete an entry right click on it and select "Generate SQL to Delete...".
+ 
+* Browsing Databases
+
+ While the SQL Directory Browser was first designed to work only with directories, it will work with relational databases as well.  In order
+ to connect to a database the first step is to copy the jar file containing the JDBC drivers to $HOME/jdbcDrivers.  Once this is done, start
+ the SQL Directory Browser and create a new connection.  
+ 
+** Specifying a DB Connection
+
+[images/browser/dbConnection.png]
+ 
+ When the dialog appears, click on "JDBC Connection" and specify the driver and url to connect with
+ 
+** DB Browser
+
+[images/browser/dbBrowser.png]
+
+ Like when browsing directories, the SQL Directory Browser provides two views.  The first is the meta data view that shows all tables and 
+ views as well as the fieds for each table when you click on it.  
+ 
+** DB Search Results
+
+[images/browser/dbSearchResults.png]
+
+ When you execute an SQL search when browsing a database, the results are shown as a table under the table view. 
+ 
+ 
+* Preferences
+ 
+[images/browser/prefs.png]
+
+ You can control a few aspects of how the SQL Directory Browser works through the preferences dialog.  There are several options:
+ 
+*------------+--------------------+-------------------+
+|Option      |Description         |Default Value      |
+*------------+--------------------+-------------------+
+|Maximum Number of Entries|The maximum number of entries to return from a directory, 0 for no limit|0|
+*------------+--------------------+-------------------+
+|JDBC Driver Path|The path that holds the jar files containing jdbc drivers|$HOME/jdbcDrivers|
+*------------+--------------------+-------------------+
+|Maximum Time Per Operation|The amount of time the browser should wait until it times out, 0 meaning no time-out|0|
+*------------+--------------------+-------------------+
+|Number of Statements to Store in History|The number of SQL statements to store in the history list|5|
+*------------+--------------------+-------------------+
+|Auto Execute SQL from dialogs|Determines if SQL from dialogs should be immediately executed.|Checked|
+*------------+--------------------+-------------------+
+
+
+ 
+  
+  

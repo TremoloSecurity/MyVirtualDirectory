@@ -1,0 +1,8 @@
+version: 1
+
+dn: cn=Sales,ou=groups,o=ad
+objectClass: groupOfUniqueNames
+cn: Sales
+uniqueMember: uid=tuser4,ou=people,o=ad
+uniqueMember: uid=tuser2,ou=people,o=ad
+uniqueMember: uid=tuser1,ou=people,o=ad

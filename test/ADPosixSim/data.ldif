@@ -1,0 +1,390 @@
+version: 1
+
+dn: dc=test,dc=mydomain,dc=com
+objectClass: domain
+dc: test
+
+dn: cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: container
+cn: Users
+objectGUID:: ni7YGot6oEiDJq12fu7WqQ==
+
+dn: cn=Administrator,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Administrator
+objectGUID:: aY/cBxI+YkaletceUea7+Q==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf9AEAAA==
+samAccountName: Administrator
+
+dn: cn=Guest,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Guest
+objectGUID:: QBQPwwG4pkm7r8kYi6XjjQ==
+primaryGroupID: 514
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf9QEAAA==
+samAccountName: Guest
+
+dn: cn=SUPPORT_388945a0,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: SUPPORT_388945a0
+objectGUID:: JFpNoRQlTk+E36rUp5jKdw==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf6QMAAA==
+samAccountName: SUPPORT_388945a0
+
+dn: cn=HelpServicesGroup,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: HelpServicesGroup
+member: cn=SUPPORT_388945a0,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: NoNmVDEE9ke3kO6x8FudFA==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf6AMAAA==
+samAccountName: HelpServicesGroup
+
+dn: cn=topgroup,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: topgroup
+objectGUID:: vP9Y87ucw0GQlkkmolFNRA==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfbwQAAA==
+samAccountName: topgroup
+
+dn: cn=TelnetClients,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: TelnetClients
+objectGUID:: vPeiJC5hPUulhJCbmAz4Wg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf6gMAAA==
+samAccountName: TelnetClients
+
+dn: cn=unixadmins,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: unixadmins
+member: cn=unixadmin1 admin,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: eptvqi3nvkaK7YILjIR3Gg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfcAQAAA==
+samAccountName: unixadmins
+
+dn: cn=unixadmin1 admin,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: unixadmin1 admin
+sn: admin
+objectGUID:: nRmhSRD9Kky7suRdUXeJhQ==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfcQQAAA==
+samAccountName: unixadmin1
+userPassword:: dW5zZWNyZXQ=
+
+dn: cn=krbtgt,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: krbtgt
+objectGUID:: 1VyOqjUnuU2DhirGmFkB1g==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQf9gEAAA==
+samAccountName: krbtgt
+
+dn: cn=Domain Computers,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Domain Computers
+objectGUID:: i2N7F0fid02VFsjmkIWOvQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfAwIAAA==
+samAccountName: Domain Computers
+
+dn: cn=Domain Controllers,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Domain Controllers
+objectGUID:: g3obQ/SMyU6JTeQB+/g5Ig==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfBAIAAA==
+samAccountName: Domain Controllers
+
+dn: cn=Schema Admins,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Schema Admins
+member: cn=Administrator,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: C8T8G1FGUEy8q4Hb3zSdGg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfBgIAAA==
+samAccountName: Schema Admins
+
+dn: cn=Enterprise Admins,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Enterprise Admins
+member: cn=Administrator,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: 3mS/RSK+y0Gjwq9NXRDAhQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfBwIAAA==
+samAccountName: Enterprise Admins
+
+dn: cn=Cert Publishers,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Cert Publishers
+member: cn=PWC-IDM06,ou=Domain Controllers,dc=test,dc=mydomain,dc=com
+objectGUID:: DoVMtlw/pke9PnRsQj/0Wg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfBQIAAA==
+samAccountName: Cert Publishers
+
+dn: cn=Domain Admins,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Domain Admins
+member: cn=Marc Boorshtein,cn=Users,dc=test,dc=mydomain,dc=com
+member: cn=Administrator,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: a3QMIDmFekCzXVIzTSoSKg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfAAIAAA==
+samAccountName: Domain Admins
+
+dn: cn=Domain Users,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Domain Users
+objectGUID:: 83IMee+4pUSEufd+nG75HQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfAQIAAA==
+samAccountName: Domain Users
+
+dn: cn=Domain Guests,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Domain Guests
+objectGUID:: G3OMnEWBoEufc5uQv8/u9g==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfAgIAAA==
+samAccountName: Domain Guests
+
+dn: cn=Group Policy Creator Owners,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: Group Policy Creator Owners
+member: cn=Administrator,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: UmJbhG4DSk6Fj7M9o5gxQw==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfCAIAAA==
+samAccountName: Group Policy Creator Owners
+
+dn: cn=RAS and IAS Servers,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: RAS and IAS Servers
+objectGUID:: 21eC9F27dUCzcPJKmZtqoQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfKQIAAA==
+samAccountName: RAS and IAS Servers
+
+dn: cn=DnsAdmins,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: DnsAdmins
+objectGUID:: 2n58cf33rkmuaPDFABRiug==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfUAQAAA==
+samAccountName: DnsAdmins
+
+dn: cn=DnsUpdateProxy,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: DnsUpdateProxy
+objectGUID:: TzKuzAdLfEq0+ChtYYgs0A==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfUQQAAA==
+samAccountName: DnsUpdateProxy
+
+dn: cn=Marc Boorshtein,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Marc Boorshtein
+sn: Boorshtein
+objectGUID:: mK27Dm/23EO0R1Gm4NImPA==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfUwQAAA==
+samAccountName: mlb
+userPassword:: bWxic2VjcmV0
+
+dn: cn=Jen Smith,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Jen Smith
+sn: Smith
+objectGUID:: OiB58yGOjUWzadreJG8Bkg==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfVgQAAA==
+samAccountName: jsmith000
+userPassword:: anNzZWNyZXQ=
+
+dn: cn=ldapgroup,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: ldapgroup
+member: cn=Jen Smith,cn=Users,dc=test,dc=mydomain,dc=com
+member: cn=Marc Boorshtein,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: BIzPj37LnUW9cWoCd35eBA==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfWAQAAA==
+samAccountName: ldapgroup
+
+dn: cn=SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS,cn=Users,dc=test,dc=mydomai
+ n,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS
+objectGUID:: G45NtVnNRUar9b+2NT8evQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfWwQAAA==
+samAccountName: SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS
+
+dn: cn=IUSR_PWC-IDM06,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: IUSR_PWC-IDM06
+objectGUID:: lfKceUlvu0KBekiqtoAknA==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfXAQAAA==
+samAccountName: IUSR_PWC-IDM06
+
+dn: cn=IWAM_PWC-IDM06,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: IWAM_PWC-IDM06
+objectGUID:: ibzRuekAb0eDuI+TSVYW8A==
+primaryGroupID: 513
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfXQQAAA==
+samAccountName: IWAM_PWC-IDM06
+
+dn: cn=IIS_WPG,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: IIS_WPG
+member: cn=IWAM_PWC-IDM06,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: 65jYpjWxiE+7IiMB9PEc5A==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfXgQAAA==
+samAccountName: IIS_WPG
+
+dn: cn=SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER,cn=Users,dc=test,dc=myd
+ omain,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER
+objectGUID:: jlx6pQvBTU6txCwVagkCGw==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfYAQAAA==
+samAccountName: SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER
+
+dn: cn=SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER,cn=Users,dc=test,dc=mydoma
+ in,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER
+objectGUID:: uEFhhPueI0yGt9vaeAubGw==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfYQQAAA==
+samAccountName: SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER
+
+dn: cn=SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER,cn=Users,dc=test,dc=mydoma
+ in,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER
+objectGUID:: 35EcmHmyMk6+/kxve7CqYQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfYgQAAA==
+samAccountName: SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER
+
+dn: cn=SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER,cn=Users,dc=test,dc=mydom
+ ain,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER
+objectGUID:: Bw2Dzj8sikWaVpqU7KvKbg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfYwQAAA==
+samAccountName: SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER
+
+dn: cn=SQLServer2005DTSUser$PWC-IDM06,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005DTSUser$PWC-IDM06
+objectGUID:: SPcBq9UqgUeqi5XySJC2Bg==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfZwQAAA==
+samAccountName: SQLServer2005DTSUser$PWC-IDM06
+
+dn: cn=SQLServer2005SQLBrowserUser$PWC-IDM06,cn=Users,dc=test,dc=mydomain,dc=c
+ om
+objectClass: top
+objectClass: group
+cn: SQLServer2005SQLBrowserUser$PWC-IDM06
+objectGUID:: Q+itCEbfgUGAruMkB6lczQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfaAQAAA==
+samAccountName: SQLServer2005SQLBrowserUser$PWC-IDM06
+
+dn: cn=SQLServer2005MSSQLServerADHelperUser$PWC-IDM06,cn=Users,dc=test,dc=mydo
+ main,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005MSSQLServerADHelperUser$PWC-IDM06
+objectGUID:: xUZcDX2gfUaiEK8iX4SU3g==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfaQQAAA==
+samAccountName: SQLServer2005MSSQLServerADHelperUser$PWC-IDM06
+
+dn: cn=SQLServer2005NotificationServicesUser$PWC-IDM06,cn=Users,dc=test,dc=myd
+ omain,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005NotificationServicesUser$PWC-IDM06
+objectGUID:: oVV9CZzk7kG4c5I3TNGneQ==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfagQAAA==
+samAccountName: SQLServer2005NotificationServicesUser$PWC-IDM06
+
+dn: cn=S-1-5-21-948560706-4013754706-535057578-1131,cn=Users,dc=test,dc=mydoma
+ in,dc=com
+objectClass: top
+objectClass: group
+cn: S-1-5-21-948560706-4013754706-535057578-1131
+objectGUID:: hq+2Ddd+DE6eRQXrtUf3LA==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfawQAAA==
+samAccountName: SQLServer2005ReportingServicesWebServiceUser$PWC-IDM06$MSSQLSE
+ RVER
+
+dn: cn=SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER,cn=Users,dc=test,dc
+ =mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER
+objectGUID:: y7YFw6XN2kCA5jpMR+9bfA==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfbAQAAA==
+samAccountName: SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER
+
+dn: cn=sudoers,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: sudoers
+member: cn=Marc Boorshtein,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: cL4aqPkYXUGDN5dpoAHGGw==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfbQQAAA==
+samAccountName: sudoers
+
+dn: cn=CERTSVC_DCOM_ACCESS,cn=Users,dc=test,dc=mydomain,dc=com
+objectClass: top
+objectClass: group
+cn: CERTSVC_DCOM_ACCESS
+member: cn=Domain Users,cn=Users,dc=test,dc=mydomain,dc=com
+member: cn=Domain Computers,cn=Users,dc=test,dc=mydomain,dc=com
+objectGUID:: 3aa9XjZCjEmer8+na2gKKw==
+objectSID:: AQUAAAAAAAUVAAAAQuOJOFIJPe+qVOQfbgQAAA==
+samAccountName: CERTSVC_DCOM_ACCESS
+

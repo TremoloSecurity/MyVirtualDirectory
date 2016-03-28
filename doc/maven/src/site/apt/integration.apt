@@ -1,0 +1,11 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Integration Guides
+
+ MyVD is primarily an integration tool.  Each application consumes identity data in a different way and identity data comes from various sources.  
+ These integration guides are designed to help you understand which features of MyVD can best help your integration effort.
+

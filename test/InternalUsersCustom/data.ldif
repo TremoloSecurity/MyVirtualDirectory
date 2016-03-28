@@ -1,0 +1,17 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=internal,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+dn: cn=Test User,ou=internal,dc=domain,dc=com
+objectClass: customPerson
+cn: Test User
+sn: User
+uid: testUser
+userPassword: secret
+sumNum: 5

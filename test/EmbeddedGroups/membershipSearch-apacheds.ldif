@@ -1,0 +1,17 @@
+version: 1
+
+dn: cn=new york,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=Sales,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=SysAdmins,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=North East,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top

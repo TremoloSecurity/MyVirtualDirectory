@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=Test Group2,ou=groups,o=mycompany,c=us
+objectClass: groupOfUniqueNames
+cn: Test Group2
+uniqueMember: uid=testuser4,ou=people,o=mycompany,c=us
+uniqueMember: uid=testuser5,ou=people,o=mycompany,c=us

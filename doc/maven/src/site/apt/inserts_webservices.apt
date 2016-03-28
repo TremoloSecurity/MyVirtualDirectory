@@ -1,0 +1,45 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+Web Services Inserts
+ 
+  These inserts assist with integration with web services.  Currently the only web services supported by MyVD are DSMLv2 and SPML via the 
+  LDAP Insert.  The below inserts assist with integrating with those services.
+  
+* Create SPML Identity
+
+ The SPML identity insert is designed to create an LDAP compliant DN for use with the LDAP insert in SPML mode.  SPML does not require a full DN as a name (it can for instance use a userid or an email address), but LDAP does.  This insert ensures that the DN  for the user object has the correct RDN for SPML while being LDAP compliant.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.idm.CreateSPMLIdentity    |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Modify, Delete                                    |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|type                                                   |The SPML identity type (ie GenericString                                   |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |attribute                                              |The attribute that will act as the source for the RDN data|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |keepNameAsAttribute                                    |true or false if the rdn's attribute will remain on the user object|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+
+
+
+
+* Flatten Namespace
+ 
+ This insert removes components from an LDAP DN and can optionally store them in the user entry.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.idm.FlattenNamespace      |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Delete                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|attribsToRemove                                        |Comma sepperated list of attributes to remove from the DN           |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |	attributesToStore                                     |Comma sepperated list of attributes in the DN to store in the user entry|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  

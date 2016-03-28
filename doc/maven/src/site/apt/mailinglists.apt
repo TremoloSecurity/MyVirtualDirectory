@@ -1,0 +1,23 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Mailing Lists
+
+* MyVD-User
+ 
+ This list is for users and administrators of MyVD.  Typical discussions on this list could include how to deploy MyVD and help developing custom 
+ inserts.
+ 
+ {{{http://lists.sourceforge.net/mailman/listinfo/myvd-user}Subscribe/Unsubscribe/Preferences}}
+ 
+* MyVD-Develop
+ 
+ This list is for MyVD developers to discuss the development of MyVD.
+ 
+ {{{http://lists.sourceforge.net/mailman/listinfo/myvd-develop}Subscribe/Unsubscribe/Preferences}}
+ 
+
+

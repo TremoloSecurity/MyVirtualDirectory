@@ -1,0 +1,23 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=external,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: external
+
+dn: cn=Test Cust,ou=external,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test Cust
+sn: Cust
+uid: testCust
+userPassword: secret
+
+dn: uid=externaluser,ou=external,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: testrouting
+sn: User
+uid: externaluser
+mail: externaluser@external.domain.com

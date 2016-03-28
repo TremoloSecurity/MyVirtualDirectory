@@ -1,0 +1,12 @@
+<project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>net.sourceforge.myvd.skins</groupId>
+        <artifactId>myvd-skin</artifactId>
+        
+        <version>0.1</version>
+        <name>Custom skin for MyVD project</name>
+        <url>http://myvd.sourceforge.net/</url>
+        
+    
+
+</project>

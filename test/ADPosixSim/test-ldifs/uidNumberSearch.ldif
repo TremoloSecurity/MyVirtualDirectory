@@ -1,0 +1,14 @@
+version: 1
+
+dn: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+uidnumber: 505
+loginshell: /bin/bash
+homedirectory: /home/mlb
+uid: mlb
+gidnumber: 500
+cn: Marc Boorshtein
+userPassword: mlbsecret
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount

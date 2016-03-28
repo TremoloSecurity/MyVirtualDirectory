@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=sudoers,cn=Users,o=mycompany,c=us
+uid: sudoers
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+objectClass: top
+objectClass: posixGroup

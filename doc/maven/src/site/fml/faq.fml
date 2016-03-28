@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<faqs id="General FAQ">
+  <part id="General">
+    <faq id="storage">
+      <question>Does MyVD include a storage engine?</question>
+      <answer>
+        <p>
+          No, MyVD does not include a storage engine.  This is for several
+	  reasons.  The first reason is that there are plenty of very good
+          directory servers out there (see links for some open source directory
+          servers).  I didn't see the advantage of adding one to MyVD.  The
+          second reason is that I am not a storage engine specialist so even
+          if I wanted to build a storage engine I wouldn't know where to start.
+        </p>
+      </answer>
+    </faq>
+    <faq id="faiover">
+      <question>Does MyVD have load ballancing or failover support?</question>
+      <answer>
+        <p>
+          No, In order for MyVD to support load ballancing or failover an external device would need to be used.
+        </p>
+      </answer>
+    </faq>    
+    <faq id="commercial">
+      <question>Can MyVD be used for corporate or commercial purposes?</question>
+      <answer>
+        <p>
+          Absolutly!  Though I would request that when it is possible any fixes made are submitted back to the MyVD project and if you can we would love to hear about how you deployed MyVD.
+        </p>
+      </answer>
+    </faq>
+    <faq id="java">
+      <question>Do I need to know Java to deploy MyVD?</question>
+      <answer>
+        <p>
+          No, MyVD only requires Java knowledge if you plan on creating a custom insert.  As MyVD matures their should be less and less of a need to develop custom inserts.
+        </p>
+      </answer>
+    </faq>
+      <faq id="readonly">
+      <question>Why are many of the inserts (such as the joiner and the db insert) read only?</question>
+      <answer>
+        <p>
+		The short answer is that when I wrote them, I only needed search capabilities.  The longer answer is that I would like to explore interesting ways to handle writes in situations where it isn't completely straight forward.  For instance with the DB insert, many if not most admins will only allow writes to the database via a stored procedure.  As for the joiner, if the namespaces don't line up theres a question as to how a new entrie's DN would be created.  These are all things to think about.
+        </p>
+      </answer>
+    </faq>
+  </part>
+</faqs>

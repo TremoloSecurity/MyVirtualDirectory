@@ -1,0 +1,289 @@
+version: 1
+
+dn: cn=schema
+objectClass: top
+objectClass: subentry
+objectClass: subschema
+objectClass: extensibleObject
+cn: schema
+objectClasses: ( 2.5.6.0 NAME 'top' DESC 'top of the superclass chain' ABSTRAC
+ T MUST objectClass )
+objectClasses: ( 1.3.6.1.4.1.1466.101.120.111 NAME 'extensibleObject' DESC 'RF
+ C2252: extensible object' SUP top AUXILIARY )
+objectClasses: ( 2.5.6.1 NAME 'alias' DESC 'RFC2256: an alias' SUP top STRUCTU
+ RAL MUST aliasedObjectName )
+objectClasses: ( 2.16.840.1.113730.3.2.6 NAME 'referral' DESC 'namedref: named
+  subordinate referral' SUP top STRUCTURAL MUST ref )
+objectClasses: ( 1.3.6.1.4.1.4203.1.4.1 NAME ( 'OpenLDAProotDSE' 'LDAProotDSE'
+  ) DESC 'OpenLDAP Root DSE object' SUP top STRUCTURAL MAY cn )
+objectClasses: ( 2.5.17.0 NAME 'subentry' SUP top STRUCTURAL MUST ( cn $ subtr
+ eeSpecification ) )
+objectClasses: ( 2.5.20.1 NAME 'subschema' DESC 'RFC2252: controlling subschem
+ a (sub)entry' AUXILIARY MAY ( dITStructureRules $ nameForms $ dITContentRules
+  $ objectClasses $ attributeTypes $ matchingRules $ matchingRuleUse ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.0 NAME 'olcConfig' DESC 'OpenLD
+ AP configuration object' SUP top ABSTRACT )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.1 NAME 'olcGlobal' DESC 'OpenLD
+ AP Global configuration options' SUP olcConfig STRUCTURAL MAY ( cn $ olcConfi
+ gFile $ olcConfigDir $ olcAllows $ olcArgsFile $ olcAttributeOptions $ olcAut
+ hIDRewrite $ olcAuthzPolicy $ olcAuthzRegexp $ olcConcurrency $ olcConnMaxPen
+ ding $ olcConnMaxPendingAuth $ olcDisallows $ olcGentleHUP $ olcIdleTimeout $
+  olcIndexSubstrIfMaxLen $ olcIndexSubstrIfMinLen $ olcIndexSubstrAnyLen $ olc
+ IndexSubstrAnyStep $ olcLocalSSF $ olcLogLevel $ olcPasswordCryptSaltFormat $
+  olcPasswordHash $ olcPidFile $ olcPluginLogFile $ olcReadOnly $ olcReferral 
+ $ olcReplicaPidFile $ olcReplicaArgsFile $ olcReplicationInterval $ olcReplog
+ File $ olcRequires $ olcRestrict $ olcReverseLookup $ olcRootDSE $ olcSaslHos
+ t $ olcSaslRealm $ olcSaslSecProps $ olcSecurity $ olcSizeLimit $ olcSockbufM
+ axIncoming $ olcSockbufMaxIncomingAuth $ olcSrvtab $ olcThreads $ olcTimeLimi
+ t $ olcTLSCACertificateFile $ olcTLSCACertificatePath $ olcTLSCertificateFile
+  $ olcTLSCertificateKeyFile $ olcTLSCipherSuite $ olcTLSCRLCheck $ olcTLSRand
+ File $ olcTLSVerifyClient $ olcTLSDHParamFile $ olcToolThreads $ olcObjectIde
+ ntifier $ olcAttributeTypes $ olcObjectClasses $ olcDitContentRules ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.2 NAME 'olcSchemaConfig' DESC '
+ OpenLDAP schema object' SUP olcConfig STRUCTURAL MAY ( cn $ olcObjectIdentifi
+ er $ olcAttributeTypes $ olcObjectClasses $ olcDitContentRules ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.3 NAME 'olcBackendConfig' DESC 
+ 'OpenLDAP Backend-specific options' SUP olcConfig STRUCTURAL MUST olcBackend 
+ )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.4 NAME 'olcDatabaseConfig' DESC
+  'OpenLDAP Database-specific options' SUP olcConfig STRUCTURAL MUST olcDataba
+ se MAY ( olcSuffix $ olcSubordinate $ olcAccess $ olcLastMod $ olcLimits $ ol
+ cMaxDerefDepth $ olcPlugin $ olcReadOnly $ olcReplica $ olcReplogFile $ olcRe
+ quires $ olcRestrict $ olcRootDN $ olcRootPW $ olcSchemaDN $ olcSecurity $ ol
+ cSizeLimit $ olcSyncrepl $ olcTimeLimit $ olcUpdateDN $ olcUpdateRef ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.5 NAME 'olcOverlayConfig' DESC 
+ 'OpenLDAP Overlay-specific options' SUP olcConfig STRUCTURAL MUST olcOverlay 
+ )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.6 NAME 'olcIncludeFile' DESC 'O
+ penLDAP configuration include file' SUP olcConfig STRUCTURAL MUST olcInclude 
+ MAY ( cn $ olcRootDSE ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.7 NAME 'olcFrontendConfig' DESC
+  'OpenLDAP frontend configuration' AUXILIARY MAY ( olcDefaultSearchBase $ olc
+ PasswordHash ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.0.8 NAME 'olcModuleList' DESC 'Op
+ enLDAP dynamic module info' SUP olcConfig STRUCTURAL MAY ( cn $ olcModulePath
+  $ olcModuleLoad ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.2.2.1 NAME 'olcLdifConfig' DESC '
+ LDIF backend configuration' SUP olcDatabaseConfig STRUCTURAL MUST olcDbDirect
+ ory )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.2.1.1 NAME 'olcBdbConfig' DESC 'B
+ DB backend configuration' SUP olcDatabaseConfig STRUCTURAL MUST olcDbDirector
+ y MAY ( olcDbCacheSize $ olcDbCheckpoint $ olcDbConfig $ olcDbNoSync $ olcDbD
+ irtyRead $ olcDbIDLcacheSize $ olcDbIndex $ olcDbLinearIndex $ olcDbLockDetec
+ t $ olcDbMode $ olcDbSearchStack $ olcDbShmKey $ olcDbCacheFree ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.2.1.2 NAME 'olcHdbConfig' DESC 'H
+ DB backend configuration' SUP olcDatabaseConfig STRUCTURAL MUST olcDbDirector
+ y MAY ( olcDbCacheSize $ olcDbCheckpoint $ olcDbConfig $ olcDbNoSync $ olcDbD
+ irtyRead $ olcDbIDLcacheSize $ olcDbIndex $ olcDbLinearIndex $ olcDbLockDetec
+ t $ olcDbMode $ olcDbSearchStack $ olcDbShmKey $ olcDbCacheFree ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.3.3.1 NAME 'olcChainConfig' DESC 
+ 'Chain configuration' SUP olcOverlayConfig STRUCTURAL MAY ( olcChainCacheURI 
+ $ olcChainMaxReferralDepth $ olcChainReturnError ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.3.3.2 NAME 'olcChainDatabase' DES
+ C 'Chain remote server configuration' AUXILIARY )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.2.3.1 NAME 'olcLDAPConfig' DESC '
+ LDAP backend configuration' SUP olcDatabaseConfig STRUCTURAL MAY ( olcDbURI $
+  olcDbStartTLS $ olcDbACLAuthcDn $ olcDbACLPasswd $ olcDbACLBind $ olcDbIDAss
+ ertAuthcDn $ olcDbIDAssertPasswd $ olcDbIDAssertBind $ olcDbIDAssertMode $ ol
+ cDbIDAssertAuthzFrom $ olcDbRebindAsUser $ olcDbChaseReferrals $ olcDbTFSuppo
+ rt $ olcDbProxyWhoAmI $ olcDbTimeout $ olcDbIdleTimeout $ olcDbSingleConn $ o
+ lcDbCancel $ olcDbQuarantine $ olcDbUseTemporaryConn $ olcDbConnectionPoolMax
+  ) )
+objectClasses: ( 1.3.6.1.4.1.4203.666.11.1.4.2.4.1 NAME 'olcMonitorConfig' DES
+ C 'Monitor backend configuration' SUP olcDatabaseConfig STRUCTURAL )
+objectClasses: ( 2.5.6.2 NAME 'country' DESC 'RFC2256: a country' SUP top STRU
+ CTURAL MUST c MAY ( searchGuide $ description ) )
+objectClasses: ( 2.5.6.3 NAME 'locality' DESC 'RFC2256: a locality' SUP top ST
+ RUCTURAL MAY ( street $ seeAlso $ searchGuide $ st $ l $ description ) )
+objectClasses: ( 2.5.6.4 NAME 'organization' DESC 'RFC2256: an organization' S
+ UP top STRUCTURAL MUST o MAY ( userPassword $ searchGuide $ seeAlso $ busines
+ sCategory $ x121Address $ registeredAddress $ destinationIndicator $ preferre
+ dDeliveryMethod $ telexNumber $ teletexTerminalIdentifier $ telephoneNumber $
+  internationaliSDNNumber $ facsimileTelephoneNumber $ street $ postOfficeBox 
+ $ postalCode $ postalAddress $ physicalDeliveryOfficeName $ st $ l $ descript
+ ion ) )
+objectClasses: ( 2.5.6.5 NAME 'organizationalUnit' DESC 'RFC2256: an organizat
+ ional unit' SUP top STRUCTURAL MUST ou MAY ( userPassword $ searchGuide $ see
+ Also $ businessCategory $ x121Address $ registeredAddress $ destinationIndica
+ tor $ preferredDeliveryMethod $ telexNumber $ teletexTerminalIdentifier $ tel
+ ephoneNumber $ internationaliSDNNumber $ facsimileTelephoneNumber $ street $ 
+ postOfficeBox $ postalCode $ postalAddress $ physicalDeliveryOfficeName $ st 
+ $ l $ description ) )
+objectClasses: ( 2.5.6.6 NAME 'person' DESC 'RFC2256: a person' SUP top STRUCT
+ URAL MUST cn MAY ( sn $ userPassword $ telephoneNumber $ seeAlso $ descriptio
+ n ) )
+objectClasses: ( 2.5.6.7 NAME 'organizationalPerson' DESC 'RFC2256: an organiz
+ ational person' SUP person STRUCTURAL MAY ( title $ x121Address $ registeredA
+ ddress $ destinationIndicator $ preferredDeliveryMethod $ telexNumber $ telet
+ exTerminalIdentifier $ telephoneNumber $ internationaliSDNNumber $ facsimileT
+ elephoneNumber $ street $ postOfficeBox $ postalCode $ postalAddress $ physic
+ alDeliveryOfficeName $ ou $ st $ l ) )
+objectClasses: ( 2.5.6.8 NAME 'organizationalRole' DESC 'RFC2256: an organizat
+ ional role' SUP top STRUCTURAL MUST cn MAY ( x121Address $ registeredAddress 
+ $ destinationIndicator $ preferredDeliveryMethod $ telexNumber $ teletexTermi
+ nalIdentifier $ telephoneNumber $ internationaliSDNNumber $ facsimileTelephon
+ eNumber $ seeAlso $ roleOccupant $ preferredDeliveryMethod $ street $ postOff
+ iceBox $ postalCode $ postalAddress $ physicalDeliveryOfficeName $ ou $ st $ 
+ l $ description ) )
+objectClasses: ( 2.5.6.9 NAME 'groupOfNames' DESC 'RFC2256: a group of names (
+ DNs)' SUP top STRUCTURAL MUST ( member $ cn ) MAY ( businessCategory $ seeAls
+ o $ owner $ ou $ o $ description ) )
+objectClasses: ( 2.5.6.10 NAME 'residentialPerson' DESC 'RFC2256: an residenti
+ al person' SUP person STRUCTURAL MUST l MAY ( businessCategory $ x121Address 
+ $ registeredAddress $ destinationIndicator $ preferredDeliveryMethod $ telexN
+ umber $ teletexTerminalIdentifier $ telephoneNumber $ internationaliSDNNumber
+  $ facsimileTelephoneNumber $ preferredDeliveryMethod $ street $ postOfficeBo
+ x $ postalCode $ postalAddress $ physicalDeliveryOfficeName $ st $ l ) )
+objectClasses: ( 2.5.6.11 NAME 'applicationProcess' DESC 'RFC2256: an applicat
+ ion process' SUP top STRUCTURAL MUST cn MAY ( seeAlso $ ou $ l $ description 
+ ) )
+objectClasses: ( 2.5.6.12 NAME 'applicationEntity' DESC 'RFC2256: an applicati
+ on entity' SUP top STRUCTURAL MUST ( presentationAddress $ cn ) MAY ( support
+ edApplicationContext $ seeAlso $ ou $ o $ l $ description ) )
+objectClasses: ( 2.5.6.13 NAME 'dSA' DESC 'RFC2256: a directory system agent (
+ a server)' SUP applicationEntity STRUCTURAL MAY knowledgeInformation )
+objectClasses: ( 2.5.6.14 NAME 'device' DESC 'RFC2256: a device' SUP top STRUC
+ TURAL MUST cn MAY ( serialNumber $ seeAlso $ owner $ ou $ o $ l $ description
+  ) )
+objectClasses: ( 2.5.6.15 NAME 'strongAuthenticationUser' DESC 'RFC2256: a str
+ ong authentication user' SUP top AUXILIARY MUST userCertificate )
+objectClasses: ( 2.5.6.16 NAME 'certificationAuthority' DESC 'RFC2256: a certi
+ ficate authority' SUP top AUXILIARY MUST ( authorityRevocationList $ certific
+ ateRevocationList $ cACertificate ) MAY crossCertificatePair )
+objectClasses: ( 2.5.6.17 NAME 'groupOfUniqueNames' DESC 'RFC2256: a group of 
+ unique names (DN and Unique Identifier)' SUP top STRUCTURAL MUST ( uniqueMemb
+ er $ cn ) MAY ( businessCategory $ seeAlso $ owner $ ou $ o $ description ) )
+objectClasses: ( 2.5.6.18 NAME 'userSecurityInformation' DESC 'RFC2256: a user
+  security information' SUP top AUXILIARY MAY supportedAlgorithms )
+objectClasses: ( 2.5.6.16.2 NAME 'certificationAuthority-V2' SUP certification
+ Authority AUXILIARY MAY deltaRevocationList )
+objectClasses: ( 2.5.6.19 NAME 'cRLDistributionPoint' SUP top STRUCTURAL MUST 
+ cn MAY ( certificateRevocationList $ authorityRevocationList $ deltaRevocatio
+ nList ) )
+objectClasses: ( 2.5.6.20 NAME 'dmd' SUP top STRUCTURAL MUST dmdName MAY ( use
+ rPassword $ searchGuide $ seeAlso $ businessCategory $ x121Address $ register
+ edAddress $ destinationIndicator $ preferredDeliveryMethod $ telexNumber $ te
+ letexTerminalIdentifier $ telephoneNumber $ internationaliSDNNumber $ facsimi
+ leTelephoneNumber $ street $ postOfficeBox $ postalCode $ postalAddress $ phy
+ sicalDeliveryOfficeName $ st $ l $ description ) )
+objectClasses: ( 2.5.6.21 NAME 'pkiUser' DESC 'RFC2587: a PKI user' SUP top AU
+ XILIARY MAY userCertificate )
+objectClasses: ( 2.5.6.22 NAME 'pkiCA' DESC 'RFC2587: PKI certificate authorit
+ y' SUP top AUXILIARY MAY ( authorityRevocationList $ certificateRevocationLis
+ t $ cACertificate $ crossCertificatePair ) )
+objectClasses: ( 2.5.6.23 NAME 'deltaCRL' DESC 'RFC2587: PKI user' SUP top AUX
+ ILIARY MAY deltaRevocationList )
+objectClasses: ( 1.3.6.1.4.1.250.3.15 NAME 'labeledURIObject' DESC 'RFC2079: o
+ bject that contains the URI attribute type' SUP top AUXILIARY MAY labeledURI 
+ )
+objectClasses: ( 0.9.2342.19200300.100.4.19 NAME 'simpleSecurityObject' DESC '
+ RFC1274: simple security object' SUP top AUXILIARY MUST userPassword )
+objectClasses: ( 1.3.6.1.4.1.1466.344 NAME 'dcObject' DESC 'RFC2247: domain co
+ mponent object' SUP top AUXILIARY MUST dc )
+objectClasses: ( 1.3.6.1.1.3.1 NAME 'uidObject' DESC 'RFC2377: uid object' SUP
+  top AUXILIARY MUST uid )
+objectClasses: ( 0.9.2342.19200300.100.4.4 NAME ( 'pilotPerson' 'newPilotPerso
+ n' ) SUP person STRUCTURAL MAY ( userid $ textEncodedORAddress $ rfc822Mailbo
+ x $ favouriteDrink $ roomNumber $ userClass $ homeTelephoneNumber $ homePosta
+ lAddress $ secretary $ personalTitle $ preferredDeliveryMethod $ businessCate
+ gory $ janetMailbox $ otherMailbox $ mobileTelephoneNumber $ pagerTelephoneNu
+ mber $ organizationalStatus $ mailPreferenceOption $ personalSignature ) )
+objectClasses: ( 0.9.2342.19200300.100.4.5 NAME 'account' SUP top STRUCTURAL M
+ UST userid MAY ( description $ seeAlso $ localityName $ organizationName $ or
+ ganizationalUnitName $ host ) )
+objectClasses: ( 0.9.2342.19200300.100.4.6 NAME 'document' SUP top STRUCTURAL 
+ MUST documentIdentifier MAY ( commonName $ description $ seeAlso $ localityNa
+ me $ organizationName $ organizationalUnitName $ documentTitle $ documentVers
+ ion $ documentAuthor $ documentLocation $ documentPublisher ) )
+objectClasses: ( 0.9.2342.19200300.100.4.7 NAME 'room' SUP top STRUCTURAL MUST
+  commonName MAY ( roomNumber $ description $ seeAlso $ telephoneNumber ) )
+objectClasses: ( 0.9.2342.19200300.100.4.9 NAME 'documentSeries' SUP top STRUC
+ TURAL MUST commonName MAY ( description $ seeAlso $ telephonenumber $ localit
+ yName $ organizationName $ organizationalUnitName ) )
+objectClasses: ( 0.9.2342.19200300.100.4.13 NAME 'domain' SUP top STRUCTURAL M
+ UST domainComponent MAY ( associatedName $ organizationName $ description $ b
+ usinessCategory $ seeAlso $ searchGuide $ userPassword $ localityName $ state
+ OrProvinceName $ streetAddress $ physicalDeliveryOfficeName $ postalAddress $
+  postalCode $ postOfficeBox $ streetAddress $ facsimileTelephoneNumber $ inte
+ rnationalISDNNumber $ telephoneNumber $ teletexTerminalIdentifier $ telexNumb
+ er $ preferredDeliveryMethod $ destinationIndicator $ registeredAddress $ x12
+ 1Address ) )
+objectClasses: ( 0.9.2342.19200300.100.4.14 NAME 'RFC822localPart' SUP domain 
+ STRUCTURAL MAY ( commonName $ surname $ description $ seeAlso $ telephoneNumb
+ er $ physicalDeliveryOfficeName $ postalAddress $ postalCode $ postOfficeBox 
+ $ streetAddress $ facsimileTelephoneNumber $ internationalISDNNumber $ teleph
+ oneNumber $ teletexTerminalIdentifier $ telexNumber $ preferredDeliveryMethod
+  $ destinationIndicator $ registeredAddress $ x121Address ) )
+objectClasses: ( 0.9.2342.19200300.100.4.15 NAME 'dNSDomain' SUP domain STRUCT
+ URAL MAY ( ARecord $ MDRecord $ MXRecord $ NSRecord $ SOARecord $ CNAMERecord
+  ) )
+objectClasses: ( 0.9.2342.19200300.100.4.17 NAME 'domainRelatedObject' DESC 'R
+ FC1274: an object related to an domain' SUP top AUXILIARY MUST associatedDoma
+ in )
+objectClasses: ( 0.9.2342.19200300.100.4.18 NAME 'friendlyCountry' SUP country
+  STRUCTURAL MUST friendlyCountryName )
+objectClasses: ( 0.9.2342.19200300.100.4.20 NAME 'pilotOrganization' SUP ( org
+ anization $ organizationalUnit ) STRUCTURAL MAY buildingName )
+objectClasses: ( 0.9.2342.19200300.100.4.21 NAME 'pilotDSA' SUP dsa STRUCTURAL
+  MAY dSAQuality )
+objectClasses: ( 0.9.2342.19200300.100.4.22 NAME 'qualityLabelledData' SUP top
+  AUXILIARY MUST dsaQuality MAY ( subtreeMinimumQuality $ subtreeMaximumQualit
+ y ) )
+objectClasses: ( 2.16.840.1.113730.3.2.2 NAME 'inetOrgPerson' DESC 'RFC2798: I
+ nternet Organizational Person' SUP organizationalPerson STRUCTURAL MAY ( audi
+ o $ businessCategory $ carLicense $ departmentNumber $ displayName $ employee
+ Number $ employeeType $ givenName $ homePhone $ homePostalAddress $ initials 
+ $ jpegPhoto $ labeledURI $ mail $ manager $ mobile $ o $ pager $ photo $ room
+ Number $ secretary $ uid $ userCertificate $ x500uniqueIdentifier $ preferred
+ Language $ userSMIMECertificate $ userPKCS12 ) )
+objectClasses: ( 1.3.6.1.1.1.2.0 NAME 'posixAccount' DESC 'Abstraction of an a
+ ccount with POSIX attributes' SUP top AUXILIARY MUST ( cn $ uid $ uidNumber $
+  gidNumber $ homeDirectory ) MAY ( userPassword $ loginShell $ gecos $ descri
+ ption ) )
+objectClasses: ( 1.3.6.1.1.1.2.1 NAME 'shadowAccount' DESC 'Additional attribu
+ tes for shadow passwords' SUP top AUXILIARY MUST uid MAY ( userPassword $ sha
+ dowLastChange $ shadowMin $ shadowMax $ shadowWarning $ shadowInactive $ shad
+ owExpire $ shadowFlag $ description ) )
+objectClasses: ( 1.3.6.1.1.1.2.2 NAME 'posixGroup' DESC 'Abstraction of a grou
+ p of accounts' SUP top STRUCTURAL MUST ( cn $ gidNumber ) MAY ( userPassword 
+ $ memberUid $ description ) )
+objectClasses: ( 1.3.6.1.1.1.2.3 NAME 'ipService' DESC 'Abstraction an Interne
+ t Protocol service' SUP top STRUCTURAL MUST ( cn $ ipServicePort $ ipServiceP
+ rotocol ) MAY description )
+objectClasses: ( 1.3.6.1.1.1.2.4 NAME 'ipProtocol' DESC 'Abstraction of an IP 
+ protocol' SUP top STRUCTURAL MUST ( cn $ ipProtocolNumber $ description ) MAY
+  description )
+objectClasses: ( 1.3.6.1.1.1.2.5 NAME 'oncRpc' DESC 'Abstraction of an ONC/RPC
+  binding' SUP top STRUCTURAL MUST ( cn $ oncRpcNumber $ description ) MAY des
+ cription )
+objectClasses: ( 1.3.6.1.1.1.2.6 NAME 'ipHost' DESC 'Abstraction of a host, an
+  IP device' SUP top AUXILIARY MUST ( cn $ ipHostNumber ) MAY ( l $ descriptio
+ n $ manager ) )
+objectClasses: ( 1.3.6.1.1.1.2.7 NAME 'ipNetwork' DESC 'Abstraction of an IP n
+ etwork' SUP top STRUCTURAL MUST ( cn $ ipNetworkNumber ) MAY ( ipNetmaskNumbe
+ r $ l $ description $ manager ) )
+objectClasses: ( 1.3.6.1.1.1.2.8 NAME 'nisNetgroup' DESC 'Abstraction of a net
+ group' SUP top STRUCTURAL MUST cn MAY ( nisNetgroupTriple $ memberNisNetgroup
+  $ description ) )
+objectClasses: ( 1.3.6.1.1.1.2.9 NAME 'nisMap' DESC 'A generic abstraction of 
+ a NIS map' SUP top STRUCTURAL MUST nisMapName MAY description )
+objectClasses: ( 1.3.6.1.1.1.2.10 NAME 'nisObject' DESC 'An entry in a NIS map
+ ' SUP top STRUCTURAL MUST ( cn $ nisMapEntry $ nisMapName ) MAY description )
+objectClasses: ( 1.3.6.1.1.1.2.11 NAME 'ieee802Device' DESC 'A device with a M
+ AC address' SUP top AUXILIARY MAY macAddress )
+objectClasses: ( 1.3.6.1.1.1.2.12 NAME 'bootableDevice' DESC 'A device with bo
+ ot parameters' SUP top AUXILIARY MAY ( bootFile $ bootParameter ) )
+objectClasses: ( 2.16.840.1.113730.3.2.147 NAME 'inetLocalMailRecipient' DESC 
+ 'Internet local mail recipient' SUP top AUXILIARY MAY ( mailLocalAddress $ ma
+ ilHost $ mailRoutingAddress ) )
+objectClasses: ( 1.3.6.1.4.1.42.2.27.1.2.5 NAME 'nisMailAlias' DESC 'NIS mail 
+ alias' SUP top STRUCTURAL MUST cn MAY rfc822MailMember )
+objectClasses: ( 2.16.840.1.333730.3.2.2 NAME 'container' DESC 'ad container' 
+ SUP top STRUCTURAL MUST cn MAY objectGUID )
+objectClasses: ( 2.16.840.1.333730.3.2.3 NAME 'user' DESC 'ad person' SUP inet
+ OrgPerson STRUCTURAL MUST ( samAccountName $ objectGUID $ objectSID $ primary
+ GroupID ) )
+objectClasses: ( 2.16.840.1.333730.3.2.4 NAME 'group' DESC 'ad group' SUP top 
+ STRUCTURAL MUST ( cn $ objectGUID $ objectSID ) MAY ( samAccountName $ member
+  ) )
+

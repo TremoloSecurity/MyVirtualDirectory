@@ -1,0 +1,229 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Creating Custom Inserts
+
+ MyVD supports the creation of custom inserts.  Technically speaking, there is no difference between a "custom" insert and one that comes with MyVD.  Inserts are pretty straight forward to build and only require some knowledge of LDAP, Java and whatever you are looking to integrate.  Inserts work on a similar premesise as Java Servlet filters.  A single method is used for both pre, post and operation control.
+
+* Why Create a Custom Insert?
+ 
+ There are many reasons why you would create a custom insert.  These range from integrating a resource that is not currently supported by MyVD (such as a web service) to needing to implement more complex routing rules then existing Inserts provide.
+
+* Creating a Development Environment
+ 
+ MyVD requires the following for developing a custom insert:
+
+ * JDK 1.5+
+
+ * myvd.jar
+
+ * ldap.jar
+
+ * jdbcldap.jar
+
+ []
+
+ As for how you develop and integrate your custom insert, thats up to you. 
+
+* Getting Started
+
+ Once your development environment is setup, creating an insert only requires that you implement the net.sourceforge.myvd.inserts.Insert interface.  A bare bones insert might look like this:  
+
++----------+
+package net.sourceforge.myvd;
+
+import java.util.ArrayList;
+import java.util.Properties;
+
+import com.novell.ldap.LDAPConstraints;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPModification;
+import com.novell.ldap.LDAPSearchConstraints;
+
+import net.sourceforge.myvd.chain.AddInterceptorChain;
+import net.sourceforge.myvd.chain.BindInterceptorChain;
+import net.sourceforge.myvd.chain.CompareInterceptorChain;
+import net.sourceforge.myvd.chain.DeleteInterceptorChain;
+import net.sourceforge.myvd.chain.ExetendedOperationInterceptorChain;
+import net.sourceforge.myvd.chain.ModifyInterceptorChain;
+import net.sourceforge.myvd.chain.PostSearchCompleteInterceptorChain;
+import net.sourceforge.myvd.chain.PostSearchEntryInterceptorChain;
+import net.sourceforge.myvd.chain.RenameInterceptorChain;
+import net.sourceforge.myvd.chain.SearchInterceptorChain;
+import net.sourceforge.myvd.core.NameSpace;
+import net.sourceforge.myvd.inserts.Insert;
+import net.sourceforge.myvd.types.Attribute;
+import net.sourceforge.myvd.types.Bool;
+import net.sourceforge.myvd.types.DistinguishedName;
+import net.sourceforge.myvd.types.Entry;
+import net.sourceforge.myvd.types.ExtendedOperation;
+import net.sourceforge.myvd.types.Filter;
+import net.sourceforge.myvd.types.Int;
+import net.sourceforge.myvd.types.Password;
+import net.sourceforge.myvd.types.Results;
+
+public class WebServiceInsert implements Insert {
+
+	public void add(AddInterceptorChain chain, Entry entry,
+			LDAPConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextAdd(entry, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void bind(BindInterceptorChain chain, DistinguishedName dn,
+			Password pwd, LDAPConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextBind(dn, pwd, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void compare(CompareInterceptorChain chain, DistinguishedName dn,
+			Attribute attrib, LDAPConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+
+		chain.nextCompare(dn, attrib, constraints);
+		
+		//TODO Add post-operation code
+	}
+
+	public void configure(String name, Properties props, NameSpace nameSpace)
+			throws LDAPException {
+		//TODO Write Configuration Code Here
+
+	}
+
+	public void delete(DeleteInterceptorChain chain, DistinguishedName dn,
+			LDAPConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+
+		chain.nextDelete(dn, constraints);
+		
+		//TODO Add post-operation code
+	}
+
+	public void extendedOperation(ExetendedOperationInterceptorChain chain,
+			ExtendedOperation op, LDAPConstraints constraints)
+			throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextExtendedOperations(op, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void modify(ModifyInterceptorChain chain, DistinguishedName dn,
+			ArrayList<LDAPModification> mods, LDAPConstraints constraints)
+			throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextModify(dn, mods, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void postSearchComplete(PostSearchCompleteInterceptorChain chain,
+			DistinguishedName base, Int scope, Filter filter,
+			ArrayList<Attribute> attributes, Bool typesOnly,
+			LDAPSearchConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextPostSearchComplete(base, scope, filter, attributes, typesOnly, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void postSearchEntry(PostSearchEntryInterceptorChain chain,
+			Entry entry, DistinguishedName base, Int scope, Filter filter,
+			ArrayList<Attribute> attributes, Bool typesOnly,
+			LDAPSearchConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void rename(RenameInterceptorChain chain, DistinguishedName dn,
+			DistinguishedName newRdn, Bool deleteOldRdn,
+			LDAPConstraints constraints) throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextRename(dn, newRdn, deleteOldRdn, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+	public void rename(RenameInterceptorChain chain, DistinguishedName dn,
+			DistinguishedName newRdn, DistinguishedName newParentDN,
+			Bool deleteOldRdn, LDAPConstraints constraints)
+			throws LDAPException {
+		//TODO Add pre-operation code
+
+		chain.nextRename(dn, newRdn, newParentDN, deleteOldRdn, constraints);
+		
+		//TODO Add post-operation code
+	}
+
+	public void search(SearchInterceptorChain chain, DistinguishedName base,
+			Int scope, Filter filter, ArrayList<Attribute> attributes,
+			Bool typesOnly, Results results, LDAPSearchConstraints constraints)
+			throws LDAPException {
+		//TODO Add pre-operation code
+		
+		chain.nextSearch(base, scope, filter, attributes, typesOnly, results, constraints);
+		
+		//TODO Add post-operation code
+
+	}
+
+}
++----------+
+
+ Each method has essentially the same pattern:
+
+ 1.  Pre-operation work (ie adding attributes or routing)
+
+ 2.  Continue down the operations chain
+
+ 3.  Post-operation work
+
+ []
+
+ If this insert is going to handle the request then don't call the methods "nextXXX" method.  The "configure" method is called when the insert is initiated.  The "props" object contains all properties configured for this insert.
+
+* Accessing and Updating the Virtual Directory
+
+ Sometimes it's desirable to perform a search or update an object in the directory inside of an insert.  Inserts may create new chains of execution via the "createXXX" methods on the chain object.
+
++----------+
+chain.createAddChain().nextAdd(entry, constraints);
++----------+
+
+ This code will execute every insert below the current one.  So for instance if this insert is the 3rd in a chain of five inserts the above code would execute inserts four and five.
+
+* Using SQL inside of MyVD
+
+ One feature that only exists in MyVD is to utilize the JDBC-LDAP bridge to use SQL inside of MyVD instead of coding what is needed uing the above method.  This is useful for Java developers who are more familiar with SQL then LDAP.  A connection object can be retrieved via the chain object.
+
++----------+
+java.sql.Connection con = chain.createJdbcLdapConnection();
++----------+
+
+* Deploying Custom Inserts
+
+ Once the insert is complete, jar it and copy it to the "lib" directory of your MyVD installation.  Then you can configure your insert like any other insert.

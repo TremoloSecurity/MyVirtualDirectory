@@ -1,0 +1,488 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Joining Identities
+
+  One of the main features and use cases of a virtual directory is to join identities in disparate stores.  For instance, an enterprise directory may
+  store enterprise wide user data, but a new application requires additional data (such as role based data).  While the attributes could be added to 
+  the enterprise directory or an edge directory can be created and synchronized with the enterprise directory a simpler solution would be to setup a
+  virtual directory to join, in real time, a database used to store the user data with data from the enterprise directory.  The basic design is as
+  follows:
+  
+  [[1]] An OpenLDAP server that contains enterprise user data
+  
+  [[2]] A MySQL database storing the userid, location and application attributes
+  
+  [[3]] MyVD deployed joining the two sources
+  
+  []
+  
+  The enterprise data:
+
++----------+
+# users, domain.com
+dn: ou=users,dc=domain,dc=com
+ou: users
+objectClass: organizationalUnit
+
+# jsmith000, users, domain.com
+dn: uid=jsmith000,ou=users,dc=domain,dc=com
+userPassword:: c2VjcmV0
+uid: jsmith000
+sn: Smith
+cn: Joe Smith
+objectClass: inetOrgPerson
+
+# jsmith002, users, domain.com
+dn: uid=jsmith002,ou=users,dc=domain,dc=com
+userPassword:: c2VjcmV0
+uid: jsmith002
+sn: Smith
+cn: Jen Smith
+objectClass: inetOrgPerson
+
+# bdund003, users, domain.com
+dn: uid=bdund003,ou=users,dc=domain,dc=com
+userPassword:: c2VjcmV0
+uid: bdund003
+sn: Dund
+cn: Briana Dund
+objectClass: inetOrgPerson
+
+# rsandburg015, users, domain.com
+dn: uid=rsandburg015,ou=users,dc=domain,dc=com
+userPassword:: c2VjcmV0
+uid: rsandburg015
+sn: Sandburg
+cn: Robert Sandburg
+objectClass: inetOrgPerson
++----------+
+
+ The database table that will store the enterprise data :
+ 
+*------------+-------------+------+-----+---------+----------------+
+| Field      | Type        | Null | Key | Default | Extra          |
+*------------+-------------+------+-----+---------+----------------+
+| id         | int(11)     | NO   | PRI | NULL    | auto_increment |
+*------------+-------------+------+-----+---------+----------------+ 
+| username   | varchar(50) | YES  |     | NULL    |                |
+*------------+-------------+------+-----+---------+----------------+ 
+| location   | varchar(50) | YES  |     | NULL    |                |
+*------------+-------------+------+-----+---------+----------------+ 
+| appAttrib1 | varchar(50) | YES  |     | NULL    |                |
+*------------+-------------+------+-----+---------+----------------+ 
+| appAttrib2 | varchar(50) | YES  |     | NULL    |                |
+*------------+-------------+------+-----+---------+----------------+ 
+
+ The data in the table:
+ 
+*--------------+----------+------------+----------------+
+| username     | location | appAttrib1 | appAttrib2     |
+*--------------+----------+------------+----------------+
+| jsmith000    | Boston   | widgets    | doo-dads       |
+*--------------+----------+------------+----------------+
+| jsmith002    | Boston   | wing-dings | doo-dads       | 
+*--------------+----------+------------+----------------+
+| bdund003     | LA       | wing-dings | thingamabobers | 
+*--------------+----------+------------+----------------+
+| rsandburg015 | Chicago  | widgets    | thingamabobers | 
+*--------------+----------+------------+----------------+
+
+  Notice that "username" field in the database table and the uid LDAP attributes match.  This will be how we join a record in MyVD using the joiner 
+  insert.  Before we configure our joiner, first the database and the enterprise directory need to be configured in MyVD.  Below is the MyVirtualDirectory
+  configuration for the enterprise directory and the database.
+  
++----------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees,LDAPEmployees
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=o=db|o=ldap
+
+server.DBEmployees.chain=DB
+server.DBEmployees.nameSpace=o=db
+server.DBEmployees.weight=0
+server.DBEmployees.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployees.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployees.DB.config.url=jdbc:mysql://127.0.0.1/myvdjoin
+server.DBEmployees.DB.config.user=trenduser
+server.DBEmployees.DB.config.password=secret
+server.DBEmployees.DB.config.rdn=uid
+server.DBEmployees.DB.config.mapping=uid=username,l=location,appAttrib1=appAttrib1,appAttrib2=appAttrib2
+server.DBEmployees.DB.config.objectClass=dbPerson
+server.DBEmployees.DB.config.sql=SELECT username,location,appAttrib1,appAttrib2 FROM userdata
+server.DBEmployees.DB.config.useSimple=true
+
+server.LDAPEmployees.chain=LDAP
+server.LDAPEmployees.nameSpace=o=ldap
+server.LDAPEmployees.weight=0
+server.LDAPEmployees.LDAP.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.LDAPEmployees.LDAP.config.host=127.0.0.1
+server.LDAPEmployees.LDAP.config.port=389
+server.LDAPEmployees.LDAP.config.remoteBase=ou=users,dc=domain,dc=com
++----------+
+
+  The above configuration is straight forward.  A single ldap insert chain is created for the enterprise directory and a database insert chain for the 
+  application database table.  Before configuring the joiner, lets go into the details of configuring the joiner:
+
+ The joiner is used to combine two LDAP namespaces (note that this means two DN namespace, not two configuration namespaces). The joiner combines entries from each namespace.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.Joiner               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|primaryNamespace|LDAP DN that represents a configured namespace that will drive the namespace of the joiner|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedNamespace|LDAP DN that represents a configured namespace that will be joined with the primaryNamespace.  The namespace of the primaryNamespace drives the joiner's namespace|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedAttributes|Attributes to be included in the join|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinFilter|A filter that is used to combine objects.  When including an attribute from the joining entry prepend the attribute with "ATTR.".  For instance, to combine a user based on the uid attribute the filter would be "(uid=ATTR.uid)"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+  The joiner insert is designed to work only on searches.  There is support for add, modify delete and rename operations with addtional inserts, which
+  will be covered below.  The joiner configuration is fairly straight forward.  There are a few of concepts that need to be understood:
+  
+  [[1]] Namepsace Joining - The joiner doesn't join configuration namespaces (such as DBEmployees and LDAPEmployees in the above configuration) but
+  instead joins directory namespaces (ie o=ldap, o=db).  This means that you could join a single database to multiple directories with a single joiner
+  if they were all in the same namepsace (ie join o=db with ou=people which may include a directory at ou=ineternal,ou=people and another directory
+  at ou=external,ou=people).
+  
+  [[2]] Primary Namspace - The primary namespace drives the structure of the directory.  This means that if an entry exists in the primary namespace but
+  not in the joined namespace the entry will still be returned.  If the opposite is true, an entry exists in the joined namespace but not the primary
+  namespace the entry won't be returned to the client.  For instance lets say the primary namespace is ou=people and the joined namespace is o=db
+  the entry ou=internal,ou=people would be returned to the client but the entry ou=people,o=db would not (assuming the join filter is on the uid 
+  attribute).
+  
+  [[3]] Joined Namespace - The joined namespace indicates which directory namspace to join the primary namspace too.  Entries in the joined namespace are
+  used only for adding additional attributes to entries in the primary namespace.  The structure of the joined namespace is ignored.
+  
+  [[4]] Join Filter - Entries between the two namespaces are joined based on a join filter.  This filter is used to find the joined entry of an entry
+  returned by a search.  It is the same as a regular LDAP filter, but instead of specifying a value for an attribute, you can spcify ATTRIB.attribute
+  to indicate that the value should be replaced for the join.  For instance if joining with the filter "(&(uid=ATTRIB.uid)(|(objectClass=dbPerson)(objectClass=inetOrgPerson))" and
+  the following entry were returned:
+  
++----------+
+# bdund003, ldap
+dn: uid=bdund003,o=ldap
+userPassword:: c2VjcmV0
+uid: bdund003
+sn: Dund
+cn: Briana Dund
+objectClass: inetOrgPerson
++----------+
+
+  The virtual directory server would then perform a search on o=db with the filter 
+  "(&(uid=bdund003)(|(objectClass=dbPerson)(objectClass=inetOrgPerson))", replacing the attribute ATTRIB.uid with the uid from the returned entry.
+  
+  []
+  
+  Now that the basic concepts of joining have been covered, lets configure a joiner.  The below configuration joins our enterprise directory and 
+  application database:
+  
++----------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees,LDAPEmployees,Joiner
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=o=db|o=ldap|ou=people,dc=domain,dc=com
+
+#Application specific database
+server.DBEmployees.chain=DB
+server.DBEmployees.nameSpace=o=db
+server.DBEmployees.weight=0
+server.DBEmployees.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployees.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployees.DB.config.url=jdbc:mysql://127.0.0.1/myvdjoin
+server.DBEmployees.DB.config.user=trenduser
+server.DBEmployees.DB.config.password=secret
+server.DBEmployees.DB.config.rdn=uid
+server.DBEmployees.DB.config.mapping=uid=username,l=location,appAttrib1=appAttrib1,appAttrib2=appAttrib2
+server.DBEmployees.DB.config.objectClass=dbPerson
+server.DBEmployees.DB.config.sql=SELECT username,location,appAttrib1,appAttrib2 FROM userdata
+server.DBEmployees.DB.config.useSimple=true
+
+#Enterprise directory
+server.LDAPEmployees.chain=LDAP
+server.LDAPEmployees.nameSpace=o=ldap
+server.LDAPEmployees.weight=0
+server.LDAPEmployees.LDAP.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.LDAPEmployees.LDAP.config.host=127.0.0.1
+server.LDAPEmployees.LDAP.config.port=389
+server.LDAPEmployees.LDAP.config.remoteBase=ou=users,dc=domain,dc=com
+
+#Join the database and directory on the UID attribute
+server.Joiner.chain=joiner
+server.Joiner.nameSpace=ou=people,dc=domain,dc=com
+server.Joiner.weight=0
+server.Joiner.joiner.className=net.sourceforge.myvd.inserts.join.Joiner
+server.Joiner.joiner.config.primaryNamespace=o=ldap
+server.Joiner.joiner.config.joinedNamespace=o=db
+server.Joiner.joiner.config.joinedAttributes=uid,l,appattrib1,appattrib2
+server.Joiner.joiner.config.joinFilter=(uid=ATTR.uid)
++----------+
+  
+  Now when we perform the search "(objectClass=*)" on the base "ou=people,dc=domain,dc=com" the following results are returned:
+  
++----------+
+# people, domain.com
+dn: ou=people,dc=domain,dc=com
+ou: users
+objectClass: organizationalUnit
+
+# jsmith000, people, domain.com
+dn: uid=jsmith000,ou=people,dc=domain,dc=com
+primaryDN: uid=jsmith000,o=ldap
+joinedDNs: uid=jsmith000,o=db
+userPassword:: c2VjcmV0
+uid: jsmith000
+l: Boston
+appattrib2: doo-dads
+appattrib1: widgets
+sn: Smith
+cn: Joe Smith
+objectClass: inetOrgPerson
+objectClass: dbPerson
+
+# jsmith002, people, domain.com
+dn: uid=jsmith002,ou=people,dc=domain,dc=com
+primaryDN: uid=jsmith002,o=ldap
+joinedDNs: uid=jsmith002,o=db
+userPassword:: c2VjcmV0
+uid: jsmith002
+l: Boston
+appattrib2: doo-dads
+appattrib1: wing-dings
+sn: Smith
+cn: Jen Smith
+objectClass: inetOrgPerson
+objectClass: dbPerson
+
+# bdund003, people, domain.com
+dn: uid=bdund003,ou=people,dc=domain,dc=com
+primaryDN: uid=bdund003,o=ldap
+joinedDNs: uid=bdund003,o=db
+userPassword:: c2VjcmV0
+uid: bdund003
+l: LA
+appattrib2: thingamabobers
+appattrib1: wing-dings
+sn: Dund
+cn: Briana Dund
+objectClass: inetOrgPerson
+objectClass: dbPerson
+
+# rsandburg015, people, domain.com
+dn: uid=rsandburg015,ou=people,dc=domain,dc=com
+primaryDN: uid=rsandburg015,o=ldap
+joinedDNs: uid=rsandburg015,o=db
+userPassword:: c2VjcmV0
+uid: rsandburg015
+l: Chicago
+appattrib2: thingamabobers
+appattrib1: widgets
+sn: Sandburg
+cn: Robert Sandburg
+objectClass: inetOrgPerson
+objectClass: dbPerson
++----------+
+
+  Notice that all of the users have attributes from both the enterprise directory and the application specific database.  In addion there are two 
+  additional attributes:
+  
+  [[1]] primaryDN - The DN from the primary namespace
+  
+  [[2]] joinedDNs - The DN(s) from the joined namepsaces
+  
+  []
+  
+  These attributes may be useful for tracking how a user is brought together.
+  
+  Thats it!  A simplistic, yet very useful, join has been created to support a specific application without adding attributes to the enterprise 
+  directory or creating a synchronized copy.
+  
+* Updating, Adding and Deleting Joined Entries
+
+  As stated above the joiner is built to only directly support searches.  This is because modifications may follow seperate rules and adds & 
+  deletes require knowing and understanding namespaces involved in a join.  There are several two ways to perform writes to a joined namespace:
+  
+  [[1]] If the joined namespace has a flat structure, a pre-built insert may be used
+  
+  [[2]] If the joined naemspace has a deep structure a custom insert may be built
+  
+  []
+  
+  We will configure our virtual directory to be able to update both the enterprise and application specific directory.  In order to support adds,
+  modifies, deletes and renames we will configure several additional inserts:
+  
+  [[1]] JoinAddFlatNS - Support the add and delete operations
+  
+  The join add flat namespace insert is designed to allow the addition of entries to a joiner namespace.  NOTE: this insert MUST be configured as the
+  last insert on a chain.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.JonAddFlatNS               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|joinerName|The name of the joiner insert configured on this chain|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedObjectClass|The objectclass for joined entries|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |sharedAttributes|Comma seperated list of attributes shared by both the primary and joined namespaces|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+  
+  [[2]] SimpleJoinModify - Supports the modification of joined entries
+  
+  The simple join modify insert is configured AFTER a joiner on a chain in order to support the modification of joined attributes
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.SimpleJoinModify               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Modify                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|joinerName|The name of the joiner insert configured on this chain|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+ 
+  [[3]] DBTableUpdate - Supports the modification of the database table
+
+  This insert contains the logic to update a single database table.  It is configured BEHIND a database insert in order to utilize that insert's
+  connection pool and mapping.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.jdbc.DBTableUpdate        |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add,Modify,Delete,Rename                               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|tableName                                              |The name of the table to update in the database|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |dbInsertName                                           |The name of the insert used by this insert|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+ 
+  
+  []
+  
+  The above inserts all have a few things in common.  They are all configured AFTER their main insert and they relly on their main insert's 
+  configuration.  That is to say that the JoinAddFlatNS and SimpleJoinModify inserts are configured after the joiner insert and the DBTableUpdate 
+  insert is configured after the application database insert.  In addition, they are configured to "know" about their main insert to eliminate
+  double configurations.  The below configuration will allow for the creation and modification of entries of the joiner we previously configured:
+  
++---------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees,LDAPEmployees,Joiner
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=o=db|o=ldap|ou=people,dc=domain,dc=com
+
+server.DBEmployees.chain=DB,dbupdate
+server.DBEmployees.nameSpace=o=db
+server.DBEmployees.weight=0
+server.DBEmployees.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployees.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployees.DB.config.url=jdbc:mysql://127.0.0.1/myvdjoin
+server.DBEmployees.DB.config.user=trenduser
+server.DBEmployees.DB.config.password=secret
+server.DBEmployees.DB.config.rdn=uid
+server.DBEmployees.DB.config.mapping=uid=username,l=location,appAttrib1=appAttrib1,appAttrib2=appAttrib2
+server.DBEmployees.DB.config.objectClass=dbPerson
+server.DBEmployees.DB.config.sql=SELECT username,location,appAttrib1,appAttrib2 FROM userdata
+server.DBEmployees.DB.config.useSimple=true
+#The database update insert
+server.DBEmployees.dbupdate.className=net.sourceforge.myvd.inserts.jdbc.DBTableUpdate
+server.DBEmployees.dbupdate.config.tableName=userdata
+server.DBEmployees.dbupdate.config.dbInsertName=DB
+
+
+server.LDAPEmployees.chain=LDAP
+server.LDAPEmployees.nameSpace=o=ldap
+server.LDAPEmployees.weight=0
+server.LDAPEmployees.LDAP.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.LDAPEmployees.LDAP.config.host=127.0.0.1
+server.LDAPEmployees.LDAP.config.port=389
+server.LDAPEmployees.LDAP.config.remoteBase=ou=users,dc=domain,dc=com
+server.LDAPEmployees.LDAP.config.proxyDN=cn=admin,dc=domain,dc=com
+server.LDAPEmployees.LDAP.config.proxyPass=secret
+
+#The Joiner
+server.Joiner.chain=joiner,joinmod,joinadd
+server.Joiner.nameSpace=ou=people,dc=domain,dc=com
+server.Joiner.weight=0
+server.Joiner.joiner.className=net.sourceforge.myvd.inserts.join.Joiner
+server.Joiner.joiner.config.primaryNamespace=o=ldap
+server.Joiner.joiner.config.joinedNamespace=o=db
+server.Joiner.joiner.config.joinedAttributes=uid,l,appattrib1,appattrib2
+server.Joiner.joiner.config.joinFilter=(uid=ATTR.uid)
+
+#The Join modification insert
+server.Joiner.joinmod.className=net.sourceforge.myvd.inserts.join.SimpleJoinModify
+server.Joiner.joinmod.config.joinerName=joiner
+
+#The join add insert
+server.Joiner.joinadd.className=net.sourceforge.myvd.inserts.join.JoinAddFlatNS
+server.Joiner.joinadd.config.joinerName=joiner
+server.Joiner.joinadd.config.joinedObjectClass=dbPerson
+server.Joiner.joinadd.config.sharedAttributes=uid
++---------+
+
+  Now you can create users and modify them seamlessly through your virtual directory.  

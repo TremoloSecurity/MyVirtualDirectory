@@ -1,0 +1,25 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+MyVirtualDirectory Quick Starts
+
+ MyVirtualDirectory's 'qs' packages contain extra packages to support the quick deployment of MyVD primarily for POCs and test deployments.
+ In order to run a quick start on Unix/Linux:
+ 
++------------------------+
+$ cd $MYVD_HOME/bin
+$ ./quickStart.sh QuickStartName
++------------------------+
+
+ To run the quick start on windows:
+ 
+ [[1]] Set the MYVD_HOME and JAVA_HOME environment variables in Control Panel -> System -> Advanced Tab -> Environment Variables -> System Variables
+ 
+ [[2]] Double click on quickStart.vbs in the bin directory and specify ADQuickStart when prompted
+ 
+ []
+ 
+ Each quick start has its own configuration process.  Most will create a full myvd.conf file and generate optional self signed certificates.

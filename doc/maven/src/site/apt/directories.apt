@@ -1,0 +1,208 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Integrating Directories
+
+ Directory integration is one of the simplest tasks in MyVD.  In that MyVD is built and organized like a directory, integrating a directory is very
+ simple and straight forward.  There are several possible use cases for integrating directories such as:
+ 
+ [[1]] Directory Integration - Combining multiple directories into one larger directory
+ 
+ [[2]] DN Re-writing - A directory needs to be re-organized for a specific application or the RDN needs to be changed but the underlying data can not 
+ be changed
+ 
+ [[3]] Attribute Mapping - An application requires attribute names to be changed or attributes to be created
+ 
+ [[4]] Master / Replica Management - Many directory environments have a master/replica setup where writes should be sent to a replica while reads are
+ executed against a replica transparently to applications
+ 
+ []
+ 
+ MyVD supplies several inserts to support these use cases.  The primary insert for directory integration is the LDAP Insert.
+ 
+* Configuring a basic LDAP Proxy
+ 
+ The LDAP Insert is the most important insert for integrating directories as it acts as the primary interface between a remote directory and MyVD.
+ In order to setup a simple proxy all one must do is create an LDAP insert.  Below is the configuration information for the LDAP insert:
+ 
+* LDAP Insert
+
+ The LDAP insert is one of the core inserts.  This insert allows MyVD to communicate with any LDAPv3 compliant directory.  In addtion to LDAP directories, this isnert supports DSMLv2 and SPML.  In order to take advantage of the SPML feautures you must download the OpenSPML toolkit (http://www.openspml.org/) and it's dependencies.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.ldap.LDAPInterceptor|                                    |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add, Modify, Rename, Delete, Compare, Search, Bind, Extended Operiations|                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|host|The host of the remote server.  If this insert is using DSMLV2 or SPML then this is the URL of the end point.                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |port|The port the remote ldap server is listening on.  Ignored for DSMLV2 and SPML|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |remoteBase|The base of the remote LDAP server that the insert would start at|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |minimumConnections|The minimum number of connections to keep in the pool|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maximumConnections|The maximum number of connections to keep in the pool|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |proxyDN|The DN of the user to connect as|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |proxyPass|The password of the remote directory|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |type|One of "ldap","dsmlv2" or "spml"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |spmlImpl|When using SPML, the class name for the com.novell.ldap.spml.SPMLImpl interface|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |passBindOnly|"true" or "false" if the user's credentials should be utilized for only the "bind" process.  "false" if the credentials should be used on all operations.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |ignoreRefs|"true" if referals should be ignored.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+ The above configuration parameters are for the most part very straight forward.  The host and port configs are the host and port the directory is 
+ running on.  The remoteBase config is to determine where in the remote directory MyVD should connect to.  THe minimumConnections and 
+ maximumConnections are for connection pooling.  The proxyDN and proxyPass configuration options may be supplied if you do not want to proxy the user's
+ credentials.  When these are set they are used for all operations except for the bind operation.  The type parameter is used to determine the
+ protocol type.  The LDAP Insert is based on Novel's JLDAP implementation which supports LDAPv3, DSMLv2 (LDAP Web Service) and SPML (provisioning Web
+ Service).  Finaly, the spmlImpl property is used to determine how an SPML insert should interact with the remote server.  By simply seting up an LDAP
+ insert using the above parameters you can easily setup a remote proxy.
+ 
+ The below configuration is from the unit tests and shows a very simple proxy:
+ 
++----------+
+server.listener.port=50983
+
+#No global chain
+server.globalChain=
+
+#Setup a single proxy
+server.nameSpaces=BaseServer
+
+#Simple LDAP insert
+server.BaseServer.chain=LDAPBaseServer
+server.BaseServer.nameSpace=o=mycompany,c=us
+server.BaseServer.weight=0
+server.BaseServer.LDAPBaseServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.BaseServer.LDAPBaseServer.config.host=localhost
+server.BaseServer.LDAPBaseServer.config.port=10983
+server.BaseServer.LDAPBaseServer.config.remoteBase=dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyDN=cn=admin,dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyPass=manager
++----------+
+
+ The above configuration is very straight forward.  A single insert is created for an ldap server running on the local server with administrative 
+ credentials.  While the above example is simple, it is only the tip of the iceberg.
+ 
+** Integrating Multiple Directories
+
+ It's common for an IT infrastructure to have multiple directories, not just a single directory.  In many situations there are at least two directories, 
+ one used for internal users (such as employees) and another for external users such as contractors and customers.  While this may make maintenance 
+ easier, most applications can only utilize a single directory however.  MyVD can be used to integrate these multiple directories into a single 
+ directory without copying data.  The below diagram shows how this may be accomplished:
+ 
+[images/nsintegration.png] Namespace Integration
+ 
+ Integrating multiple directories is very easy with MyVD.  In order to perform this integration simply create seperate inserts for each directory with
+ seperate DNs for the base.  The below example configuration shows how to accomplish this with three inserts:
+ 
+ [[1]] Base - For the user base (required by some applications)
+ 
+ [[2]] Internal Users - For all internal users
+ 
+ [[3]] External Users - For all external users
+ 
+ []
+ 
++----------+
+server.listener.port=50983
+server.globalChain=
+
+#Define a namespace for each part of the DIT
+server.nameSpaces=BaseServer,InternalServer,ExternalServer
+
+#define the base server to provide an entry to connect internal and external users
+server.BaseServer.chain=LDAPBaseServer
+server.BaseServer.nameSpace=o=mycompany,c=us
+server.BaseServer.weight=0
+server.BaseServer.LDAPBaseServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.BaseServer.LDAPBaseServer.config.host=localhost
+server.BaseServer.LDAPBaseServer.config.port=10983
+server.BaseServer.LDAPBaseServer.config.remoteBase=dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyDN=cn=admin,dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyPass=manager
+
+#Create the chain for internal users
+server.InternalServer.chain=LDAPInternalServer
+server.InternalServer.nameSpace=ou=internal,o=mycompany,c=us
+server.InternalServer.weight=10
+server.InternalServer.LDAPInternalServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.InternalServer.LDAPInternalServer.config.host=localhost
+server.InternalServer.LDAPInternalServer.config.port=11983
+server.InternalServer.LDAPInternalServer.config.remoteBase=ou=internal,dc=domain,dc=com
+server.InternalServer.LDAPInternalServer.config.proxyDN=cn=admin,ou=internal,dc=domain,dc=com
+server.InternalServer.LDAPInternalServer.config.proxyPass=manager
+
+#Create the chain for external users
+server.ExternalServer.chain=LDAPExternalServer
+server.ExternalServer.nameSpace=ou=external,o=mycompany,c=us
+server.ExternalServer.weight=15
+server.ExternalServer.LDAPExternalServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.ExternalServer.LDAPExternalServer.config.host=localhost
+server.ExternalServer.LDAPExternalServer.config.port=12983
+server.ExternalServer.LDAPExternalServer.config.remoteBase=ou=external,dc=domain,dc=com
+server.ExternalServer.LDAPExternalServer.config.proxyDN=cn=admin,ou=external,dc=domain,dc=com
+server.ExternalServer.LDAPExternalServer.config.proxyPass=manager
++----------+
+ 
+ The above configuration is fairly straight forward.  Once created, a virtual directory representing both internal and external users is created.
+ This configuration can further be extended by adding replica routing inserts, access controls and joiners.
+ 
+** Directory Routing
+
+ Many directory environments include seperate servers for read operations and write operations.  Because applications aren't generaly coded to work in
+ this way, MyVD can be setup as a router to route requests to difference name spaces based on certain criteria (in this case the type of operation 
+ being performed).  An insert called the MasterReplicaInsert may be used to automatically route write requests to masters while routing all search and
+ bind requests to replicas.  The below configuration shows how this concept would be implemented.
+ 
++----------+
+server.listener.port=50983
+server.globalChain=routingPlugin
+
+
+
+#routing plugin to forward all writes to the master and reads to the "replicas"
+server.globalChain.routingPlugin.className=net.sourceforge.myvd.inserts.routing.MasterReplicaRouter
+server.globalChain.routingPlugin.config.specifyToInclude=false
+server.globalChain.routingPlugin.config.readOnly=BaseServer
+server.globalChain.routingPlugin.config.master=MasterServer
+
+
+server.nameSpaces=MasterServer,BaseServer
+
+#Define the master
+server.MasterServer.chain=LDAPBaseServer
+server.MasterServer.nameSpace=o=mycompany,c=us
+server.MasterServer.weight=0
+server.MasterServer.LDAPBaseServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.MasterServer.LDAPBaseServer.config.host=localhost
+server.MasterServer.LDAPBaseServer.config.port=13983
+server.MasterServer.LDAPBaseServer.config.remoteBase=dc=domain,dc=com
+server.MasterServer.LDAPBaseServer.config.proxyDN=cn=admin,dc=domain,dc=com
+server.MasterServer.LDAPBaseServer.config.proxyPass=manager
+
+#Define the replica with the same namespace as the master
+server.BaseServer.chain=LDAPBaseServer
+server.BaseServer.nameSpace=o=mycompany,c=us
+server.BaseServer.weight=10
+server.BaseServer.LDAPBaseServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.BaseServer.LDAPBaseServer.config.type=LDAP
+server.BaseServer.LDAPBaseServer.config.host=localhost
+server.BaseServer.LDAPBaseServer.config.port=10983
+server.BaseServer.LDAPBaseServer.config.remoteBase=dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyDN=cn=admin,dc=domain,dc=com
+server.BaseServer.LDAPBaseServer.config.proxyPass=manager
++----------+
+
+ By using the master/replica routing insert applications can transparently interact with the directory environment even if the application is not
+ built to handle it.

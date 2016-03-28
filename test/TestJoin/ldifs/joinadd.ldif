@@ -1,0 +1,11 @@
+version: 1
+
+dn: uid=user4,ou=people,o=mycompany,c=us
+uid: user4
+sn: User4
+cn: Test User4
+appattrib2: app-f
+appattrib1: sysa
+objectClass: inetOrgPerson
+objectClass: appPerson
+givenName: Test

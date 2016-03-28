@@ -1,0 +1,5 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain

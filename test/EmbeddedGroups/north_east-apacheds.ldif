@@ -1,0 +1,5 @@
+version: 1
+
+dn: cn=North East,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top

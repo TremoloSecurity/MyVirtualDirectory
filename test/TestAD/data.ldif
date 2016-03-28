@@ -1,0 +1,57 @@
+version: 1
+
+dn: dc=test,dc=mydomain,dc=com
+objectClass: domain
+dc: test
+
+dn: cn=users,dc=test,dc=mydomain,dc=com
+objectClass: container
+cn: users
+
+dn: cn=Test1 User,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: user
+cn: Test1 User
+sn: User
+samAccountName: tuser001
+userPassword: secret
+
+dn: cn=Test2 User,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: user
+cn: Test2 User
+sn: User
+samAccountName: tuser002
+userPassword: secret
+
+dn: cn=User\, Test3,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: user
+cn: User, Test3
+sn: User
+samAccountName: tuser003
+userPassword: secret
+
+
+dn: cn=Domain Users,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: Domain Users
+
+dn: cn=UNIX Users,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: UNIX Users
+member: cn=Test1 User,cn=users,dc=test,dc=mydomain,dc=com
+member: cn=Test2 User,cn=users,dc=test,dc=mydomain,dc=com
+
+dn: cn=UNIX SUDO Users,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: UNIX SUDO Users
+member: cn=Test1 User,cn=users,dc=test,dc=mydomain,dc=com
+
+dn: cn=With Comma,cn=users,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: With Comma
+member: cn=User\, Test3,cn=users,dc=test,dc=mydomain,dc=com
+
+dn: cn=Parenthasis (are) in my (cn),cn=users,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: Parenthasis (are) in my (cn)
+member: cn=(I) dont (understand) why,cn=users,dc=test,dc=mydomain,dc=com
+

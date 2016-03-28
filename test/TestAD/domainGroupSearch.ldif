@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=Domain Users,cn=users,o=ad
+objectClass: group
+cn: Domain Users
+member: cn=Test1 User,cn=users,o=ad
+member: cn=Test2 User,cn=users,o=ad

@@ -1,0 +1,124 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+Mapping Inserts
+ 
+  These inserts are general mapping inserts  Certain mapping inserts are specialized for
+  databases or directories.  These specialized inserts are documented with their 
+  respective categories.
+  
+* Attribute Cleaner
+
+ This insert ensures that the attributes requested by a search request are the only attributes returned to the user.  This insert is usefull when additional attributes are added to an entry for meta data purposes but should not be returned to the user.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.mapping.AttributeCleaner  |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|None                                                   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Add Static Attribute
+
+ This insert allows for the addition of a static attribute value for a particuler objectClass.  It is useful for adding attributes to identify users
+ based on their directory or namespace.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.mapping.AddAttribute      |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|attributeName                                          |The name of the attribute to create   |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |attributeValue                                         |The value of the attribute to create  |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |objectClass                                            |The objectClass to create this attribute on|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+
+* Attribute Mapper
+
+ The attribute mapper insert is used to map the names of attributes.  For instance it could map uid to samaccountname.  This insert works on attribute names in both entries, dns and filters.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.mapping.AttributeMapper   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search,Add,Modify,Delete,Compare,Rename                |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|mapping                                                | Comma seperated list of attribute maps.  For instance "uid=samaccountname"                                     |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+
+
+* Attribute Value Mapper
+
+ The attribute value mapper is used to map one entry value to another.  For instance mapping "objectClass: inetOrgPerson" -> "objectClass: user".
+
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.mapping.AttributeValueMapper|                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Scope                |Search,Add,Modify,Compare                                |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Configuration Options|mapping                                                  |Comma sepperated list of mappings in the form of "attribute.curvalue=newvalue".  For instance "objectClass.inetOrgPerson=user                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+
+* Composite Attribute Insert
+
+ The composite attribute insert is designed to create a singe attribute from multiple attributes.  Uses include creating a CN attribute from the givenName and sn as well as creating a uid from the same two attributes.
+
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.jdbc.CompositeAttrib        |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                   |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Configuration Options|attribute                                                |The name of the attribute that will be created (ie uid or cn)|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |components                                               |Comma seperated list of component attributes with a colon to determine how much of the attribute.  The length of the compoenent can be a number, fs for the first space, ls for the last space and * for the entire attribute.  ie "givenName:1,sn:*"|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |properCase                                               |true or false.  This configurate determines if the first letter of a component should be upper case on inbound transactions and lowercase in outbound transactions.|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |objectClass                                              |The objectClass that this insert will apply to.|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+
+* DN Attribute Mapper
+
+ The DN attribute map the bases of DN attributes (such as uniqueMember or manager)
+
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.mapping.DNAttributeMapper        |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Scope                |Add,Modify,Search                                                   |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Configuration Options|dnAttribs                                                |The name of all attributes that are DNs|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |urlAttribs                                               |The name of all the attributes that are LDAP URLs|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |remoteBase                                               |The remote base to be mapped from|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |localBase                                              |The local base to be mapped to|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+
+* SetRDN Insert
+
+ This insert allows for the RDN of an entry to be changed.  For instance if the current RDN is the "CN" attribute this
+ insert can change it to the "uid" attribute.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.setrdn.SetRDN             |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search,Add,Modify,Delete,Rename,Bind                   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|internalRDN|The current RDN attribute name.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |externalRDN|The RDN attribute that will be presented|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |objectClass|The object class to act on, defaults to inetOrgPerson|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |dnattributes|List of DN attributes to also map|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+  

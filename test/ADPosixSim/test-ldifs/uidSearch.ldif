@@ -1,0 +1,23 @@
+version: 1
+
+dn: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+objectGUID: 0ebbad98-f66f-43dc-b447-51a6e0d2263c
+primaryBase: ou=ad
+uidnumber: 505
+loginshell: /bin/bash
+sn: Boorshtein
+joinedBases: ou=unix-attribs
+homedirectory: /home/mlb
+primaryDN: cn=Marc Boorshtein,cn=Users,ou=ad
+joinedDNs: objectguid=0ebbad98-f66f-43dc-b447-51a6e0d2263c,ou=users,ou=unix-at
+ tribs
+userPassword:: bWxic2VjcmV0
+uid: mlb
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1107
+cn: Marc Boorshtein
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount

@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=boston,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+
+dn: cn=Sales,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames

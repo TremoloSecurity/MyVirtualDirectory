@@ -1,0 +1,13 @@
+version: 1
+
+dn: cn=Domain Users,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+uniqueMember: cn=SUPPORT_388945a0,cn=Users,o=mycompany,c=us
+uniqueMember: cn=unixadmin1 admin,cn=Users,o=mycompany,c=us
+uniqueMember: cn=krbtgt,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Jen Smith,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IUSR_PWC-IDM06,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IWAM_PWC-IDM06,cn=Users,o=mycompany,c=us
+gidnumber: 500
+cn: Domain Users

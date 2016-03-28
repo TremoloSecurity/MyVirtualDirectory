@@ -1,0 +1,60 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=users,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: users
+
+dn: uid=testuser,ou=users,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test User
+sn: User
+uid: testuser
+l: location1
+userPassword: secret
+
+dn: uid=testuser1,ou=users,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test User1
+sn: User1
+uid: testuser1
+l: location1
+userPassword: secret
+
+dn: uid=testuser2,ou=users,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test User2
+sn: User2
+uid: testuser2
+l: location2
+userPassword: secret
+
+dn: ou=groups,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=staticgroup1,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+uniqueMember: uid=testuser,ou=users,dc=domain,dc=com
+uniqueMember: uid=testuser2,ou=users,dc=domain,dc=com
+cn: staticgroup1
+
+dn: cn=staticgroup2,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+uniqueMember: uid=testuser1,ou=users,dc=domain,dc=com
+cn: staticgroup2
+
+dn: cn=dynamicgroup1,ou=groups,dc=domain,dc=com
+cn: dynamicgroup1
+objectClass: groupOfUrls
+memberUrl: ldap:///ou=users,dc=domain,dc=com??sub?(l=location1)
+
+dn: cn=dynamicgroup2,ou=groups,dc=domain,dc=com
+cn: dynamicgroup2
+objectClass: groupOfUrls
+memberUrl: ldap:///ou=users,dc=domain,dc=com??(l=location2)
+#uniqueMember: uid=testuser,ou=users,dc=domain,dc=com
+

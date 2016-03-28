@@ -1,0 +1,10 @@
+version: 1
+
+dn: cn=1,dc=nam,dc=compinternal,dc=com
+cn: 1
+objectClass: groupOgUniqueNames
+uniqueMember: cn=Marc Boorshtein,ou=people,dc=domain,dc=com
+uniqueMember: cn=Marc Johnson,ou=people,dc=domain,dc=com
+uniqueMember: cn=Marc Jackson,ou=people,dc=domain,dc=com
+uniqueMember: cn=Marc Allesy,ou=people,dc=domain,dc=com
+

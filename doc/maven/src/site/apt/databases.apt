@@ -1,0 +1,446 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Using Databases
+
+ Its very commmon to utilize a virtual directory to integrate relational databases into a directory infrastructure.  There are two primary ways to integrate a database:
+ 
+ * Store additional application specific attributes
+ 
+ * Expose existing data in a relational database as a directory
+ 
+ []
+ 
+ In both of these situations integrating your existing database infrastructure into MyVirtualDirectory is very easy.  Before going over how to integrate a database, lets cover some of the fundamentals of integrating with databases:
+ 
+ This first thing to understand is how MyVD integrates a database.  There are three primary configuration points:
+ 
+ [[1]] DB Configuration Information - How does MyVD connect to the database?
+ 
+ [[2]] Data SQL - What data will MyVD be serving?  This is configured as an SQL statement.  It can be as simple as "SELECT * FROM table" and can be as complex as you want.  Its not recomended that a very complex SQL statement is used for performance reasons.
+ 
+ [[3]] Mapping - Map database column names to ldap attribute names.
+ 
+ []
+ 
+ Once you have decided what data and how it will be mapped, you need to decide if you want writes to be sent to the database.  The database insert alone does not support writes.  We will cover to perform writes later in the doc.
+ 
+* Setting Up a Simple Database Insert
+
+ First lets setup a simple database insert.  The database insert has the following configuration
+ 
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.jdbc.JdbcInterceptor      |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|driver|The JDBC driver to use|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |url|The JDBC connection URL|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |user|The database user to connect as|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |password|The password to connect with|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |rdn|The LDAP atribute used as the rdn for all objects generated|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |mapping|Comma sepperated list of ldap=db mapping of attributes|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |objectClass|The objectClass for all octs created by this insert|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |sql|The SQL use to determine what objects this insert will generate.  This SQL must include all attributes included in the mapping configuration|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maxCons|The maximum number of connections, default is 5|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |maxIdleCon|The maximum amount of time a connection can remain idle before closing|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |useSimple|true or false, utilizes the "simple" SQL, mutch better performance but only the value of multivalued attributes in the filter are returned|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+ 
+ We are going to integrate a simple database table that will contain the following columns
+ 
+*----------+---------------------+-------------------------------------------------------------------+
+|Column    |Type                 |Description                                                        |
+*----------+---------------------+-------------------------------------------------------------------+
+|id        |integer              |The unique id of the user                                          |
+*----------+---------------------+-------------------------------------------------------------------+	
+|firstName |varchar(50)          |The use's first name                                               |
+*----------+---------------------+-------------------------------------------------------------------+	
+|lastName  |varchar(50)          |The user's last name                                               |
+*----------+---------------------+-------------------------------------------------------------------+	
+|email     |varchar(50)          |The user's email address                                           |
+*----------+---------------------+-------------------------------------------------------------------+	
+|location  |varchar(50)          |The user's home city                                               |
+*----------+---------------------+-------------------------------------------------------------------+	
+
+ You will notice that there are three fields missing that are typically a included in any directory object: uid, cn and userPassword.  Each of these fields have been left out because they generally do not exist in databases.  Databases are rarely used for authentication so there is rarely a uid and password.  Because databases tend to normalize data, they don't store a full name in a single field.  If this is a requirement, we will cover how to handle these cases later on.
+ 
+ The table we are going to work with is called "employees" with the following data:
+ 
+*----+-----------+-----------+---------------------+-------------+
+| id | firstname | lastname  | email               | location    |
+*----+-----------+-----------+---------------------+-------------+
+|  1 | John      | Doe       | jdoe@test.com       | Boston      |
+*----+-----------+-----------+---------------------+-------------+ 
+|  2 | Jen       | Burnstein | jburnstein@test.com | Boston      |
+*----+-----------+-----------+---------------------+-------------+ 
+|  3 | Josh      | Bora      | jbora@test.com      | New York    |
+*----+-----------+-----------+---------------------+-------------+ 
+|  4 | Alice     | Raden     | araden@test.com     | Los Angeles |
+*----+-----------+-----------+---------------------+-------------+ 
+
+ The first step is to download MySQL and the MySQL jdbc drivers. Thisguide doesn't cover setting up MySQL.  Once you downloaded MySQL and have setup the database, copy  mysql-connector-java-VERSION-bin.jar to the lib directory of your myvd installation.  If you are using the MyVD startup script MyVD will automatically pickup the drivers.  Once deployed we can create our configuration.  
+ 
+ Once downloaded, the myvd.conf file needs to be configured to utilize the employees table.  Below is the configuration we are going to use:
+ 
++------------------------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=ou=employees,o=mycompany,c=us
+
+server.DBEmployees.chain=DB
+server.DBEmployees.nameSpace=ou=employees,o=mycompany,c=us
+server.DBEmployees.wieght=0
+server.DBEmployees.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployees.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployees.DB.config.url=jdbc:mysql://localhost/myvdtest
+server.DBEmployees.DB.config.user=root
+server.DBEmployees.DB.config.password=
+server.DBEmployees.DB.config.rdn=empid
+server.DBEmployees.DB.config.mapping=empid=id,givenName=firstname,sn=lastname,mail=email,l=location
+server.DBEmployees.DB.config.objectClass=employeePerson
+server.DBEmployees.DB.config.sql=SELECT id,firstname,lastname,email,location FROM employees
++------------------------------+
+
+ This configuration has four major parts:
+ 
+ [[1]] LDAP Listen Configuration - Determines what port MyVD will listen on
+ 
+ [[2]] Global Server Configuration - Configures the global chanin, in this case the global chain only contains the LogAllTransactions insert
+ 
+ [[3]] Root DSE Configuration - Configures the root DSE, in this case the RootDSE insert is configured to generate naming contexts
+ 
+ [[4]] Database Configuration - The database configuration
+ 
+ []
+ 
+ The first three configuration points are a part of the standard sample myvd.conf file included in the download.  The final configuration point is the heart of the matter.
+ The driver, url, user and password configuration options general options.  The rdn option is the LDAP name of the database field, in this case the empid LDAP attribute is mapped to the id database field.
+ The mapping option is the ldap=db mapping.  The left hand side of the equals is the LDAP name and the right side of the equals is the database field name.
+ The objectClass configuration is what object class entries from this insert will have.  This can be any object class.  Finally the sql option is an SQL statement that provides all of the database fields.  This can be a simple SELECT as in the above case or can
+ be something more complex as long as every column listed in the mapping configuration is included.
+ 
+ Thats it.  Thats all thats involved.  Below are the more advanced topics involved in exposing a database via MyVD.
+ 
+* Composite Attributes
+ 
+ Unlike LDAP directories, relational databases do not allways store information in a final "view" state.  The simplest such example of this is the common name, or "cn" attribute.  Another such example is the "uid" attribute.  In the below example, we are going to add to our simple DB insert to include both a uid an cn attribute.
+ 
+ When mapping attributes its important to understand how the mapping process works.  There are two directions to every LDAP request.  The first is the inbound request.  On the inbound request the attributes requested and the filter used must be updated.  For instance if you are requesting the "uid" attribute, which in our case is a compound attribute of the givenName and sn attributes, then the request must instead include a request for the givenName and sn attribute.  If the filter for the request is "(uid=sperson)" then the filter must be transformed to "(&(givenName=S*)(sn=Person))".  The outbound result then needs to construct the attribute from the components.  Here's an example.  The below table shows the initial request and the final request:
+ 
+*--------------+-------------------+-------------------+
+|              |Inital Form        |Transformed        |
+*--------------+-------------------+-------------------+
+|Base          |ou=employees-uid_cn,o=mycompany,c=us|ou=employees-uid_cn,o=mycompany,c=us|
+*--------------+-------------------+-------------------+
+|Scope         |Subtree            |Subtree            |
+*--------------+-------------------+-------------------+
+|Attributes    |uid,cn,l           |givenName,sn,l|
+*--------------+-------------------+-------------------+
+|Filter        |(&(l=New York)(uid=jbora)))|(&(l=New York)(&(givenName=J*)(sn=Bora))))|
+*--------------+-------------------+-------------------+
+
+ MyVD includes an insert to perform all of this work for you called the composite attribute insert.  This insert takes the attributes that are to be assembled and creates the attribute on outbound entries and adjusts all requests accordingly.  Fist lets look at how teh composite attribute insert is configured:
+ 
+* Composite Attribute Insert
+
+ The composite attribute insert is designed to create a singe attribute from multiple attributes.  Uses include creating a CN attribute from the givenName and sn as well as creating a uid from the same two attributes.
+
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.jdbc.CompositeAttrib        |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                   |                                      |
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|Configuration Options|attribute                                                |The name of the attribute that will be created (ie uid or cn)|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |components                                               |Comma seperated list of component attributes with a colon to determine how much of the attribute.  The length of the compoenent can be a number, fs for the first space, ls for the last space and * for the entire attribute.  ie "givenName:1,sn:*"|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |properCase                                               |true or false.  This configurate determines if the first letter of a component should be upper case on inbound transactions and lowercase in outbound transactions.|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+|                     |objectClass                                              |The objectClass that this insert will apply to.|
+*---------------------+---------------------------------------------------------+--------------------------------------+
+ 
+ The "attribute" parameter is pretty straight forward.  The components configuration is a bit more comlex.  The goal of this configuration option
+ is to determine how an attribute is created.  The value for this option is "attribute:length,attribute:length,...".  The length can be either a 
+ number, "*" to indicate the entire attribute, "fs" to indicate that the attribute goes until the first space of the final attribute and finally 
+ "ls" for the last space of the final attribute.  For instance a uid would be constructed by the first letter of the first name and the last 
+ name, or "givenName:1,sn:*".  A cn would be the entire first name, a space and then the last name or "givenName:fs,sn*".  Some organizations include 
+ the middle initial in the first name, which means you would want the last space or "givenName:ls,sn:*".  The next configuration, "properCase", is used
+  to automaticlly set the case from all lowercase to a proper case.  This is useful when you want your uid's to be lowercase.  Finally the objectClass 
+ configuration is used to determine when the composite attribute should be built.
+ 
+ Now that we've covered how the composite insert works and how its configured, lets look at the configuration:
+ 
++----------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees,DBEmployeesUidCn
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=ou=employees-uid_cn,o=mycompany,c=us
+
+
+server.DBEmployeesUidCn.chain=CleanAttribs,MakeUID,MakeCN,DB
+server.DBEmployeesUidCn.nameSpace=ou=employees-uid_cn,o=mycompany,c=us
+server.DBEmployeesUidCn.wieght=0
+
+server.DBEmployeesUidCn.CleanAttribs.className=net.sourceforge.myvd.inserts.mapping.AttributeCleaner
+
+server.DBEmployeesUidCn.MakeUID.className=net.sourceforge.myvd.inserts.jdbc.CompositeAttrib
+server.DBEmployeesUidCn.MakeUID.config.attribute=uid
+server.DBEmployeesUidCn.MakeUID.config.components=givenname:1,sn:*
+server.DBEmployeesUidCn.MakeUID.config.properCase=true
+server.DBEmployeesUidCn.MakeUID.config.objectClass=employeePerson
+
+server.DBEmployeesUidCn.MakeCN.className=net.sourceforge.myvd.inserts.jdbc.CompositeAttrib
+server.DBEmployeesUidCn.MakeCN.config.attribute=cn
+server.DBEmployeesUidCn.MakeCN.config.components=givenname:ls,sn:*
+server.DBEmployeesUidCn.MakeCN.config.properCase=false
+server.DBEmployeesUidCn.MakeCN.config.objectClass=employeePerson
+
+server.DBEmployeesUidCn.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployeesUidCn.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployeesUidCn.DB.config.url=jdbc:mysql://localhost/myvdtest
+server.DBEmployeesUidCn.DB.config.user=root
+server.DBEmployeesUidCn.DB.config.password=
+server.DBEmployeesUidCn.DB.config.rdn=empid
+server.DBEmployeesUidCn.DB.config.mapping=empid=id,givenName=firstname,sn=lastname,mail=email,l=location
+server.DBEmployeesUidCn.DB.config.objectClass=employeePerson
+server.DBEmployeesUidCn.DB.config.sql=SELECT id,firstname,lastname,email,location FROM employees
++------------+
+
+ The above configuration is very similar to the original DB configuration.  We have added three new inserts.  The first 
+ insert ensures that the attributes returned on a search are the ones requested in the search.  The second insert creates the UID attribute while the 
+ third insert creates a CN attributes.
+ 
+* Changing The RDN Attribute
+
+ Some applications require a particuler RDN attribute to work properly.  This is usually true of applications that require the user id to be a part
+ of the RDN.  In our above example the "empid" attribute is used as the RDN.  For our database this makes sence because the id is the most unique
+ identifier for our users.  However, we are integrating with an application requires the uid we constructed in the last tutorial to be our user's 
+ RDN.  In order to do this we must translate every inbound request and outbound response.  There is an insert that does this work for us however 
+ called the SetRDN insert.  Here is the SetRDN insert's configuration:
+ 
+* SetRDN Insert
+
+ This insert allows for the RDN of an entry to be changed.  For instance if the current RDN is the "CN" attribute this
+ insert can change it to the "uid" attribute.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.setrdn.SetRDN             |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search,Add,Modify,Delete,Rename,Bind                   |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|internalRDN|The current RDN attribute name.|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |externalRDN|The RDN attribute that will be presented|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+ The configuration is fairly straight forward.  The internalRDN is the rdn stored in the directory while the externalRDN is what is  presented to
+ the user.  The below configuration shows how the SetRDN insert can be added to our example:
+ 
++----------+
+#Listen on port 389
+server.listener.port=10389
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,DBEmployees,DBEmployeesUidCn,DBEmployeesUidRDN
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=ou=employees,o=mycompany,c=us|ou=employees-uid_cn,o=mycompany,c=us|ou=employees-uid_rdn,o=mycompany,c=us
+
+,
+,
+,
+
+
+server.DBEmployeesUidRDN.chain=CleanAttribs,SetRDN,MakeUID,MakeCN,DB
+server.DBEmployeesUidRDN.nameSpace=ou=employees-uid_rdn,o=mycompany,c=us
+server.DBEmployeesUidRDN.wieght=0
+
+server.DBEmployeesUidRDN.CleanAttribs.className=net.sourceforge.myvd.inserts.mapping.AttributeCleaner
+
+server.DBEmployeesUidRDN.SetRDN.className=net.sourceforge.myvd.inserts.setrdn.SetRDN
+server.DBEmployeesUidRDN.SetRDN.config.internalRDN=empid
+server.DBEmployeesUidRDN.SetRDN.config.externalRDN=uid
+
+server.DBEmployeesUidRDN.MakeUID.className=net.sourceforge.myvd.inserts.jdbc.CompositeAttrib
+server.DBEmployeesUidRDN.MakeUID.config.attribute=uid
+server.DBEmployeesUidRDN.MakeUID.config.components=givenname:1,sn:*
+server.DBEmployeesUidRDN.MakeUID.config.properCase=true
+server.DBEmployeesUidRDN.MakeUID.config.objectClass=employeePerson
+
+server.DBEmployeesUidRDN.MakeCN.className=net.sourceforge.myvd.inserts.jdbc.CompositeAttrib
+server.DBEmployeesUidRDN.MakeCN.config.attribute=cn
+server.DBEmployeesUidRDN.MakeCN.config.components=givenname:ls,sn:*
+server.DBEmployeesUidRDN.MakeCN.config.properCase=false
+server.DBEmployeesUidRDN.MakeCN.config.objectClass=employeePerson
+
+server.DBEmployeesUidRDN.DB.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
+server.DBEmployeesUidRDN.DB.config.driver=com.mysql.jdbc.Driver
+server.DBEmployeesUidRDN.DB.config.url=jdbc:mysql://localhost/myvdtest
+server.DBEmployeesUidRDN.DB.config.user=root
+server.DBEmployeesUidRDN.DB.config.password=
+server.DBEmployeesUidRDN.DB.config.rdn=empid
+server.DBEmployeesUidRDN.DB.config.mapping=empid=id,givenName=firstname,sn=lastname,mail=email,l=location
+server.DBEmployeesUidRDN.DB.config.objectClass=employeePerson
+server.DBEmployeesUidRDN.DB.config.sql=SELECT id,firstname,lastname,email,location FROM employees
++----------+
+
+ Thats it.  We have now exposed our directory with a new RDN attribute.
+ 
+* Updating The Database
+
+ The JDBC insert is a read only insert.  It is based on an SQL statement which can have almost anything in it, preventing any way of knowing how an
+ update is processed.  There are three main reasons why the JDBC insert does not manage updates to the database:
+ 
+ [[1]] Because the SQL can contain joins, composite attributes and functions making it impossible to know how data should be sent to the database.
+ 
+ [[2]] Modifications to multi-value attributes are difficult to know how to manage.
+ 
+ [[3]] Relational databases maintain the relationships between lookup tables, which LDAP has no knowledge of.  
+ 
+ []
+ 
+ In order to update user entries MyVD allows you to create an insert that sits behind the JDBC insert that can be passed both the database<->ldap 
+ mapping and a connection from the JDBC insert allowing the insert to to update the database.  This insert can access three request variables:
+ 
+*-----------------------+----------------------------------------+
+|MYVD_DB_CON_INSERT-NAME|The database connection from the connection pool.  The "INSERT-NAME" is the name of the insert into the  configuration. |
+*-----------------------+-----------------------------------------+
+|MYVD_DB_LDAP2DB_INSERT-NAME|The ldap->db mapping, meaning that the key for this HashMap is the ldap attribute name with the value being the database name.  The "INSERT-NAME" is the name of the insert into the configuration.|
+*-----------------------+-----------------------------------------+  
+|MYVD_DB_DB2LDAP_INSERT-NAME|The db->ldap mapping, meaning that the key for this HashMap is the db attribute name with the value being the ldap name.  The "INSERT-NAME" is the name of the insert into the configuration.|
+*-----------------------+-----------------------------------------+
+
+ This setup allows for MyVD to allow for database updates while not forcing you to manage database connections or mappings, re-using the configuration
+ from the JDBC insert.
+ 
+* Updating a Single Table
+ 
+ MyVD has a simple JBDC table update insert that can be used for updating a single table.  This insert makes it easy to update the database you have
+ integrated without writing custom code.  Here is the configuration for the DBTableUpdate insert:
+ 
+* Database Table Update
+
+ This insert contains the logic to update a single database table.  It is configured BEHIND a database insert in order to utilize that insert's
+ connection pool and mapping.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.jdbc.DBTableUpdate        |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add,Modify,Delete,Rename                               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|tableName                                              |The name of the table to update in the database|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |dbInsertName                                           |The name of the insert used by this insert|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+ 
+ This insert utilizes the DB insert as described above by adding the DBTableUpdate insert AFTER the DB insert.  The tableName is the name of the table
+ being updated while the dbInsertName is the name of the insert on this chain whose database pool and mapping configuration will be used.
+ 
+ Configuring this insert is very easy.  The below configuration adds this insert to our above example of creating a uid and setting the rdn:
+
++----------+
+.
+.
+.
+server.DBEmployeesUidRDN.chain=CleanAttribs,SetRDN,MakeUID,MakeCN,DB,TableUpdate
+.
+.
+.
+server.DBEmployeesUidRDN.TableUpdate.className=net.sourceforge.myvd.inserts.jdbc.DBTableUpdate
+server.DBEmployeesUidRDN.TableUpdate.config.tableName=employees
+server.DBEmployeesUidRDN.TableUpdate.config.dbInsertName=DB
++----------+
+
+ Now our example is updateable! 
+ 
+* Authenticating Users
+
+ The JDBC Insert doesn't provide any way to authenticate against the database.  this is because there are no standards as far as databases are
+ concerned on how to store passwords and authenticate users.  Just as with performing writes to the database, MyVD can pass a custom insert the 
+ database connection and mapping information allowing the custom insert to perform the authentication in whatever manner is required by the database.
+ 
+* Using "Simple" SQL Mode
+ 
+ Databases and directories store data in very different ways.  Databases store data in tables that "relate" to each other where as a directories store
+ data as objects.  This means that databases don't store mutliple value for a field in a given row where a directory can.  In order to handle this the
+ jdbc insert utilizes a subquery to ensure that all attribute values are returned MyVD uses sub-selects to perform queries.  The basic of the SQL is:
+ 
++----------+
+ SELECT fields FROM (SQL) WHERE rdnField IN (SELECT id FROM ... WHERE ...)
++----------+
+ 
+ Depending on how your tables are indexed this can be very slow.  If you aren't able to index the proper fields or there are only single value
+ attributes comming from the database you can use the "useSimple" flag on the jdbc insert to utilize a simpler SQL statement.  This will improve 
+ performance but may sacrifice data consistency based on the type of filters being used.

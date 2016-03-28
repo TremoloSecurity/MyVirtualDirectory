@@ -1,0 +1,28 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=internal,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+dn: ou=external,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: external
+
+dn: cn=Test CustM,ou=external,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test CustM
+sn: CustM
+uid: testCust
+userPassword: secret
+
+
+dn: cn=Test UserM,ou=internal,dc=domain,dc=com
+objectClass: inetOrgPerson
+cn: Test UserM
+sn: UserM
+uid: testUser
+userPassword: secret

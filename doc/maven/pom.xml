@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.sourceforge.myvd</groupId>
+  <artifactId>myvd</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>myvd</name>
+  <url>http://myvd.sourceforge.net/</url>
+  <licenses>
+  <license>
+    <name>Apache 2</name>
+    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    <distribution>repo</distribution>
+    <comments>A business-friendly OSS license</comments>
+  </license>
+</licenses>
+<mailingLists>
+    <mailingList>
+      <name>Developer List</name>
+      <subscribe>Myvd-develop-request@lists.sourceforge.net</subscribe>
+      <unsubscribe>Myvd-develop-request@lists.sourceforge.net</unsubscribe>
+      <post>myvd-develop@lists.sourceforge.net</post>
+      <archive>http://127.0.0.1/user/</archive>
+      <otherArchives>
+        <otherArchive>http://base.google.com/base/1/127.0.0.1</otherArchive>
+      </otherArchives>
+    </mailingList>
+  </mailingLists>
+  
+  <repositories>
+    <repository>
+      <id>central</id>
+      <name>Maven Repository Switchboard</name>
+      <layout>default</layout>
+      <!--
+      <url>http://www.ibiblio.org/maven2</url>
+      -->
+            <url>http://repo1.maven.org/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  
+  
+  
+    <pluginRepositories>
+     <pluginRepository>
+      <id>central</id>
+      <name>Maven Plugin Repository</name>
+      
+      
+            <url>http://repo1.maven.org/maven2</url>
+      <layout>default</layout>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </pluginRepository> 
+  </pluginRepositories>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+</project>

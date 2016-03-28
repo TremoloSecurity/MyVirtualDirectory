@@ -1,0 +1,8 @@
+version: 1
+
+dn: cn=Administrator,cn=Users,o=mycompany,c=us
+uid: Administrator
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount

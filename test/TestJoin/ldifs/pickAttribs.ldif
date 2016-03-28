@@ -1,0 +1,11 @@
+version: 1
+
+dn: uid=user1,ou=people,o=mycompany,c=us
+cn: Test User1
+appattrib2: app-g
+appattrib1: sysx
+
+dn: uid=user3,ou=people,o=mycompany,c=us
+cn: Test User3
+appattrib2: app-i
+appattrib1: sysx

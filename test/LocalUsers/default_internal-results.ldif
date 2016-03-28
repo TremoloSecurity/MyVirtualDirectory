@@ -1,0 +1,18 @@
+version: 1
+
+dn: uid=internaluser,ou=internal,o=mycompany,c=us
+objectClass: inetOrgPerson
+cn: testrouting
+sn: User
+uid: internaluser
+mail: internaluser@internal.domain.com
+
+dn: uid=localuser,ou=local,o=mycompany,c=us
+objectClass: inetOrgPerson
+uid: localuser
+cn: testrouting
+sn: localuser
+mail: localuser@local.domain.com
+
+
+

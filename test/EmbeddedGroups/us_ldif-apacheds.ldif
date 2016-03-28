@@ -1,0 +1,15 @@
+version: 1
+
+
+dn: cn=West Coast,ou=groups,dc=domain,dc=com
+changetype: add
+objectClass: groupOfUniqueNames
+cn: West Coast
+uniqueMember: uid=tuser4,ou=people,dc=domain,dc=com
+
+
+dn: cn=North East,ou=groups,dc=domain,dc=com
+changetype: modify
+add: uniqueMember
+uniqueMember: cn=West Coast,ou=groups,dc=domain,dc=com
+-

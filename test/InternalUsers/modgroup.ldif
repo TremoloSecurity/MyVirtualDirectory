@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=Test Group,ou=groups,o=mycompany,c=us
+changeType: modify
+add: uniqueMember
+uniqueMember: uid=testuser5,ou=people,o=mycompany,c=us
+-

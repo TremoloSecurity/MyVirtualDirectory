@@ -1,0 +1,671 @@
+version: 1
+
+
+dn: o=mycompany,c=us
+dc: test
+objectClass: domain
+
+dn: cn=Users,o=mycompany,c=us
+objectGUID: 1ad82e9e-7a8b-48a0-8326-ad767eeed6a9
+primaryDN: cn=Users,ou=ad
+primaryBase: ou=ad
+cn: Users
+objectClass: top
+objectClass: container
+
+dn: cn=Administrator,cn=Users,o=mycompany,c=us
+objectGUID: 07dc8f69-3e12-4662-a57a-d71e51e6bbf9
+primaryBase: ou=ad
+uidnumber: 500
+loginshell: /bin/bash
+homedirectory: /home/Administrator
+joinedBases: ou=unix-attribs
+primaryDN: cn=Administrator,cn=Users,ou=ad
+joinedDNs: objectguid=07dc8f69-3e12-4662-a57a-d71e51e6bbf9,ou=users,ou=unix-at
+ tribs
+uid: Administrator
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-500
+cn: Administrator
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=Guest,cn=Users,o=mycompany,c=us
+objectGUID: c30f1440-b801-49a6-bbaf-c9188ba5e38d
+primaryBase: ou=ad
+uidnumber: 501
+loginshell: /bin/bash
+homedirectory: /home/Guest
+joinedBases: ou=unix-attribs
+primaryDN: cn=Guest,cn=Users,ou=ad
+joinedDNs: objectguid=c30f1440-b801-49a6-bbaf-c9188ba5e38d,ou=users,ou=unix-at
+ tribs
+uid: Guest
+primaryGroupID: 514
+gidnumber: 501
+objectSID: S-1-5-21-948560706-4013754706-535057578-501
+cn: Guest
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=SUPPORT_388945a0,cn=Users,o=mycompany,c=us
+objectGUID: a14d5a24-2514-4f4e-84df-aad4a798ca77
+primaryBase: ou=ad
+uidnumber: 502
+loginshell: /bin/bash
+homedirectory: /home/SUPPORT_388945a0
+joinedBases: ou=unix-attribs
+primaryDN: cn=SUPPORT_388945a0,cn=Users,ou=ad
+joinedDNs: objectguid=a14d5a24-2514-4f4e-84df-aad4a798ca77,ou=users,ou=unix-at
+ tribs
+uid: SUPPORT_388945a0
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1001
+cn: SUPPORT_388945a0
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=HelpServicesGroup,cn=Users,o=mycompany,c=us
+objectGUID: 54668336-0431-47f6-b790-eeb1f05b9d14
+primaryDN: cn=HelpServicesGroup,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=54668336-0431-47f6-b790-eeb1f05b9d14,ou=groups,ou=unix-a
+ ttribs
+uid: HelpServicesGroup
+uniqueMember: cn=SUPPORT_388945a0,cn=Users,o=mycompany,c=us
+gidnumber: 502
+objectSID: S-1-5-21-948560706-4013754706-535057578-1000
+cn: HelpServicesGroup
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=topgroup,cn=Users,o=mycompany,c=us
+objectGUID: f358ffbc-9cbb-41c3-9096-4926a2514d44
+primaryDN: cn=topgroup,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=f358ffbc-9cbb-41c3-9096-4926a2514d44,ou=groups,ou=unix-a
+ ttribs
+uid: topgroup
+gidnumber: 503
+objectSID: S-1-5-21-948560706-4013754706-535057578-1135
+cn: topgroup
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=TelnetClients,cn=Users,o=mycompany,c=us
+objectGUID: 24a2f7bc-612e-4b3d-a584-909b980cf85a
+primaryDN: cn=TelnetClients,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=24a2f7bc-612e-4b3d-a584-909b980cf85a,ou=groups,ou=unix-a
+ ttribs
+uid: TelnetClients
+gidnumber: 504
+objectSID: S-1-5-21-948560706-4013754706-535057578-1002
+cn: TelnetClients
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=unixadmins,cn=Users,o=mycompany,c=us
+objectGUID: aa6f9b7a-e72d-46be-8aed-820b8c84771a
+primaryDN: cn=unixadmins,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=aa6f9b7a-e72d-46be-8aed-820b8c84771a,ou=groups,ou=unix-a
+ ttribs
+uid: unixadmins
+uniqueMember: cn=unixadmin1 admin,cn=Users,o=mycompany,c=us
+gidnumber: 505
+objectSID: S-1-5-21-948560706-4013754706-535057578-1136
+cn: unixadmins
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=unixadmin1 admin,cn=Users,o=mycompany,c=us
+objectGUID: 49a1199d-fd10-4c2a-bbb2-e45d51778985
+primaryBase: ou=ad
+uidnumber: 503
+loginshell: /bin/bash
+sn: admin
+joinedBases: ou=unix-attribs
+homedirectory: /home/unixadmin1
+primaryDN: cn=unixadmin1 admin,cn=Users,ou=ad
+joinedDNs: objectguid=49a1199d-fd10-4c2a-bbb2-e45d51778985,ou=users,ou=unix-at
+ tribs
+userPassword:: dW5zZWNyZXQ=
+uid: unixadmin1
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1137
+cn: unixadmin1 admin
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=krbtgt,cn=Users,o=mycompany,c=us
+objectGUID: aa8e5cd5-2735-4db9-8386-2ac6985901d6
+primaryBase: ou=ad
+uidnumber: 504
+loginshell: /bin/bash
+homedirectory: /home/krbtgt
+joinedBases: ou=unix-attribs
+primaryDN: cn=krbtgt,cn=Users,ou=ad
+joinedDNs: objectguid=aa8e5cd5-2735-4db9-8386-2ac6985901d6,ou=users,ou=unix-at
+ tribs
+uid: krbtgt
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-502
+cn: krbtgt
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=Domain Computers,cn=Users,o=mycompany,c=us
+objectGUID: 177b638b-e247-4d77-9516-c8e690858ebd
+primaryDN: cn=Domain Computers,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=177b638b-e247-4d77-9516-c8e690858ebd,ou=groups,ou=unix-a
+ ttribs
+uid: Domain Computers
+gidnumber: 506
+objectSID: S-1-5-21-948560706-4013754706-535057578-515
+cn: Domain Computers
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Domain Controllers,cn=Users,o=mycompany,c=us
+objectGUID: 431b7a83-8cf4-4ec9-894d-e401fbf83922
+primaryDN: cn=Domain Controllers,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=431b7a83-8cf4-4ec9-894d-e401fbf83922,ou=groups,ou=unix-a
+ ttribs
+uid: Domain Controllers
+gidnumber: 507
+objectSID: S-1-5-21-948560706-4013754706-535057578-516
+cn: Domain Controllers
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Schema Admins,cn=Users,o=mycompany,c=us
+objectGUID: 1bfcc40b-4651-4c50-bcab-81dbdf349d1a
+primaryDN: cn=Schema Admins,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=1bfcc40b-4651-4c50-bcab-81dbdf349d1a,ou=groups,ou=unix-a
+ ttribs
+uid: Schema Admins
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+gidnumber: 508
+objectSID: S-1-5-21-948560706-4013754706-535057578-518
+cn: Schema Admins
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Enterprise Admins,cn=Users,o=mycompany,c=us
+objectGUID: 45bf64de-be22-41cb-a3c2-af4d5d10c085
+primaryDN: cn=Enterprise Admins,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=45bf64de-be22-41cb-a3c2-af4d5d10c085,ou=groups,ou=unix-a
+ ttribs
+uid: Enterprise Admins
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+gidnumber: 509
+objectSID: S-1-5-21-948560706-4013754706-535057578-519
+cn: Enterprise Admins
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Cert Publishers,cn=Users,o=mycompany,c=us
+objectGUID: b64c850e-3f5c-47a6-bd3e-746c423ff45a
+primaryDN: cn=Cert Publishers,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=b64c850e-3f5c-47a6-bd3e-746c423ff45a,ou=groups,ou=unix-a
+ ttribs
+uid: Cert Publishers
+uniqueMember: cn=PWC-IDM06,ou=Domain Controllers,o=mycompany,c=us
+gidnumber: 510
+objectSID: S-1-5-21-948560706-4013754706-535057578-517
+cn: Cert Publishers
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Domain Admins,cn=Users,o=mycompany,c=us
+objectGUID: 200c746b-8539-407a-b35d-52334d2a122a
+primaryDN: cn=Domain Admins,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=200c746b-8539-407a-b35d-52334d2a122a,ou=groups,ou=unix-a
+ ttribs
+uid: Domain Admins
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+gidnumber: 511
+objectSID: S-1-5-21-948560706-4013754706-535057578-512
+cn: Domain Admins
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Domain Users,cn=Users,o=mycompany,c=us
+objectGUID: 790c72f3-b8ef-44a5-84b9-f77e9c6ef91d
+primaryDN: cn=Domain Users,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=790c72f3-b8ef-44a5-84b9-f77e9c6ef91d,ou=groups,ou=unix-a
+ ttribs
+uid: Domain Users
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+uniqueMember: cn=SUPPORT_388945a0,cn=Users,o=mycompany,c=us
+uniqueMember: cn=unixadmin1 admin,cn=Users,o=mycompany,c=us
+uniqueMember: cn=krbtgt,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Jen Smith,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IUSR_PWC-IDM06,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IWAM_PWC-IDM06,cn=Users,o=mycompany,c=us
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-513
+cn: Domain Users
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Domain Guests,cn=Users,o=mycompany,c=us
+objectGUID: 9c8c731b-8145-4ba0-9f73-9b90bfcfeef6
+primaryDN: cn=Domain Guests,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=9c8c731b-8145-4ba0-9f73-9b90bfcfeef6,ou=groups,ou=unix-a
+ ttribs
+uid: Domain Guests
+uniqueMember: cn=Guest,cn=Users,o=mycompany,c=us
+gidnumber: 501
+objectSID: S-1-5-21-948560706-4013754706-535057578-514
+cn: Domain Guests
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Group Policy Creator Owners,cn=Users,o=mycompany,c=us
+objectGUID: 845b6252-036e-4e4a-858f-b33da3983143
+primaryDN: cn=Group Policy Creator Owners,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=845b6252-036e-4e4a-858f-b33da3983143,ou=groups,ou=unix-a
+ ttribs
+uid: Group Policy Creator Owners
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+gidnumber: 512
+objectSID: S-1-5-21-948560706-4013754706-535057578-520
+cn: Group Policy Creator Owners
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=RAS and IAS Servers,cn=Users,o=mycompany,c=us
+objectGUID: f48257db-bb5d-4075-b370-f24a999b6aa1
+primaryDN: cn=RAS and IAS Servers,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=f48257db-bb5d-4075-b370-f24a999b6aa1,ou=groups,ou=unix-a
+ ttribs
+uid: RAS and IAS Servers
+gidnumber: 513
+objectSID: S-1-5-21-948560706-4013754706-535057578-553
+cn: RAS and IAS Servers
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=DnsAdmins,cn=Users,o=mycompany,c=us
+objectGUID: 717c7eda-f7fd-49ae-ae68-f0c5001462ba
+primaryDN: cn=DnsAdmins,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=717c7eda-f7fd-49ae-ae68-f0c5001462ba,ou=groups,ou=unix-a
+ ttribs
+uid: DnsAdmins
+gidnumber: 514
+objectSID: S-1-5-21-948560706-4013754706-535057578-1104
+cn: DnsAdmins
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=DnsUpdateProxy,cn=Users,o=mycompany,c=us
+objectGUID: ccae324f-4b07-4a7c-b4f8-286d61882cd0
+primaryDN: cn=DnsUpdateProxy,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=ccae324f-4b07-4a7c-b4f8-286d61882cd0,ou=groups,ou=unix-a
+ ttribs
+uid: DnsUpdateProxy
+gidnumber: 515
+objectSID: S-1-5-21-948560706-4013754706-535057578-1105
+cn: DnsUpdateProxy
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+objectGUID: 0ebbad98-f66f-43dc-b447-51a6e0d2263c
+primaryBase: ou=ad
+uidnumber: 505
+loginshell: /bin/bash
+sn: Boorshtein
+joinedBases: ou=unix-attribs
+homedirectory: /home/mlb
+primaryDN: cn=Marc Boorshtein,cn=Users,ou=ad
+joinedDNs: objectguid=0ebbad98-f66f-43dc-b447-51a6e0d2263c,ou=users,ou=unix-at
+ tribs
+userPassword:: bWxic2VjcmV0
+uid: mlb
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1107
+cn: Marc Boorshtein
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=Jen Smith,cn=Users,o=mycompany,c=us
+objectGUID: f379203a-8e21-458d-b369-dade246f0192
+primaryBase: ou=ad
+uidnumber: 506
+loginshell: /bin/bash
+sn: Smith
+joinedBases: ou=unix-attribs
+homedirectory: /home/jsmith000
+primaryDN: cn=Jen Smith,cn=Users,ou=ad
+joinedDNs: objectguid=f379203a-8e21-458d-b369-dade246f0192,ou=users,ou=unix-at
+ tribs
+userPassword:: anNzZWNyZXQ=
+uid: jsmith000
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1110
+cn: Jen Smith
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=ldapgroup,cn=Users,o=mycompany,c=us
+objectGUID: 8fcf8c04-cb7e-459d-bd71-6a02777e5e04
+primaryDN: cn=ldapgroup,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=8fcf8c04-cb7e-459d-bd71-6a02777e5e04,ou=groups,ou=unix-a
+ ttribs
+uid: ldapgroup
+uniqueMember: cn=Jen Smith,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+gidnumber: 516
+objectSID: S-1-5-21-948560706-4013754706-535057578-1112
+cn: ldapgroup
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS,cn=Users,o=mycompany,c=us
+objectGUID: b54d8e1b-cd59-4645-abf5-bfb6353f1ebd
+primaryDN: cn=SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=b54d8e1b-cd59-4645-abf5-bfb6353f1ebd,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS
+gidnumber: 517
+objectSID: S-1-5-21-948560706-4013754706-535057578-1115
+cn: SQLServer2005MSSQLUser$PWC-IDM06$SQLEXPRESS
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=IUSR_PWC-IDM06,cn=Users,o=mycompany,c=us
+objectGUID: 799cf295-6f49-42bb-817a-48aab680249c
+primaryBase: ou=ad
+uidnumber: 507
+loginshell: /bin/bash
+homedirectory: /home/IUSR_PWC-IDM06
+joinedBases: ou=unix-attribs
+primaryDN: cn=IUSR_PWC-IDM06,cn=Users,ou=ad
+joinedDNs: objectguid=799cf295-6f49-42bb-817a-48aab680249c,ou=users,ou=unix-at
+ tribs
+uid: IUSR_PWC-IDM06
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1116
+cn: IUSR_PWC-IDM06
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=IWAM_PWC-IDM06,cn=Users,o=mycompany,c=us
+objectGUID: b9d1bc89-00e9-476f-83b8-8f93495616f0
+primaryBase: ou=ad
+uidnumber: 508
+loginshell: /bin/bash
+homedirectory: /home/IWAM_PWC-IDM06
+joinedBases: ou=unix-attribs
+primaryDN: cn=IWAM_PWC-IDM06,cn=Users,ou=ad
+joinedDNs: objectguid=b9d1bc89-00e9-476f-83b8-8f93495616f0,ou=users,ou=unix-at
+ tribs
+uid: IWAM_PWC-IDM06
+primaryGroupID: 513
+gidnumber: 500
+objectSID: S-1-5-21-948560706-4013754706-535057578-1117
+cn: IWAM_PWC-IDM06
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: posixAccount
+
+dn: cn=IIS_WPG,cn=Users,o=mycompany,c=us
+objectGUID: a6d898eb-b135-4f88-bb22-2301f4f11ce4
+primaryDN: cn=IIS_WPG,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=a6d898eb-b135-4f88-bb22-2301f4f11ce4,ou=groups,ou=unix-a
+ ttribs
+uid: IIS_WPG
+uniqueMember: cn=IWAM_PWC-IDM06,cn=Users,o=mycompany,c=us
+gidnumber: 518
+objectSID: S-1-5-21-948560706-4013754706-535057578-1118
+cn: IIS_WPG
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER,cn=Users,o=mycompany,c=
+ us
+objectGUID: a57a5c8e-c10b-4e4d-adc4-2c156a09021b
+primaryDN: cn=SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=a57a5c8e-c10b-4e4d-adc4-2c156a09021b,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 519
+objectSID: S-1-5-21-948560706-4013754706-535057578-1120
+cn: SQLServer2005SQLAgentUser$PWC-IDM06$MSSQLSERVER
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER,cn=Users,o=mycompany,c=us
+objectGUID: 846141b8-9efb-4c23-86b7-dbda780b9b1b
+primaryDN: cn=SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=846141b8-9efb-4c23-86b7-dbda780b9b1b,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 520
+objectSID: S-1-5-21-948560706-4013754706-535057578-1121
+cn: SQLServer2005MSSQLUser$PWC-IDM06$MSSQLSERVER
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER,cn=Users,o=mycompany,c=us
+objectGUID: 981c91df-b279-4e32-befe-4c6f7bb0aa61
+primaryDN: cn=SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=981c91df-b279-4e32-befe-4c6f7bb0aa61,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 521
+objectSID: S-1-5-21-948560706-4013754706-535057578-1122
+cn: SQLServer2005MSFTEUser$PWC-IDM06$MSSQLSERVER
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER,cn=Users,o=mycompany,c=us
+objectGUID: ce830d07-2c3f-458a-9a56-9a94ecabca6e
+primaryDN: cn=SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=ce830d07-2c3f-458a-9a56-9a94ecabca6e,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 522
+objectSID: S-1-5-21-948560706-4013754706-535057578-1123
+cn: SQLServer2005MSOLAPUser$PWC-IDM06$MSSQLSERVER
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005DTSUser$PWC-IDM06,cn=Users,o=mycompany,c=us
+objectGUID: ab01f748-2ad5-4781-aa8b-95f24890b606
+primaryDN: cn=SQLServer2005DTSUser$PWC-IDM06,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=ab01f748-2ad5-4781-aa8b-95f24890b606,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005DTSUser$PWC-IDM06
+gidnumber: 523
+objectSID: S-1-5-21-948560706-4013754706-535057578-1127
+cn: SQLServer2005DTSUser$PWC-IDM06
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005SQLBrowserUser$PWC-IDM06,cn=Users,o=mycompany,c=us
+objectGUID: 08ade843-df46-4181-80ae-e32407a95ccd
+primaryDN: cn=SQLServer2005SQLBrowserUser$PWC-IDM06,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=08ade843-df46-4181-80ae-e32407a95ccd,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005SQLBrowserUser$PWC-IDM06
+gidnumber: 524
+objectSID: S-1-5-21-948560706-4013754706-535057578-1128
+cn: SQLServer2005SQLBrowserUser$PWC-IDM06
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005MSSQLServerADHelperUser$PWC-IDM06,cn=Users,o=mycompany,c=u
+ s
+objectGUID: 0d5c46c5-a07d-467d-a210-af225f8494de
+primaryDN: cn=SQLServer2005MSSQLServerADHelperUser$PWC-IDM06,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=0d5c46c5-a07d-467d-a210-af225f8494de,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005MSSQLServerADHelperUser$PWC-IDM06
+gidnumber: 525
+objectSID: S-1-5-21-948560706-4013754706-535057578-1129
+cn: SQLServer2005MSSQLServerADHelperUser$PWC-IDM06
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005NotificationServicesUser$PWC-IDM06,cn=Users,o=mycompany,c=
+ us
+objectGUID: 097d55a1-e49c-41ee-b873-92374cd1a779
+primaryDN: cn=SQLServer2005NotificationServicesUser$PWC-IDM06,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=097d55a1-e49c-41ee-b873-92374cd1a779,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005NotificationServicesUser$PWC-IDM06
+gidnumber: 526
+objectSID: S-1-5-21-948560706-4013754706-535057578-1130
+cn: SQLServer2005NotificationServicesUser$PWC-IDM06
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=S-1-5-21-948560706-4013754706-535057578-1131,cn=Users,o=mycompany,c=us
+objectGUID: 0db6af86-7ed7-4e0c-9e45-05ebb547f72c
+primaryDN: cn=S-1-5-21-948560706-4013754706-535057578-1131,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=0db6af86-7ed7-4e0c-9e45-05ebb547f72c,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005ReportingServicesWebServiceUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 527
+objectSID: S-1-5-21-948560706-4013754706-535057578-1131
+cn: S-1-5-21-948560706-4013754706-535057578-1131
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER,cn=Users,o=mycompan
+ y,c=us
+objectGUID: c305b6cb-cda5-40da-80e6-3a4c47ef5b7c
+primaryDN: cn=SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER,cn=Users,ou=
+ ad
+primaryBase: ou=ad
+joinedDNs: objectguid=c305b6cb-cda5-40da-80e6-3a4c47ef5b7c,ou=groups,ou=unix-a
+ ttribs
+uid: SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER
+gidnumber: 528
+objectSID: S-1-5-21-948560706-4013754706-535057578-1132
+cn: SQLServer2005ReportServerUser$PWC-IDM06$MSSQLSERVER
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=sudoers,cn=Users,o=mycompany,c=us
+objectGUID: a81abe70-18f9-415d-8337-9769a001c61b
+primaryDN: cn=sudoers,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=a81abe70-18f9-415d-8337-9769a001c61b,ou=groups,ou=unix-a
+ ttribs
+uid: sudoers
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+gidnumber: 529
+objectSID: S-1-5-21-948560706-4013754706-535057578-1133
+cn: sudoers
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+
+dn: cn=CERTSVC_DCOM_ACCESS,cn=Users,o=mycompany,c=us
+objectGUID: 5ebda6dd-4236-498c-9eaf-cfa76b680a2b
+primaryDN: cn=CERTSVC_DCOM_ACCESS,cn=Users,ou=ad
+primaryBase: ou=ad
+joinedDNs: objectguid=5ebda6dd-4236-498c-9eaf-cfa76b680a2b,ou=groups,ou=unix-a
+ ttribs
+uid: CERTSVC_DCOM_ACCESS
+uniqueMember: cn=Domain Users,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Domain Computers,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Administrator,cn=Users,o=mycompany,c=us
+uniqueMember: cn=SUPPORT_388945a0,cn=Users,o=mycompany,c=us
+uniqueMember: cn=unixadmin1 admin,cn=Users,o=mycompany,c=us
+uniqueMember: cn=krbtgt,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Marc Boorshtein,cn=Users,o=mycompany,c=us
+uniqueMember: cn=Jen Smith,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IUSR_PWC-IDM06,cn=Users,o=mycompany,c=us
+uniqueMember: cn=IWAM_PWC-IDM06,cn=Users,o=mycompany,c=us
+gidnumber: 530
+objectSID: S-1-5-21-948560706-4013754706-535057578-1134
+cn: CERTSVC_DCOM_ACCESS
+joinedBases: ou=unix-attribs
+objectClass: top
+objectClass: posixGroup
+

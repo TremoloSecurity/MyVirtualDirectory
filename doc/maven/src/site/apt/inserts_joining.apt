@@ -1,0 +1,61 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+ 
+Joining Inserts
+ 
+  The joining inserts can be combined to join entries across several directories and
+  databases.  In addition to the joiner insert there are several inserts that assist 
+  with the utilization of joining.
+  
+* Joiner
+
+ The joiner is used to combine two LDAP namespaces (note that this means two DN namespace, not two configuration namespaces). The joiner combines entries from each namespace.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.Joiner               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Search                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|primaryNamespace|LDAP DN that represents a configured namespace that will drive the namespace of the joiner|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedNamespace|LDAP DN that represents a configured namespace that will be joined with the primaryNamespace.  The namespace of the primaryNamespace drives the joiner's namespace|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedAttributes|Attributes to be included in the join|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinFilter|A filter that is used to combine objects.  When including an attribute from the joining entry prepend the attribute with "ATTR.".  For instance, to combine a user based on the uid attribute the filter would be "(uid=ATTR.uid)"|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+* Joiner - Simple Join Modify
+
+ The simple join modify insert is configured AFTER a joiner on a chain in order to support the modification of joined attributes
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.SimpleJoinModify               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Modify                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|joinerName|The name of the joiner insert configured on this chain|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+
+* Joiner - Join Add Flat NameSpace
+
+ The join add flat namespace insert is designed to allow the addition of entries to a joiner namespace.  NOTE: this insert MUST be configured as the
+ last insert on a chain.
+
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Class Name           |net.sourceforge.myvd.inserts.join.JonAddFlatNS               |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Scope                |Add                                                 |                                      |
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|Configuration Options|joinerName|The name of the joiner insert configured on this chain|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |joinedObjectClass|The objectclass for joined entries|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |sharedAttributes|Comma seperated list of attributes shared by both the primary and joined namespaces|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+
+  

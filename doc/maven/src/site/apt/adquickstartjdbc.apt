@@ -1,0 +1,70 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+ADQuickStartJDBC
+
+ The ADQuickStartJDBC quick start gives you most of everything you need to use MyVD to integrate Linux with Active Directory using MyVD.  This 
+ quick start will NOT setup an ApacheDB database.  You will need to create tables based on the below instructions in your chosen database 
+ server.  You will also need to copy the jar file that contains your database drivers into the MY_VD/lib directory.  This quick start
+ will integrate Active Directory an optionally setup SSL options.  Before running this quick start you need the following information:
+
+*--------+----------------+----------+
+|Option  | Description 	  |Example   |
+*--------+----------------+----------+
+|Active Directory domain controller host| 	The host of the AD system |	test.mydomain.com|
+*--------+----------------+----------+
+|AD Port |	The port of the AD system |	By default: 389 for non-ssl, 636 for ssl|
+*--------+----------------+----------+
+|AD Domain| 	The domain name |	test.mydomain.com|
+*--------+----------------+----------+
+|AD Search User| 	DN for user for MyVD to connect to AD. This user must have no search controls placed on it. Do not include the domain name in the dn |	cn=MyVDUser,cn=Users|
+*--------+----------------+----------+
+|AD Search Users Password| 	Password for the MyVD user |	password|
+*--------+----------------+----------+
+|AD User Base| 	The base for all users and groups, minus the domain name |	Typically “cn=Users”|
+*--------+----------------+----------+
+|Use SSL to connect to AD?| 	Determines if SSL will be used for connecting to AD| |
+*--------+----------------+----------+ 	
+|Use Kerberos for authentication| 	Determines if Kerberos should be used for authentication, useful when there is no AD SSL availability | |
+*--------+----------------+----------+ 	
+|Create Self Signed Certificate? |	Determines if a self signed certificate should be created for MyVD |	If you do not have a certificate authority or want to get up and running quickly|
+*--------+----------------+----------+
+|JDBC Driver| The class name of the jdbc driver | For ApacheDB: org.apache.derby.jdbc.EmbeddedDriver |
+*--------+----------------+----------+
+|JDBC Url | The JDBC url for the database | For ApacheDB : jdbc:derby:myvdPosix;create=true |
+*--------+----------------+----------+
+|JDBC User | The user to use to connect to the database, must have write permissions| |
+*--------+----------------+----------+
+|JDBC Password | The password for the jdbc user | |
+*--------+----------------+----------+
+
+ In your database you must create the following tables:
+
+ posixUsers
+ 
+*--------+----------------+----------+
+|Field   |Type            |Options   |
+*--------+----------------+----------+
+|id      |int             |Primary key, auto increment|
+*--------+----------------+----------+
+|objectGuid|varchar(255)  |unique index|
+*--------+----------------+----------+
+|homeDir |varchar(255)    |no index  |
+*--------+----------------+----------+
+|loginShell|varchar(255)  |no index  |
+*--------+----------------+----------+
+
+ posixGroups
+ 
+*--------+----------------+----------+
+|Field   |Type            |Options   |
+*--------+----------------+----------+
+|id      |int             |Primary key, auto increment|
+*--------+----------------+----------+
+|objectGuid|varchar(255)  |unique index|
+*--------+----------------+----------+
+
+ Once completed an LDAP search from the base you configure will pre-populate the database.

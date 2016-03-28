@@ -1,0 +1,7 @@
+version: 1
+
+dn: cn=boston,ou=groups,o=ad
+objectClass: groupOfUniqueNames
+
+dn: cn=Sales,ou=groups,o=ad
+objectClass: groupOfUniqueNames

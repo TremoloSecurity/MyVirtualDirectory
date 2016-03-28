@@ -1,0 +1,13 @@
+version: 1
+
+dn: ou=local,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: local
+
+
+dn: uid=localuser,ou=local,dc=domain,dc=com
+objectClass: inetOrgPerson
+uid: localuser
+cn: testrouting
+sn: localuser
+mail: localuser@local.domain.com

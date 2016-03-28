@@ -1,0 +1,11 @@
+version: 1
+
+dn: cn=North East,ou=groups,dc=domain,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: North East
+uniqueMember: cn=boston,ou=groups,dc=domain,dc=com
+uniqueMember: cn=new york,ou=groups,dc=domain,dc=com
+uniqueMember: uid=tuser1,ou=people,dc=domain,dc=com
+uniqueMember: uid=tuser3,ou=people,dc=domain,dc=com
+uniqueMember: uid=tuser2,ou=people,dc=domain,dc=com

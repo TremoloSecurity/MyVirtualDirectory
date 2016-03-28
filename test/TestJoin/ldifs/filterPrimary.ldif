@@ -1,0 +1,16 @@
+version: 1
+
+dn: uid=user2,ou=people,o=mycompany,c=us
+uid: user2
+sn: User2
+cn: Test User2
+appattrib2: app-g
+userPassword: secret
+appattrib1: sysy
+objectClass: inetOrgPerson
+objectClass: appPerson
+givenName: Test
+primaryDN: uid=user2,ou=people,o=enterprise
+joinedDNs: uid=user2,o=appdb
+primaryBase: o=enterprise
+joinedBases: o=appdb

@@ -1,0 +1,30 @@
+version: 1
+
+dn: o=unix
+objectClass: organization
+o: unix
+
+dn: uid=tuser001,o=unix
+uid: tuser001
+uidNumber: 550
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+homeDirectory: /home/tuser001
+shadowMax: 999999
+shadowLastChange: 1087
+shadowWarning: 7
+shadowInactive: -1
+shadowFlag: 0
+cn: Test1 User
+sn: User
+shadowExpire: -1
+shadowMin: 0
+gidNumber: 200
+gecos: Test User1
+
+dn: cn=UNIX Users,o=unix
+cn: UNIX Users
+objectClass: posixGroup
+gidNumber: 200

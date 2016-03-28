@@ -1,0 +1,33 @@
+version: 1
+
+dn: dc=domain,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=people,dc=domain,dc=com
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=user1,ou=people,dc=domain,dc=com
+objectClass: inetOrgPerson
+uid: user1
+cn: Test User1
+givenName: Test
+sn: User1
+userPassword: secret
+
+dn: uid=user2,ou=people,dc=domain,dc=com
+objectClass: inetOrgPerson
+uid: user2
+cn: Test User2
+givenName: Test
+sn: User2
+userPassword: secret
+
+dn: uid=user3,ou=people,dc=domain,dc=com
+objectClass: inetOrgPerson
+uid: user3
+cn: Test User3
+givenName: Test
+sn: User3
+userPassword: secret

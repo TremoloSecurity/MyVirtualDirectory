@@ -1,0 +1,53 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Logging in MyVirtualDirectory
+
+ MyVD utilizes a very flexible logging mechanism called Log4J.  With this system you can have very fine control over what gets logged and
+ to where.  By utilizing this system you can either use the default logging configuration to log all "informational" data to the conf/myvd.conf
+ file, only set certain parts of MyVD to log in debug mode or setup different log files.
+ 
+* Default Logging Configuration
+
+ Without making any changes to the default logging configuration the following congiguration is used:
+ 
++-----------------+
+log4j.rootLogger=info,logfile
+log4j.appender.logfile=org.apache.log4j.RollingFileAppender
+log4j.appender.logfile.File=$MYVD_HOME/logs/myvd.log
+log4j.appender.logfile.MaxFileSize=100KB
+log4j.appender.logfile.MaxBackupIndex=10
+log4j.appender.logfile.layout=org.apache.log4j.PatternLayout
+log4j.appender.logfile.layout.ConversionPattern=[%d][%t] %-5p %c{1} - %m%n
++-----------------+
+
+ This setup is easily changed, but is the simplest logging setup with automatic log rolling.
+ 
+* Changing Default Logging
+
+ MyVirtualDirectory provides the $MYVD_HOME/conf/logging.conf file for making updates to the logging configuration.  This file is a simple 
+ properties file that can be used to add or override the default logging configuration.  For instance, in order to change the max file size
+ from 100KB to 5000KB and changing the log level to DEBUG you would put the following into your logging.conf file:
+ 
++---------+
+log4j.rootLogger=DEBUG,logfile
+log4j.appender.logfile.MaxFileSize=5000KB
++---------+
+
+* Setting the Log Level For Specific Inserts
+
+ Log4J utilizes a hierarchal process to define log levels.  If you were to set the entire server to debug mode there will be a LOT of 
+ information in your logs.  When you want to debug only a portion of the system, such as a single insert, you can specify the class or
+ package name in the logging file.  For instance if you want to set the log level to debug for JUST the JDBC inserts:
+ 
++--------+
+log4j.logger.net.sourceforge.myvd.inserts.jdbc=DEBUG,logfile
++--------+
+
+* Advanced Changes
+
+ You can do any number of things with log4j such as separate log files, logging to a database, custom loggers, etc., etc.  For more advanced
+ log4j configuration options see the log4j web-site: http://logging.apache.org/log4j/1.2/manual.html

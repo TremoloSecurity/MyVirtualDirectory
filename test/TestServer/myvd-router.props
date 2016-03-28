@@ -1,0 +1,46 @@
+#Listen on port 389
+server.listener.port=50983
+
+#Listen on 636 using SSL
+#server.secure.listener.port=636
+#server.secure.keystore=/var/keystores/myvd.ks
+#server.secure.keypass=secret
+
+#Configure global chains
+server.globalChain=LogAllTransactions
+server.globalChain.LogAllTransactions.className=net.sourceforge.myvd.inserts.DumpTransaction
+server.globalChain.LogAllTransactions.config.logLevel=info
+server.globalChain.LogAllTransactions.config.label=Global
+
+
+#Configure namespaces
+server.nameSpaces=Root,schema,bnldap
+
+#Define RootDSE
+server.Root.chain=RootDSE
+server.Root.nameSpace=
+server.Root.weight=0
+server.Root.RootDSE.className=net.sourceforge.myvd.inserts.RootDSE
+server.Root.RootDSE.config.namingContexts=dc=domain,dc=com
+
+server.bnldap.chain=LDAP
+server.bnldap.nameSpace=dc=domain,dc=com
+server.bnldap.weight=100
+server.bnldap.LDAP.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.bnldap.LDAP.config.host=127.0.0.1
+server.bnldap.LDAP.config.port=10983
+server.bnldap.LDAP.config.proxyDN=cn=admin,dc=domain,dc=com
+server.bnldap.LDAP.config.proxyPass=manager
+server.bnldap.LDAP.config.remoteBase=dc=domain,dc=com
+server.bnldap.LDAP.config.type=ldap
+
+server.schema.chain=LDAPSchema
+server.schema.nameSpace=cn=schema
+server.schema.weight=100
+server.schema.LDAPSchema.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.schema.LDAPSchema.config.host=127.0.0.1
+server.schema.LDAPSchema.config.port=10983
+server.schema.LDAPSchema.config.proxyDN=cn=admin,dc=domain,dc=com
+server.schema.LDAPSchema.config.proxyPass=manager
+server.schema.LDAPSchema.config.remoteBase=cn=Subschema
+server.schema.LDAPSchema.config.type=ldap

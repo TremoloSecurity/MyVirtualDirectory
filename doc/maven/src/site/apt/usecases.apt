@@ -1,0 +1,64 @@
+ -----
+ MyVD LDAP Virtual Directory
+ -----
+ The MyVD Team
+ -----
+
+Virtual Directory Use Cases
+
+ Virtual Directories have several use cases.  In general a virtual directory is most easily used to help integrate an application into an existing environment. Each of the below usecases is examined in more detail with a description of how MyVD might solve the given problem.
+ 
+  * Namespace Integration - Integrating multiple directories to form a larger single directory
+  
+  * Delegated Authentication - Delegating authentication to an enterprise directory while using an edge directory for identity data
+  
+  * Data Transformation - Transform existing directory data for use by an application
+  
+  * Edge Directory Integration - Integrate application specific directory data into an enterprise directory without making any changes to the enterprise directory.
+  
+  * Web Services Integration - Many organizations have web services for the creation and update of user information
+
+  
+* Namespace Integration
+
+ A typical situation in many enterprise architectures is to maintain a seperate directory for internal and external users.  Internal users being employees while the external directory may store contractors and supliers or even customers.  In situations where all users need access to an applicaiton (such as a portal) the application may not support multiple directories.  In this situation a virtual directory can be used to integrate the directories into a single namespace.
+  
+[images/nsintegration.png] Namespace Integration
+ 
+ In the above example MyVD is used with two LDAP Inserts to create a single view of the two directories.
+ 
+* Delegated Authentication
+
+ In certain situations its desirable to have a local directory for user information while an external directory is used for authentication.  For instance a local directory for user data and ActiveDirectory for authentication.  In order to achieve this there are two options:
+ 
+  [[1]] Synchronize Passwords from ActiveDirectory
+  
+  [[2]] Use a virtual directory to delegate authentication to the ActiveDirectory while delegating all other requests to the local directory
+  
+  []
+  
+  Its not allways acceptable to utilize a password synchronization system for both policy and technical reasons.  In this case a virtual directory can be used to delegate the authentication.  In the below diagram the virtual directory sits as a proxy between the application and the local directory delegating all bind requests to the corporate ActiveDirectory utilizing Kerberos.  This is not the only way to delegate authenticaiton but is one of the simplest.
+  
+[images/delauth.png] Delegated Authentication
+
+* Data Transformation
+
+ While LDAP v3 is an IETF standard, not all applications abide by the standards.  In addition to requiring certain attributes, some applications will not work if your directory does not conform to its requirements.  Again as above either a virtual directory can be utilized or a new directory can be created based on a synchronization solution.  In this example an application requires that users id attribute be called uid while your directory is a Microsoft ActiveDirectory (which stores the user's id in the samAccountName attribute).  In order to support this application MyVD can be configured to "rename" uid to samAccountName.
+ 
+[images/dt.png] Data Transformation
+
+ The above diagram shows the application performing a search with the filter "(uid=username)" that is transformed to "(samAccountName=username)".  When the object is returned the attribute samAccountName is renamed to uid.  This is a very basic but powerful example of how a virtual directory can perform data transformation.
+ 
+* Edge Directory Integration
+
+ Many organizations have a single enterprise directory that stores common user attributes and may be used for authentication.  If an application requires additional attributes it's generally very dificult to add these attributes to the enterprise directory.  In this situation a virtual directory can be used to extend the enterprise directory by creating an edge directory that joins the enterprise directory to application specific attributes.
+ 
+[images/edge.png] Edge Directory Use Case
+
+ In the above example application attributes are stored in a relational database (as it may be easier to get an application specific database then application specific directory).  The Joiner insert combines the database and the enterprise directory based the uid attribute.
+ 
+* Web Services Integration
+
+ In order to control the provisioning of users some organizations require users are updated via a common API or web service.  A virtual directory can be used to call this web service when users are updated to integrate with the existing infrastructure.  The below image depicts the integration of a web service through a custom insert to call the web sevice and a routing insert to redirect updates to the custom insert.
+ 
+[images/sample1.png] Web Services Integration
