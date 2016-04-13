@@ -24,14 +24,14 @@ import com.novell.ldap.LDAPSearchResults;
 public class EntrySetSearchResults extends LDAPSearchResults {
 
 	Results res;
+	LDAPException exception = null;
 	
 	public EntrySetSearchResults(Results res) {
 		this.res = res;
 		try {
 			this.res.start();
 		} catch (LDAPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			exception = e;
 		}
 	}
 	
@@ -40,13 +40,16 @@ public class EntrySetSearchResults extends LDAPSearchResults {
 		try {
 			return res.hasMore();
 		} catch (LDAPException e) {
-			e.printStackTrace();
+			exception = e;
 			return false;
 		}
 	}
 
 	@Override
 	public LDAPEntry next() throws LDAPException {
+		if (exception != null) {
+			throw exception;
+		}
 		return this.res.next().getEntry();
 	}
 
