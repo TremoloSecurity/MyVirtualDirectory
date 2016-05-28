@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.jdbcLdapImpl.ChainedImpl;
 import net.sourceforge.myvd.core.InsertChain;
@@ -33,7 +33,7 @@ import net.sourceforge.myvd.types.Password;
 import com.octetstring.jdbcLdap.jndi.JndiLdapConnection;
 
 public class InterceptorChain {
-	static Logger logger = Logger.getLogger(InterceptorChain.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(InterceptorChain.class);
 	InsertChain chain;
 	int pos;
 	

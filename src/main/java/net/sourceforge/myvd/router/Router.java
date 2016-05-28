@@ -25,7 +25,7 @@ import java.util.TreeMap;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -63,7 +63,7 @@ import com.novell.ldap.util.RDN;
 
 
 public class Router {
-	static Logger logger = Logger.getLogger(Router.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Router.class);
 	
 	/** the backends keyed by normalized suffix strings */
     LinkedHashMap<String,NameSpace> backends = new LinkedHashMap<String,NameSpace>();

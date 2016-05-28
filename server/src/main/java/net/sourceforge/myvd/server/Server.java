@@ -56,8 +56,8 @@ import org.apache.directory.server.ldap.handlers.request.ExtendedRequestHandler;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
 import org.apache.directory.server.i18n.I18n;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.PropertyConfigurator;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
@@ -341,16 +341,16 @@ public class Server {
 		Properties props = new Properties();
 		props.put("log4j.rootLogger", "info,console");
 		
-		//props.put("log4j.appender.console","org.apache.log4j.RollingFileAppender");
+		//props.put("log4j.appender.console","org.apache.logging.log4j.RollingFileAppender");
 	    //props.put("log4j.appender.console.File","/home/mlb/myvd.log");
-		props.put("log4j.appender.console","org.apache.log4j.ConsoleAppender");
-		props.put("log4j.appender.console.layout","org.apache.log4j.PatternLayout");
+		props.put("log4j.appender.console","org.apache.logging.log4j.ConsoleAppender");
+		props.put("log4j.appender.console.layout","org.apache.logging.log4j.PatternLayout");
 		props.put("log4j.appender.console.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
 		
 		
 		
 		PropertyConfigurator.configure(props);
-		logger = Logger.getLogger(Server.class.getName());
+		logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 	}
 
 	/*private void startLDAP(String portString,IoFilterChainBuilder chainBuilder) throws LdapNamingException, IOException {
@@ -449,11 +449,11 @@ public class Server {
 			props.load(new FileInputStream(home + "/logging.conf"));
 			
 			if (! props.containsKey("log4j.rootLogger")) props.put("log4j.rootLogger", "debug,logfile");
-			if (! props.containsKey("log4j.appender.logfile")) props.put("log4j.appender.logfile", "org.apache.log4j.RollingFileAppender");
+			if (! props.containsKey("log4j.appender.logfile")) props.put("log4j.appender.logfile", "org.apache.logging.log4j.RollingFileAppender");
 			if (! props.containsKey("log4j.appender.logfile.File")) props.put("log4j.appender.logfile.File",loghome + "/logs/myvd.log");
 			if (! props.containsKey("log4j.appender.logfile.MaxFileSize")) props.put("log4j.appender.logfile.MaxFileSize","100KB");
 			if (! props.containsKey("log4j.appender.logfile.MaxBackupIndex")) props.put("log4j.appender.logfile.MaxBackupIndex","10");
-			if (! props.containsKey("log4j.appender.logfile.layout")) props.put("log4j.appender.logfile.layout","org.apache.log4j.PatternLayout");
+			if (! props.containsKey("log4j.appender.logfile.layout")) props.put("log4j.appender.logfile.layout","org.apache.logging.log4j.PatternLayout");
 			if (! props.containsKey("log4j.appender.logfile.layout.ConversionPattern")) props.put("log4j.appender.logfile.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
 			
 			
@@ -462,7 +462,7 @@ public class Server {
 			
 			PropertyConfigurator.configure(props);
 			
-			Server.logger = Logger.getLogger(Server.class.getName());
+			Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 		} else {
 			getDefaultLog();
 		}

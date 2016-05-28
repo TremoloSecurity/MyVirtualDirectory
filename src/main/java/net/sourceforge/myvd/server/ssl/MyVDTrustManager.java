@@ -11,10 +11,10 @@ import java.util.List;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class MyVDTrustManager implements X509TrustManager {
-	static Logger logger = Logger.getLogger(MyVDTrustManager.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(MyVDTrustManager.class.getName());
 	
 	X509Certificate[] issuers;
 	KeyStore ks;

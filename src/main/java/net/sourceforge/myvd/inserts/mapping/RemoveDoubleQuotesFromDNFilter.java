@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -37,7 +37,7 @@ import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 
 public class RemoveDoubleQuotesFromDNFilter implements Insert {
-	static Logger logger = Logger.getLogger(RemoveDoubleQuotesFromDNFilter.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RemoveDoubleQuotesFromDNFilter.class.getName());
 	
 	String name;
 	

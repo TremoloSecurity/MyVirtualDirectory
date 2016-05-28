@@ -18,7 +18,7 @@ package net.sourceforge.myvd.inserts.ldap;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -50,7 +50,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class IgnoreRef implements Insert {
 
-	static Logger logger = Logger.getLogger(IgnoreRef.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(IgnoreRef.class);
 	String name;
 	
 	public void add(AddInterceptorChain chain, Entry entry,

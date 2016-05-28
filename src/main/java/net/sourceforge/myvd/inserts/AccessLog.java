@@ -21,12 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.AsyncAppender;
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.RollingFileAppender;
+
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -203,60 +199,7 @@ public class AccessLog implements Insert {
 			throws LDAPException {
 		this.con = new Int(0);
 		
-		String logFileName = props.getProperty("fileName","CONSOLE");
 		
-		if (logFileName.equalsIgnoreCase("CONSOLE")) {
-			this.logger = Logger.getLogger(AccessLog.class.getName());
-		} else {
-			Properties logProps = new Properties();
-			logProps.setProperty("log4j.logger.net.sourceforge.myvd.inserts.AccessLog", "info,accesslog");
-			logProps.setProperty("log4j.appender.accesslog", "org.apache.log4j.AsyncAppender");
-			logProps.setProperty("log4j.appender.accesslog.BufferSize", "1024");
-			logProps.setProperty("log4j.appender.accesslog.Blocking", "true");
-			
-			
-			
-			/*logProps.setProperty("log4j.appender.accesslog", "org.apache.log4j.RollingFileAppender");
-			logProps.setProperty("log4j.appender.accesslog.File", logFileName);
-			logProps.put("log4j.appender.accesslog.MaxFileSize",props.getProperty("maxFilesSize","100MB"));
-			logProps.put("log4j.appender.accesslog.MaxBackupIndex",props.getProperty("backupIndex","10"));
-			logProps.put("log4j.appender.accesslog.layout","org.apache.log4j.PatternLayout");
-			logProps.put("log4j.appender.accesslog.layout.ConversionPattern","[%d][%t] %m%n");*/
-			
-			PropertyConfigurator.configure(logProps);
-			this.logger = Logger.getLogger(AccessLog.class.getName());
-			this.logger.setAdditivity(false);
-			
-			
-			String type = props.getProperty("type","periodic");
-			
-			
-			
-			AsyncAppender appender = (AsyncAppender) this.logger.getAppender("accesslog");
-			PatternLayout pl = new PatternLayout();
-			pl.setConversionPattern("[%d][%t] %m%n");
-			
-			
-			if (type.equalsIgnoreCase("rolling")) {
-				RollingFileAppender rfa = new RollingFileAppender();
-				rfa.setFile(logFileName);
-				rfa.setMaxFileSize(props.getProperty("maxFilesSize","100MB"));
-				rfa.setMaxBackupIndex(Integer.parseInt(props.getProperty("backupIndex","10")));
-				rfa.setLayout(pl);
-				rfa.setName("accesslogfile");
-				appender.addAppender(rfa);
-				rfa.activateOptions();
-			} else {
-				DailyRollingFileAppender pfa = new DailyRollingFileAppender();
-				pfa.setDatePattern("'.'yyyy-MM-dd");
-				pfa.setFile(logFileName);
-				pfa.setLayout(pl);
-				appender.addAppender(pfa);
-				pfa.activateOptions();
-			}
-			
-			
-		}
 	}
 
 	public void delete(DeleteInterceptorChain chain, DistinguishedName dn,

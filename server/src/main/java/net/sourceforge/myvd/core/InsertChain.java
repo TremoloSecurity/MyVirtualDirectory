@@ -21,14 +21,14 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPException;
 
 import net.sourceforge.myvd.inserts.Insert;
 
 public class InsertChain {
-	static Logger logger = Logger.getLogger(InsertChain.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(InsertChain.class.getName());
 	
 	Insert[] chain;
 	Properties props;

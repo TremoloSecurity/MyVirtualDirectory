@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Stack;
 
-import org.apache.log4j.Category;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -66,7 +66,7 @@ import net.sourceforge.myvd.util.ConnectionUtil;
 import net.sourceforge.myvd.util.EntryUtil;
 
 public class EmbeddedGroups implements Insert {
-	private static Logger logger = Logger.getLogger(EmbeddedGroups.class);
+	private static Logger logger = org.apache.logging.log4j.LogManager.getLogger(EmbeddedGroups.class);
 
 	private String StackKey;
 	private String name;

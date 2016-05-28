@@ -33,8 +33,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.net.Priority;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -67,7 +68,7 @@ public class DumpTransaction implements Insert {
 
 	public static final String LOG_LEVEL = "logLevel";
 	public static final String LABEL = "label";
-	Priority logLevel;
+	Level logLevel;
 	
 	Logger logger;
 	String label;
@@ -76,12 +77,12 @@ public class DumpTransaction implements Insert {
 	public void configure(String name, Properties props, NameSpace nameSpace)
 			throws LDAPException {
 		this.name = name;
-		this.logger = Logger.getLogger(DumpTransaction.class);
+		this.logger = org.apache.logging.log4j.LogManager.getLogger(DumpTransaction.class);
 		String tmpLogLevel = props.getProperty(LOG_LEVEL,"debug");
 		tmpLogLevel = tmpLogLevel.toUpperCase();
-		Class cls = Priority.class;
+		Class cls = Level.class;
 		try {
-			this.logLevel = (Priority) cls.getField(tmpLogLevel).get(null);
+			this.logLevel = (Level) cls.getField(tmpLogLevel).get(null);
 		} catch (IllegalArgumentException e) {
 			logger.error("Unable to configure DumpTransaction", e);
 		} catch (SecurityException e) {

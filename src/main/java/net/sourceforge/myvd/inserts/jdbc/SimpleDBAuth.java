@@ -16,7 +16,7 @@ import java.util.Properties;
 
 
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.encoders.Hex;
 
 import com.novell.ldap.LDAPConstraints;
@@ -48,7 +48,7 @@ import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 
 public class SimpleDBAuth implements Insert {
-	static Logger log = Logger.getLogger(SimpleDBAuth.class.getName());
+	static Logger log = org.apache.logging.log4j.LogManager.getLogger(SimpleDBAuth.class.getName());
 	private String name;
 	private NameSpace ns;
 	private JdbcPool jdbc;

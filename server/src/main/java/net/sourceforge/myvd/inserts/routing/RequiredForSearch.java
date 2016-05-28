@@ -3,7 +3,7 @@ package net.sourceforge.myvd.inserts.routing;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -34,7 +34,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class RequiredForSearch implements Insert {
 	
-	static Logger logger = Logger.getLogger(RequiredForSearch.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RequiredForSearch.class.getName());
 	
 	
 	boolean isRequired;

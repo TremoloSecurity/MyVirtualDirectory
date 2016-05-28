@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -61,7 +61,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class DBAddOnModify implements Insert {
 
-	protected static Logger logger = Logger.getLogger(DBAddOnModify.class.getName());
+	protected static Logger logger = org.apache.logging.log4j.LogManager.getLogger(DBAddOnModify.class.getName());
 	
 	public static final String ADD_OR_MOD_FLAG = "DB_ADD_OR_MOD_FLAG";
 	public static final String ADD_FLAG = "ADD";

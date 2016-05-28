@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -60,7 +60,7 @@ import net.sourceforge.myvd.util.NamingUtils;
 
 public class JoinAddFlatNS implements Insert {
 
-	static Logger logger = Logger.getLogger(JoinAddFlatNS.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JoinAddFlatNS.class);
 	
 	String name;
 	String joinerName;

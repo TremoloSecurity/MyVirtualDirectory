@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Priority;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -76,7 +76,7 @@ public class DumpTransaction implements Insert {
 	public void configure(String name, Properties props, NameSpace nameSpace)
 			throws LDAPException {
 		this.name = name;
-		this.logger = Logger.getLogger(DumpTransaction.class);
+		this.logger = org.apache.logging.log4j.LogManager.getLogger(DumpTransaction.class);
 		String tmpLogLevel = props.getProperty(LOG_LEVEL,"debug");
 		tmpLogLevel = tmpLogLevel.toUpperCase();
 		Class cls = Priority.class;

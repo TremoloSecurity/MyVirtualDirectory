@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Stack;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -58,7 +58,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class GeneratePosixGID implements Insert {
 
-	static Logger logger = Logger.getLogger(GeneratePosixGID.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(GeneratePosixGID.class.getName());
 	
 	public static final String GEN_POSIX_GID = "GEN_POSIX_GID_";
 	

@@ -18,7 +18,7 @@ package net.sourceforge.myvd.inserts.ad;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchConstraints;
@@ -135,7 +135,7 @@ public class ADPosixJoiner extends CompositeInsert {
 	@Override
 	public Logger getLogger() {
 		if (logger == null) {
-			logger = Logger.getLogger(ADPosixJoiner.class.getName());
+			logger = org.apache.logging.log4j.LogManager.getLogger(ADPosixJoiner.class.getName());
 		}
 		
 		return this.logger;

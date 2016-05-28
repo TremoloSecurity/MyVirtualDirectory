@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Stack;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -58,7 +58,7 @@ import net.sourceforge.myvd.types.Results;
 import net.sourceforge.myvd.util.EntryUtil;
 
 public class DynamicGroups implements Insert {
-	private static Logger logger = Logger.getLogger(DynamicGroups.class);
+	private static Logger logger = org.apache.logging.log4j.LogManager.getLogger(DynamicGroups.class);
 	
 	
 	

@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -65,7 +65,7 @@ import com.novell.ldap.util.RDN;
 public class LDAPInterceptor implements Insert {
 
 	public static final String NO_MAP_BIND_DN = "NO_MAP_BIND_DN_";
-	static Logger logger = Logger.getLogger(LDAPInterceptor.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPInterceptor.class);
 	String host;
 	int port;
 	String name;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
@@ -37,7 +37,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class RouteByAttributeValue implements Insert {
 
-	static Logger logger = Logger.getLogger(RouteByAttributeValue.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(RouteByAttributeValue.class.getName());
 	
 	String name;
 	ArrayList<RouteMap> maps;

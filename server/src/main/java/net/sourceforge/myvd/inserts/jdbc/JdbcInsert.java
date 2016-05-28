@@ -33,7 +33,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
 import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -72,7 +72,7 @@ import com.novell.ldap.util.RDN;
 
 public class JdbcInsert implements Insert,JdbcPool {
 
-	static Logger logger = Logger.getLogger(JdbcInsert.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JdbcInsert.class);
 	
 	public static final String MYVD_DB_CON = "MYVD_DB_CON_";
 	public static final String MYVD_DB_LDAP2DB = "MYVD_DB_LDAP2DB_";

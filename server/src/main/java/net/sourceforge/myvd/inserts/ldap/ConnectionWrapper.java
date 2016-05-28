@@ -15,7 +15,7 @@
  */
 package net.sourceforge.myvd.inserts.ldap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.Password;
@@ -34,7 +34,7 @@ public class ConnectionWrapper {
 	DN bindDN;
 	Password pass;
 	LDAPInterceptor interceptor;
-	static Logger logger = Logger.getLogger(ConnectionWrapper.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ConnectionWrapper.class);
 	
 	long lastAccessed;
 	

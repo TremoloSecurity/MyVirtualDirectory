@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,8 +60,17 @@ import org.apache.directory.server.ldap.handlers.request.ExtendedRequestHandler;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
 import org.apache.directory.server.i18n.I18n;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
@@ -408,20 +418,22 @@ public class Server {
 	}
 
 	private static void getDefaultLog() {
-		Properties props = new Properties();
-		props.put("log4j.rootLogger", "info,console");
-		
-		
-		//props.put("log4j.appender.console","org.apache.log4j.RollingFileAppender");
-	    //props.put("log4j.appender.console.File","/home/mlb/myvd.log");
-		props.put("log4j.appender.console","org.apache.log4j.ConsoleAppender");
-		props.put("log4j.appender.console.layout","org.apache.log4j.PatternLayout");
-		props.put("log4j.appender.console.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
 		
 		
 		
-		PropertyConfigurator.configure(props);
-		logger = Logger.getLogger(Server.class.getName());
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 	}
 
 	/*private void startLDAP(String portString,IoFilterChainBuilder chainBuilder) throws LdapNamingException, IOException {
@@ -510,33 +522,11 @@ public class Server {
 		
 		
 		if (System.getProperty("nolog","0").equalsIgnoreCase("0")) {
-			String home = args[0];
-			home = home.substring(0,home.lastIndexOf(File.separator));
-			String loghome = home.substring(0,home.lastIndexOf(File.separator));
+		
 			
-			Properties props = new Properties();
-			
-			
-			props.load(new FileInputStream(home + "/logging.conf"));
-			
-			if (! props.containsKey("log4j.rootLogger")) props.put("log4j.rootLogger", "info,logfile");
-			if (! props.containsKey("log4j.appender.logfile")) props.put("log4j.appender.logfile", "org.apache.log4j.RollingFileAppender");
-			if (! props.containsKey("log4j.appender.logfile.File")) props.put("log4j.appender.logfile.File",loghome + "/logs/myvd.log");
-			if (! props.containsKey("log4j.appender.logfile.MaxFileSize")) props.put("log4j.appender.logfile.MaxFileSize","100KB");
-			if (! props.containsKey("log4j.appender.logfile.MaxBackupIndex")) props.put("log4j.appender.logfile.MaxBackupIndex","10");
-			if (! props.containsKey("log4j.appender.logfile.layout")) props.put("log4j.appender.logfile.layout","org.apache.log4j.PatternLayout");
-			if (! props.containsKey("log4j.appender.logfile.layout.ConversionPattern")) props.put("log4j.appender.logfile.layout.ConversionPattern","[%d][%t] %-5p %c{1} - %m%n");
-			
-			
-			
-			
-			
-			PropertyConfigurator.configure(props);
-			
-			Server.logger = Logger.getLogger(Server.class.getName());
-		} else {
-			getDefaultLog();
+			Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 		}
+		
 		logger.info("MyVirtualDirectory Version : " + Server.VERSION);
 		logger.info("Starting MyVirtualDirectory server...");
 		try {

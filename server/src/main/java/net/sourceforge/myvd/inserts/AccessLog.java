@@ -21,12 +21,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.AsyncAppender;
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.RollingFileAppender;
+import org.apache.logging.log4j.AsyncAppender;
+import org.apache.logging.log4j.DailyRollingFileAppender;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.PatternLayout;
+import org.apache.logging.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.RollingFileAppender;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -206,25 +206,25 @@ public class AccessLog implements Insert {
 		String logFileName = props.getProperty("fileName","CONSOLE");
 		
 		if (logFileName.equalsIgnoreCase("CONSOLE")) {
-			this.logger = Logger.getLogger(AccessLog.class.getName());
+			this.logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
 		} else {
 			Properties logProps = new Properties();
 			logProps.setProperty("log4j.logger.net.sourceforge.myvd.inserts.AccessLog", "info,accesslog");
-			logProps.setProperty("log4j.appender.accesslog", "org.apache.log4j.AsyncAppender");
+			logProps.setProperty("log4j.appender.accesslog", "org.apache.logging.log4j.AsyncAppender");
 			logProps.setProperty("log4j.appender.accesslog.BufferSize", "1024");
 			logProps.setProperty("log4j.appender.accesslog.Blocking", "true");
 			
 			
 			
-			/*logProps.setProperty("log4j.appender.accesslog", "org.apache.log4j.RollingFileAppender");
+			/*logProps.setProperty("log4j.appender.accesslog", "org.apache.logging.log4j.RollingFileAppender");
 			logProps.setProperty("log4j.appender.accesslog.File", logFileName);
 			logProps.put("log4j.appender.accesslog.MaxFileSize",props.getProperty("maxFilesSize","100MB"));
 			logProps.put("log4j.appender.accesslog.MaxBackupIndex",props.getProperty("backupIndex","10"));
-			logProps.put("log4j.appender.accesslog.layout","org.apache.log4j.PatternLayout");
+			logProps.put("log4j.appender.accesslog.layout","org.apache.logging.log4j.PatternLayout");
 			logProps.put("log4j.appender.accesslog.layout.ConversionPattern","[%d][%t] %m%n");*/
 			
 			PropertyConfigurator.configure(logProps);
-			this.logger = Logger.getLogger(AccessLog.class.getName());
+			this.logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
 			this.logger.setAdditivity(false);
 			
 			

@@ -18,7 +18,7 @@ package net.sourceforge.myvd.inserts.ad;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.composite.CompositeInsert;

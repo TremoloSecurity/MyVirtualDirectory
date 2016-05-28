@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
@@ -34,7 +34,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.util.DN;
 
 public class ServerCore {
-	static Logger logger = Logger.getLogger(ServerCore.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(ServerCore.class);
 	
 	Properties props;
 	private InsertChain globalChain;

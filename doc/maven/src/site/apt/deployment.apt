@@ -48,11 +48,11 @@ java -server net.sourceforge.myvd.server.Server /path/to/config/myvd.conf
   
 +----------+
 log4j.rootLogger=info,logfile
-log4j.appender.logfile=org.apache.log4j.RollingFileAppender
+log4j.appender.logfile=org.apache.logging.log4j.RollingFileAppender
 log4j.appender.logfile.File=$MYVD_HOME/logs/myvd.log
 log4j.appender.logfile.MaxFileSize=100KB
 log4j.appender.logfile.MaxBackupIndex=10
-log4j.appender.logfile.layout=org.apache.log4j.PatternLayout
+log4j.appender.logfile.layout=org.apache.logging.log4j.PatternLayout
 log4j.appender.logfile.layout.ConversionPattern=[%d][%t] %-5p %c{1} - %m%n
 +----------+
  

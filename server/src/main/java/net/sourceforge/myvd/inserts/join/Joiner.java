@@ -43,7 +43,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -83,7 +83,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.util.DN;
 
 public class Joiner implements Insert {
-	static Logger logger = Logger.getLogger(Joiner.class);
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Joiner.class);
 	
 	public static final String MYVD_JOIN_JATTRIBS = "MYVD_JOIN_JATTRIBS_";
 

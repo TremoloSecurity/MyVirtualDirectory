@@ -18,7 +18,7 @@ package net.sourceforge.myvd.inserts.ad;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.composite.CompositeInsert;
@@ -81,7 +81,7 @@ public class PosixDB extends CompositeInsert {
 	@Override
 	public Logger getLogger() {
 		if (logger == null) {
-			logger = Logger.getLogger(ADPosixJoiner.class.getName());
+			logger = org.apache.logging.log4j.LogManager.getLogger(ADPosixJoiner.class.getName());
 		}
 		
 		return this.logger;

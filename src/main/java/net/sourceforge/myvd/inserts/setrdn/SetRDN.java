@@ -24,7 +24,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -61,7 +61,7 @@ import net.sourceforge.myvd.types.Results;
 
 public class SetRDN implements Insert {
 	
-	static Logger logger = Logger.getLogger(SetRDN.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(SetRDN.class.getName());
 	
 	String name;
 	String internalRDN;

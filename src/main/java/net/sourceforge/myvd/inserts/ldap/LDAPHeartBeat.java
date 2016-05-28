@@ -16,11 +16,11 @@
 
 package net.sourceforge.myvd.inserts.ldap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class LDAPHeartBeat implements Runnable {
 
-	static Logger logger = Logger.getLogger(LDAPHeartBeat.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPHeartBeat.class.getName());
 	
 	boolean stillRunning;
 

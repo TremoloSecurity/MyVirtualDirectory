@@ -73,7 +73,7 @@ import org.apache.directory.server.core.api.interceptor.context.RenameOperationC
 import org.apache.directory.server.core.api.interceptor.context.SearchOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.UnbindOperationContext;
 import org.apache.directory.server.core.shared.DefaultCoreSession;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
 
@@ -87,7 +87,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 
 public class MyVDInterceptor extends BaseInterceptor {
 
-	static Logger logger = Logger.getLogger(MyVDInterceptor.class.getName());
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(MyVDInterceptor.class.getName());
 	
 	InsertChain globalChain;
 	Router router;
