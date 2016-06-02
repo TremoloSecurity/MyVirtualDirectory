@@ -52,6 +52,8 @@ import com.novell.ldap.LDAPSearchConstraints;
 
 public class AccessLog implements Insert {
 
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(AccessLog.class.getName());
+	
 	public static final String ACCESS_LOG_OPNUM = "ACCESS_LOG_OPNUM_";
 	public static final String ACCESS_LOG_CONNUM = "ACCESS_LOG_CONNUM_";
 
@@ -61,7 +63,7 @@ public class AccessLog implements Insert {
 	public static final String ACCESS_LOG_SRCH_COUNT = "ACCESS_LOG_SRCH_COUNT_";
 	
 	
-	Logger logger;
+	
 	String name;
 	Int con;
 	
