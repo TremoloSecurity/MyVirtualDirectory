@@ -136,6 +136,8 @@ public class Joiner implements Insert {
 	
 	String name;
 
+	boolean bindPrimaryFirst;
+	
 	private String stackKey;
 	
 	static {
@@ -194,6 +196,8 @@ public class Joiner implements Insert {
 		
 		this.stackKey = name + "." + nameSpace.getBase().getDN().toString() + ".JOIN_STACK_KEY";
 		
+		this.bindPrimaryFirst = props.getProperty("bindPrimaryFirst", "true").equalsIgnoreCase("true");
+		
 		util = new NamingUtils();
 		this.ns = nameSpace;
 	}
@@ -208,26 +212,37 @@ public class Joiner implements Insert {
 
 	public void bind(BindInterceptorChain chain, DistinguishedName dn,
 			Password pwd, LDAPConstraints constraints) throws LDAPException {
-		boolean primaryBindFailed = false;
+		Bool primaryBindFailed = new Bool(true);
 		
 		HashMap<DN,DistinguishedName> boundNameSpaces = new HashMap<DN,DistinguishedName>();
 		chain.getSession().put(Joiner.BOUND_DNS + this.name, boundNameSpaces);
 		
-		BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
-		int trys = 1;
-		try {
-			DistinguishedName newBindDN = new DistinguishedName(util.getRemoteMappedDN(dn.getDN(),this.explodedLocalNameSpace,this.explodedPrimaryNamespace));
-			bindChain.nextBind(newBindDN,pwd,constraints);
-			
-			boundNameSpaces.put(this.primaryNamespace, newBindDN);
-			
-		} catch (LDAPException e) {
-			primaryBindFailed = true;
-			if (e.getResultCode() != LDAPException.INVALID_CREDENTIALS) {
-				throw e;
+		
+		if (this.bindPrimaryFirst) {
+			BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
+			bindPrimary(dn, pwd, constraints, primaryBindFailed, boundNameSpaces, bindChain);
+			if (primaryBindFailed.getValue()) {
+				bindJoined(chain, dn, pwd, constraints, primaryBindFailed, boundNameSpaces);
+				if (primaryBindFailed.getValue()) {
+					throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+				}
+			}
+		} else {
+			bindJoined(chain, dn, pwd, constraints, primaryBindFailed, boundNameSpaces);
+			if (primaryBindFailed.getValue()) {
+				BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
+				bindPrimary(dn, pwd, constraints, primaryBindFailed, boundNameSpaces, bindChain);
+				if (primaryBindFailed.getValue()) {
+					throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+				}
 			}
 		}
-		
+
+	}
+
+	private void bindJoined(BindInterceptorChain chain, DistinguishedName dn, Password pwd, LDAPConstraints constraints,
+			Bool primaryBindFailed, HashMap<DN, DistinguishedName> boundNameSpaces) throws LDAPException {
+		BindInterceptorChain bindChain;
 		SearchInterceptorChain searchChain = new SearchInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
 		Results res = new Results(new InsertChain(new Insert[0]));
 		ArrayList<Attribute> attribs = new ArrayList<Attribute>();
@@ -236,7 +251,7 @@ public class Joiner implements Insert {
 		searchChain.nextSearch(dn,new Int(0),Joiner.OBJ_CLASS_FILTER,attribs,new Bool(false),res,new LDAPSearchConstraints());
 		
 		res.start();
-		if (! res.hasMore() && primaryBindFailed) {
+		if (! res.hasMore() && primaryBindFailed.getValue()) {
 			throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
 		}
 		
@@ -246,7 +261,7 @@ public class Joiner implements Insert {
 		LDAPAttribute joinDNs = entry.getAttribute("joinedDNs");
 		LDAPAttribute joinBases = entry.getAttribute("joinedBases");
 		if (joinDNs == null) {
-			if (primaryBindFailed) {
+			if (primaryBindFailed.getValue()) {
 				throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
 			}
 		} else {
@@ -258,21 +273,37 @@ public class Joiner implements Insert {
 					DistinguishedName binddn = new DistinguishedName(dns[i]);
 					bindChain.nextBind(binddn,pwd,constraints);
 					boundNameSpaces.put(new DN(bases[i]), binddn);
+					primaryBindFailed.setValue(false);
+					break;
 				} catch (LDAPException e) {
 					if (e.getResultCode() != LDAPException.INVALID_CREDENTIALS) {
 						throw e;
 					}
-					trys++;
+					primaryBindFailed.setValue(true);
 					
 					boundNameSpaces.put(new DN(bases[i]), new DistinguishedName(""));
 				}
 			}
 			
-			if (trys == dns.length + 1 && primaryBindFailed) {
-				throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+			
+		}
+	}
+
+	private void bindPrimary(DistinguishedName dn, Password pwd, LDAPConstraints constraints,
+			Bool primaryBindFailed, HashMap<DN, DistinguishedName> boundNameSpaces, BindInterceptorChain bindChain) throws LDAPException {
+		try {
+			DistinguishedName newBindDN = new DistinguishedName(util.getRemoteMappedDN(dn.getDN(),this.explodedLocalNameSpace,this.explodedPrimaryNamespace));
+			bindChain.nextBind(newBindDN,pwd,constraints);
+			
+			boundNameSpaces.put(this.primaryNamespace, newBindDN);
+			primaryBindFailed.setValue(false);
+		} catch (LDAPException e) {
+			primaryBindFailed.setValue(true);
+			if (e.getResultCode() != LDAPException.INVALID_CREDENTIALS) {
+				throw e;
 			}
 		}
-
+		
 	}
 
 	public void compare(CompareInterceptorChain chain, DistinguishedName dn,
