@@ -70,6 +70,8 @@ public class AttributeCleaner implements Insert {
 	String key;
 	String name;
 	
+	boolean clearAttributes;
+	
 	public void configure(String name, Properties props, NameSpace nameSpace)
 			throws LDAPException {
 		this.name = name;
@@ -78,6 +80,8 @@ public class AttributeCleaner implements Insert {
 		} else {
 			key = "ATTRIB_CLEANER." + nameSpace.getLabel() + "." + name;
 		}
+		
+		this.clearAttributes = props.getProperty("clearAttributes", "false").equalsIgnoreCase("true");
 
 	}
 
@@ -130,6 +134,11 @@ public class AttributeCleaner implements Insert {
 			origAttribs.add(new Attribute(it.next().getAttribute().getName()));
 		}
 		chain.getRequest().put(key,origAttribs);
+		
+		if (this.clearAttributes) {
+			attributes = new ArrayList<Attribute>();
+		}
+		
 		chain.nextSearch(base,scope,filter,attributes,typesOnly,results,constraints);
 
 	}

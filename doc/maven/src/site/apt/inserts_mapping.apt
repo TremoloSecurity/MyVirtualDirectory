@@ -19,7 +19,7 @@ Mapping Inserts
 *---------------------+-------------------------------------------------------+--------------------------------------+
 |Scope                |Search                                                 |                                      |
 *---------------------+-------------------------------------------------------+--------------------------------------+
-|Configuration Options|None                                                   |                                      |
+|Configuration Options|clearAttributes                                        | If set to true after storing the names of the requested attributes all attributes are requested|
 *---------------------+-------------------------------------------------------+--------------------------------------+
 
 * Add Static Attribute
