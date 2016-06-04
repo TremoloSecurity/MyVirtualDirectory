@@ -24,7 +24,7 @@ Mapping Inserts
 
 * Add Static Attribute
 
- This insert allows for the addition of a static attribute value for a particuler objectClass.  It is useful for adding attributes to identify users
+ This insert allows for the addition of a static attribute value for a particular objectClass.  It is useful for adding attributes to identify users
  based on their directory or namespace.
 
 *---------------------+-------------------------------------------------------+--------------------------------------+
