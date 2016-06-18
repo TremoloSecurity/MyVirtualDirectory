@@ -228,14 +228,27 @@ public class Joiner implements Insert {
 				}
 			}
 		} else {
-			bindJoined(chain, dn, pwd, constraints, primaryBindFailed, boundNameSpaces);
-			if (primaryBindFailed.getValue()) {
-				BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
-				bindPrimary(dn, pwd, constraints, primaryBindFailed, boundNameSpaces, bindChain);
+			try {
+				bindJoined(chain, dn, pwd, constraints, primaryBindFailed, boundNameSpaces);
 				if (primaryBindFailed.getValue()) {
-					throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+					BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
+					bindPrimary(dn, pwd, constraints, primaryBindFailed, boundNameSpaces, bindChain);
+					if (primaryBindFailed.getValue()) {
+						throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+					}
+				}
+			} catch (LDAPException e) {
+				if (e.getResultCode() == LDAPException.INVALID_CREDENTIALS) {
+					BindInterceptorChain bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
+					bindPrimary(dn, pwd, constraints, primaryBindFailed, boundNameSpaces, bindChain);
+					if (primaryBindFailed.getValue()) {
+						throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+					}
+				} else {
+					throw e;
 				}
 			}
+			
 		}
 
 	}
