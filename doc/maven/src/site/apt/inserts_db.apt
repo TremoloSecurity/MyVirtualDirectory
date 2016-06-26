@@ -40,6 +40,10 @@ Database Inserts
 *---------------------+-------------------------------------------------------+--------------------------------------+
 |                     |useSimple|true or false, utilizes the "simple" SQL, mutch better performance but only the value of multivalued attributes in the filter are returned|
 *---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |validationQuery|(optional) A SQL query that will be used to validate connections. If specified, this query MUST be an SQL SELECT statement that returns at least one row. See Apache Commons DBCP API|
+*---------------------+-------------------------------------------------------+--------------------------------------+
+|                     |addBaseToFilter|(optional)|
+*---------------------+-------------------------------------------------------+--------------------------------------+
   
 * Database Table Update
 
