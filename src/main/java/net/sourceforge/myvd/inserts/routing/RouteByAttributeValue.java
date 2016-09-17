@@ -1,7 +1,9 @@
 package net.sourceforge.myvd.inserts.routing;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
@@ -89,7 +91,12 @@ public class RouteByAttributeValue implements Insert {
 			logger.info("Route #" + i + ": Pattern='" + pattern + "', NameSpace='" + ns + "'");
 			
 			RouteMap rm = new RouteMap();
-			rm.name = ns;
+			
+			StringTokenizer toker = new StringTokenizer(ns,",",false);
+			while (toker.hasMoreTokens()) {
+				rm.getNames().add(toker.nextToken());
+			}
+			
 			rm.p = Pattern.compile(pattern);
 			this.maps.add(rm);
 		}
@@ -243,10 +250,10 @@ public class RouteByAttributeValue implements Insert {
 						}
 						if (rm.p.matcher(node.getValue()).matches()) {
 							if (logger.isDebugEnabled()) {
-								logger.debug("Adding " + rm.name);
+								logger.debug("Adding " + rm.getNames());
 							}
 							
-							routes.add(rm.name);
+							routes.addAll(rm.getNames());
 							found = true;
 						}
 					}
@@ -287,6 +294,24 @@ public class RouteByAttributeValue implements Insert {
 }
 
 class RouteMap {
-	String name;
+	List<String> names;
 	Pattern p;
+	
+	public RouteMap() {
+		this.names = new ArrayList<String>();
+	}
+
+	public Pattern getP() {
+		return p;
+	}
+
+	public void setP(Pattern p) {
+		this.p = p;
+	}
+
+	public List<String> getNames() {
+		return names;
+	}
+	
+	
 }
