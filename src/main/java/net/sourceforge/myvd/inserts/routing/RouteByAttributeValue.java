@@ -88,7 +88,7 @@ public class RouteByAttributeValue implements Insert {
 			}
 			
 			String ns = val.substring(0,val.indexOf('='));
-			String pattern = val.substring(val.indexOf('=') + 1);
+			String pattern = val.substring(val.indexOf('=') + 1).toLowerCase();
 			
 			logger.info("Route #" + i + ": Pattern='" + pattern + "', NameSpace='" + ns + "'");
 			
@@ -253,9 +253,9 @@ public class RouteByAttributeValue implements Insert {
 					
 					for (RouteMap rm : this.maps) {
 						if (logger.isDebugEnabled()) {
-							logger.debug("Checking filter - '" + node.toString() + "', pattern='" + rm.p.toString() + "', matches=" + rm.p.matcher(node.getValue()).matches());
+							logger.debug("Checking filter - '" + node.toString() + "', pattern='" + rm.p.toString() + "', matches=" + rm.p.matcher(node.getValue().toLowerCase()).matches());
 						}
-						if (rm.p.matcher(node.getValue()).matches()) {
+						if (rm.p.matcher(node.getValue().toLowerCase()).matches()) {
 							if (logger.isDebugEnabled()) {
 								logger.debug("Adding " + rm.getNames());
 							}
