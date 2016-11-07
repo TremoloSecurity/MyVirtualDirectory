@@ -12,6 +12,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -47,6 +48,7 @@ public class RouteByAttributeValue implements Insert {
 	boolean useDefault;
 	String attrName;
 	Pattern ignore;
+	DN dontRouteBelow;
 
 	private boolean ignoreNegative;
 	
@@ -117,6 +119,11 @@ public class RouteByAttributeValue implements Insert {
 		}
 		
 		 
+		String dontRouteBelowStr = props.getProperty("dontRouteBelow");
+		if (dontRouteBelowStr != null) {
+			this.dontRouteBelow = new DN(dontRouteBelowStr);
+			logger.info("Do not try to route if below this DN :'" + this.dontRouteBelow.toString() + "'");
+		}
 		
 		
 	}
