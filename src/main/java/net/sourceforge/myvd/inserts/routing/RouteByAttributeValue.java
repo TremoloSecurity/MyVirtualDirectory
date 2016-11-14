@@ -181,7 +181,7 @@ public class RouteByAttributeValue implements Insert {
 		
 		ArrayList<String> routes = new ArrayList<String>();
 		
-		checkRoutes(filter.getRoot(),routes);
+		checkRoutes(filter.getRoot(),routes,base);
 		
 		if (routes.size() > 0) {
 			chain.getRequest().put(RequestVariables.ROUTE_NAMESPACE,routes);
@@ -236,60 +236,65 @@ public class RouteByAttributeValue implements Insert {
 		
 	}
 	
-	private void checkRoutes(FilterNode node,ArrayList<String> routes) {
+	private void checkRoutes(FilterNode node,ArrayList<String> routes,DistinguishedName searchBase) {
 		switch (node.getType()) {
 			case AND:
 			case OR:
 			case NOT:
 				
 				for (FilterNode val : node.getChildren()) {
-					checkRoutes(val,routes);
+					checkRoutes(val,routes,searchBase);
 				}
 				
 				break;
 			case EQUALS:
 				if (node.getName().equalsIgnoreCase(this.attrName)) {
-					boolean found = false;
 					
-					for (RouteMap rm : this.maps) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Checking filter - '" + node.toString() + "', pattern='" + rm.p.toString() + "', matches=" + rm.p.matcher(node.getValue().toLowerCase()).matches());
-						}
-						if (rm.p.matcher(node.getValue().toLowerCase()).matches()) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Adding " + rm.getNames());
-							}
-							
-							routes.addAll(rm.getNames());
-							found = true;
-						}
-					}
+					if (this.dontRouteBelow == null || this.dontRouteBelow.equals(searchBase.getDN()) || ! searchBase.getDN().isDescendantOf(dontRouteBelow) ) {
 					
-					if (! found) {
-						if (this.useDefault) {
+					
+						boolean found = false;
+						
+						for (RouteMap rm : this.maps) {
 							if (logger.isDebugEnabled()) {
-								logger.debug("Default route being used : '" + this.defaultRoute + "'");
+								logger.debug("Checking filter - '" + node.toString() + "', pattern='" + rm.p.toString() + "', matches=" + rm.p.matcher(node.getValue().toLowerCase()).matches());
 							}
-							
-							
-							if (ignore == null) {
-								routes.add(this.defaultRoute);
-							} else {
-								boolean matches = ignore.matcher(node.getValue()).matches();
-								if (this.ignoreNegative && matches) {
-									routes.add(defaultRoute);
-								} else if (! this.ignoreNegative && ! matches) {
-									routes.add(defaultRoute);
+							if (rm.p.matcher(node.getValue().toLowerCase()).matches()) {
+								if (logger.isDebugEnabled()) {
+									logger.debug("Adding " + rm.getNames());
 								}
+								
+								routes.addAll(rm.getNames());
+								found = true;
 							}
-							
-							
-							
-							
-							
-							
-							
-							
+						}
+						
+						if (! found) {
+							if (this.useDefault) {
+								if (logger.isDebugEnabled()) {
+									logger.debug("Default route being used : '" + this.defaultRoute + "'");
+								}
+								
+								
+								if (ignore == null) {
+									routes.add(this.defaultRoute);
+								} else {
+									boolean matches = ignore.matcher(node.getValue()).matches();
+									if (this.ignoreNegative && matches) {
+										routes.add(defaultRoute);
+									} else if (! this.ignoreNegative && ! matches) {
+										routes.add(defaultRoute);
+									}
+								}
+								
+								
+								
+								
+								
+								
+								
+								
+							}
 						}
 					}
 					
