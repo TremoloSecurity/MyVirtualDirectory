@@ -34,6 +34,8 @@ if [ $1 = "start" ]; then
 		done
 	fi
 	
+	export LOCAL_CLASSPATH="$MYVD_HOME/conf:$LOCAL_CLASSPATH"
+	
 	echo "Classpath : $LOCAL_CLASSPATH"
 
 	

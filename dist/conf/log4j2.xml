@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<RollingFile name="server-log" fileName="../logs/myvd.log"
+			append="true" filePattern="../logs/myvd.log.%d">
+			<PatternLayout pattern="[%d][%t] %-5p %c{1} - %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		
+		<Root level="info">
+			<AppenderRef ref="server-log" />
+		</Root>
+	</Loggers>
+</Configuration>

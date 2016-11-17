@@ -73,7 +73,7 @@ Next
 
 end if
 
-localCp = localCp & myVDHome & "\jar\myvd.jar"
+localCp = localCp & myVDHome & "\jar\myvd.jar;" & myVDHome & "\conf"
 
 
 
