@@ -108,7 +108,26 @@ public class EntryFilter implements Insert {
 	public void search(SearchInterceptorChain chain, DistinguishedName base, Int scope, Filter filter,
 			ArrayList<Attribute> attributes, Bool typesOnly, Results results, LDAPSearchConstraints constraints)
 					throws LDAPException {
-		chain.nextSearch(base, scope, filter, attributes, typesOnly, results, constraints);
+		
+		ArrayList<Attribute> newAttrs = new ArrayList<Attribute>();
+		newAttrs.addAll(attributes);
+		
+		if (attributes.size() > 0 && ! attributes.get(0).getAttribute().getName().equals("*")) {
+			
+			boolean found = false;
+			for (Attribute attr : attributes) {
+				if (attr.getAttribute().getName().equalsIgnoreCase("objectClass")) {
+					found = true;
+				}
+				
+				if (! found) {
+					newAttrs.add(new Attribute("objectClass"));
+				}
+			}
+		}
+		
+		
+		chain.nextSearch(base, scope, filter, newAttrs, typesOnly, results, constraints);
 
 	}
 

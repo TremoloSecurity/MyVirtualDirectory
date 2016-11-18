@@ -112,7 +112,7 @@ public class AddActiveDirectoryEnabledFlag implements Insert {
 		if (attributes.size() > 0 && ! attributes.get(0).getAttribute().getName().equals("*")) {
 			
 			boolean found = false;
-			for (Attribute attr : newAttrs) {
+			for (Attribute attr : attributes) {
 				if (attr.getAttribute().getName().equalsIgnoreCase("userAccountControl")) {
 					found = true;
 				}
