@@ -33,6 +33,11 @@
 										<outputDirectory>/logs</outputDirectory>	
 										<useDefaultExcludes>true</useDefaultExcludes>
 									</fileSet>
+									<fileSet>
+										<directory>${project.basedir}/target/myvd</directory>
+										<outputDirectory>/docs</outputDirectory>	
+										<useDefaultExcludes>true</useDefaultExcludes>
+									</fileSet>
 									
 								</fileSets>
 								<dependencySets>
