@@ -21,3 +21,4 @@ All contributions should be submnitted as pull requests.  All pull requests must
 ## Submitting Vulnerabilites
 
 Please send all vulnerabilities to security@tremolosecurity.com.  Tremolo Security maintains an internal GitLab deployment where we will track vulnerabilities until a patch is released at which point the issue will be posted to the public GitHub repo with full credit given to the discoverer of the vulnerability.  We will respond to any vulnerability reports within 14 days of receipt.
+
