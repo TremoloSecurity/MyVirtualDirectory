@@ -13,3 +13,7 @@ Applications need to know who users are and what permisions they have.  While mo
 ## Feedback and Bugs
 
 All feedback, bugs and support requests must be submiteed through this github project's issues
+
+## Contributions
+
+All contributions should be submnitted as pull requests.  All pull requests must include test cases that verify the functionality changes.
