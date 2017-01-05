@@ -31,9 +31,11 @@ server.db.LDAPBaseServer.config.objectClass=inetOrgPerson
 server.db.LDAPBaseServer.config.sql=SELECT * FROM Users ORDER BY id ASC
 server.db.LDAPBaseServer.config.useSimple=true
 
-server.db1.chain=LDAPBaseServer
+server.db1.chain=dbauth,LDAPBaseServer
 server.db1.nameSpace=dc=nam1,dc=compinternal,dc=com
 server.db1.weight=0
+server.db1.dbauth.className=net.sourceforge.myvd.inserts.jdbc.Pbkdf2Auth
+server.db1.dbauth.config.sql=SELECT password FROM Users WHERE username=?
 server.db1.LDAPBaseServer.className=net.sourceforge.myvd.inserts.jdbc.JdbcInsert
 #server.db1.LDAPBaseServer.config.driver=org.hsqldb.jdbcDriver
 #server.db1.LDAPBaseServer.config.url=jdbc:hsqldb:file:%PROJ_DIR%/test/DBAdapter-Simple/dbdata

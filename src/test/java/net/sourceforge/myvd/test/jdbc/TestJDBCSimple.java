@@ -539,7 +539,48 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	public void testPbkdf2BindSuccess() throws Exception {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost",50983);
+		
+		con.bind(3, "uid=jjeffords,dc=nam1,dc=compinternal,dc=com", "$tart123".getBytes("UTF-8"));
+		
+		con.disconnect();
+	}
 	
+	public void testPbkdf2BindFail() throws Exception {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost",50983);
+		
+		try {
+			con.bind(3, "uid=jjeffords,dc=nam1,dc=compinternal,dc=com", "wrongpassword".getBytes("UTF-8"));
+			fail("bind succeeded");
+		} catch (LDAPException e) {
+			if (e.getResultCode() != 49) {
+				throw e;
+			}
+		}
+		
+		
+		con.disconnect();
+	}
+	
+	/*public void testPbkdf2BindNoPasswordFail() throws Exception {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost",50983);
+		
+		try {
+			con.bind(3, "uid=jjeffords,dc=nam1,dc=compinternal,dc=com", "".getBytes("UTF-8"));
+			fail("bind succeeded");
+		} catch (LDAPException e) {
+			if (e.getResultCode() != 49) {
+				throw e;
+			}
+		}
+		
+		
+		con.disconnect();
+	}*/
 	
 	
 	
