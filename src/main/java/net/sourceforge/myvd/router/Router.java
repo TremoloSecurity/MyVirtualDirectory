@@ -83,8 +83,10 @@ public class Router {
     public Router(InsertChain globalChain) {
     	this.subtree = new TreeMap<DN,Level>(new DNComparer());
     	this.globalChain = globalChain;
-    	this.globalChain.getNameSpace().setIsGlobal(true);
-    	this.globalChain.getNameSpace().setRouter(this);
+    	if (this.globalChain.getNameSpace() != null) {
+    		this.globalChain.getNameSpace().setIsGlobal(true);
+    		this.globalChain.getNameSpace().setRouter(this);
+    	}
     }
     
     
