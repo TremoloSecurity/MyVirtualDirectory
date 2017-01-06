@@ -15,6 +15,7 @@ package net.sourceforge.myvd.inserts.mapping;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
@@ -38,6 +39,8 @@ import net.sourceforge.myvd.types.DistinguishedName;
 import net.sourceforge.myvd.types.Entry;
 import net.sourceforge.myvd.types.ExtendedOperation;
 import net.sourceforge.myvd.types.Filter;
+import net.sourceforge.myvd.types.FilterNode;
+import net.sourceforge.myvd.types.FilterType;
 import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
@@ -46,6 +49,14 @@ public class VirtualMemberOf implements Insert {
 
 	String name;
 	private NameSpace nameSpace;
+	
+	String searchBase;
+	String applyToObjectClass;
+	String attributeName;
+	String searchObjectClass;
+	String searchAttribute;
+	
+	boolean replace;
 	
 	@Override
 	public String getName() {
@@ -56,6 +67,14 @@ public class VirtualMemberOf implements Insert {
 	public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
 		this.name = name;
 		this.nameSpace = nameSpace;
+		
+		this.searchBase = props.getProperty("searchBase");
+		this.applyToObjectClass = props.getProperty("applyToObjectClass");
+		this.attributeName = props.getProperty("attributeName");
+		this.searchObjectClass = props.getProperty("searchObjectClass");
+		this.searchAttribute = props.getProperty("searchAttribute");
+		
+		this.replace = props.getProperty("replace","false").equalsIgnoreCase("true");
 
 	}
 
@@ -127,6 +146,61 @@ public class VirtualMemberOf implements Insert {
 			Filter filter, ArrayList<Attribute> attributes, Bool typesOnly, LDAPSearchConstraints constraints)
 			throws LDAPException {
 		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
+		
+		boolean doAdd = false;
+		
+		if (attributes.size() == 0) {
+			doAdd = true;
+		} else {
+			for (Attribute attr : attributes) {
+				if (attr.getAttribute().getName().equalsIgnoreCase(this.attributeName)) {
+					doAdd = true;
+				}
+			}
+		}
+		
+		if (doAdd) {
+			boolean found = false;
+			for (String oc : entry.getEntry().getAttribute("objectClass").getStringValueArray()) {
+				if (oc.equalsIgnoreCase(this.applyToObjectClass)) {
+					found = true;
+				}
+			}
+			doAdd = doAdd && found;
+		}
+		
+		if (doAdd) {
+			FilterNode oc = new FilterNode(FilterType.EQUALS,"objectClass",this.searchObjectClass);
+			FilterNode dn = new FilterNode(FilterType.EQUALS,this.searchAttribute,entry.getEntry().getDN());
+			ArrayList<FilterNode> nodes = new ArrayList<FilterNode>();
+			nodes.add(oc);
+			nodes.add(dn);
+			Filter newFilter = new Filter(new FilterNode(FilterType.AND,nodes));
+			
+			ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
+			
+			Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
+			SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.getRouter());
+			
+			
+			//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
+			
+			nchain.nextSearch(new DistinguishedName(this.searchBase), new Int(2), newFilter, nattrs, new Bool(false), nres, constraints);
+			
+			nres.start();
+			
+			LDAPAttribute memberof = new LDAPAttribute(this.attributeName);
+			
+			
+			while (nres.hasMore()) {
+				Entry group = nres.next();
+				memberof.addValue(group.getEntry().getDN());
+			}
+			
+			if (memberof.getStringValueArray() != null && memberof.getStringValueArray().length > 0) {
+				entry.getEntry().getAttributeSet().add(memberof);
+			}
+		}
 
 	}
 

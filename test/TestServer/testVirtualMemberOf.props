@@ -1,7 +1,18 @@
 server.listener.port=50983
-server.globalChain=vmemberof
+server.globalChain=vmemberof,dnattr
 
 server.globalChain.vmemberof.className=net.sourceforge.myvd.inserts.mapping.VirtualMemberOf
+server.globalChain.vmemberof.config.searchBase=o=mycompany,c=us
+server.globalChain.vmemberof.config.applyToObjectClass=inetOrgPerson
+server.globalChain.vmemberof.config.attributeName=memberOf
+server.globalChain.vmemberof.config.searchObjectClass=groupOfUniqueNames
+server.globalChain.vmemberof.config.searchAttribute=uniqueMember
+server.globalChain.dnattr.className=net.sourceforge.myvd.inserts.mapping.DNAttributeMapper
+server.globalChain.dnattr.config.dnAttribs=uniqueMember
+server.globalChain.dnattr.config.urlAttribs=
+server.globalChain.dnattr.config.remoteBase=dc=domain,dc=com
+server.globalChain.dnattr.config.localBase=o=mycompany,c=us
+
 
 server.nameSpaces=Root,BaseServer,InternalServer,ExternalServer,Schema
 

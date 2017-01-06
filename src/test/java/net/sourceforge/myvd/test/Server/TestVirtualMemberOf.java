@@ -159,7 +159,7 @@ public class TestVirtualMemberOf extends TestCase {
 		attribs.add(new LDAPAttribute("sn","Cust"));
 		attribs.add(new LDAPAttribute("uid","testCust"));
 		attribs.add(new LDAPAttribute("userPassword","secret"));
-		attribs.add(new LDAPAttribute("memberOf","cn=Test Group,ou=external,dc=domain,dc=com"));
+		attribs.add(new LDAPAttribute("memberOf","cn=Test Group,ou=external,o=mycompany,c=us"));
 		
 		
 		LDAPEntry entry1 = new LDAPEntry("cn=Test Cust,ou=external,o=mycompany,c=us",attribs);
