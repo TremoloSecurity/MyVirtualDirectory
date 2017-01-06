@@ -73,6 +73,11 @@ public class NameSpace {
 		return isGlobal;
 	}
 
+	public void setIsGlobal(boolean b) {
+		this.isGlobal = b;
+		
+	}
+
 	/*public void setChain(Insert chain) {
 		this.chain = chain;
 		

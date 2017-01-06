@@ -92,7 +92,7 @@ public class ServerCore {
 		
 		Insert[] tchain = new Insert[linkList.size()];
 		InsertChain chain = new InsertChain(tchain);
-		this.globalNS = new NameSpace("globalChain",new DistinguishedName("cn=root"),0,chain,false);
+		this.globalNS = new NameSpace("globalChain",new DistinguishedName("cn=root"),0,chain,true);
 		chain.setNameSpace(this.globalNS);
 		chain.setProps(this.props);
 		

@@ -47,6 +47,10 @@ public class InterceptorChain {
 	
 	JndiLdapConnection jdbcCon;
 	
+	public Router getRouter() {
+		return this.router;
+	}
+	
 	protected Insert getNext() {
 		if (pos < chain.getLength()) {
 			if (logger.isDebugEnabled()) {

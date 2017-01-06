@@ -204,4 +204,8 @@ public class InsertChain {
 		this.propsMap = globalChain.propsMap;
 		
 	}
+
+	public NameSpace getNameSpace() {
+		return this.ns;
+	}
 }
