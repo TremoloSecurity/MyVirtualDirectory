@@ -98,7 +98,13 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 				nentry = buffer.getEntry();
 				buffer = null;
 			} else {
-				nentry = res.next().getEntry();
+				net.sourceforge.myvd.types.Entry entry = res.next();
+				if (entry == null) {
+					return null;
+				} else {
+					nentry = entry.getEntry();
+				}
+				
 			}
 			
 			Entry entry = new DefaultEntry();

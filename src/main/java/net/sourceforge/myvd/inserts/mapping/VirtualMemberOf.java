@@ -13,6 +13,8 @@
 package net.sourceforge.myvd.inserts.mapping;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Properties;
 
 import com.novell.ldap.LDAPAttribute;
@@ -48,6 +50,8 @@ import net.sourceforge.myvd.types.Results;
 public class VirtualMemberOf implements Insert {
 
 	String name;
+	String oldFilterName;
+	String skipPostSearchName;
 	private NameSpace nameSpace;
 	
 	String searchBase;
@@ -67,7 +71,8 @@ public class VirtualMemberOf implements Insert {
 	public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
 		this.name = name;
 		this.nameSpace = nameSpace;
-		
+		this.oldFilterName = "myvd.vmemberof.orig.filter." + name;
+		this.skipPostSearchName = "myvd.vmemberof.skip." + name;
 		this.searchBase = props.getProperty("searchBase");
 		this.applyToObjectClass = props.getProperty("applyToObjectClass");
 		this.attributeName = props.getProperty("attributeName");
@@ -123,9 +128,122 @@ public class VirtualMemberOf implements Insert {
 	public void search(SearchInterceptorChain chain, DistinguishedName base, Int scope, Filter filter,
 			ArrayList<Attribute> attributes, Bool typesOnly, Results results, LDAPSearchConstraints constraints)
 			throws LDAPException {
-		chain.nextSearch(base, scope, filter, attributes, typesOnly, results, constraints);
+		
+		
+		if (chain.getRequest().containsKey(this.oldFilterName)) {
+			chain.nextSearch(base, scope, filter, attributes, typesOnly, results, constraints);
+		} else {
+		
+			HashSet<String> memberofs = new HashSet<String>();
+			FilterNode noMemberOfs = null;
+			try {
+				noMemberOfs = trimMemberOf(filter.getRoot(),memberofs);
+			} catch (CloneNotSupportedException e) {
+				throw new LDAPException("Error converting filter",LDAPException.OPERATIONS_ERROR,"Error converting filter",e);
+				
+			}
+			
+			chain.getRequest().put(this.oldFilterName, filter);
+			
+			chain.nextSearch(base, scope, new Filter(noMemberOfs), attributes, typesOnly, results, constraints);
+			
+			chain.getRequest().put(this.skipPostSearchName, this.skipPostSearchName);
+			for (String memberof : memberofs) {
+				Results nres = new Results(this.nameSpace.getRouter().getGlobalChain(),0 );
+				DistinguishedName searchBase = new DistinguishedName(memberof);
+				
+				
+				
+				
+				
+				
+				
+				SearchInterceptorChain nchain = new SearchInterceptorChain(searchBase,chain.getBindPassword(),0,nameSpace.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),this.nameSpace.getRouter());
+				ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
+				nchain.nextSearch(searchBase, new Int(0), new Filter("(objectClass=*)"), nattrs, new Bool(false), nres, constraints);
+				
+				nres.start();
+				
+				if (nres.hasMore()) {
+					Entry group = nres.next();
+					LDAPAttribute members = group.getEntry().getAttribute(this.searchAttribute);
+					if (members != null) {
+						for (String member : members.getStringValueArray()) {
+							//if base?
+							
+							DistinguishedName userDN = new DistinguishedName(member);
+							SearchInterceptorChain userChain = new SearchInterceptorChain(userDN,chain.getBindPassword(),0,nameSpace.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),this.nameSpace.getRouter());
+							
+							userChain.nextSearch(userDN, new Int(0), new Filter(noMemberOfs), attributes, new Bool(false), results, constraints);
+						}
+					}
+					
+					
+				}
+				
+				nres.finish();
+			}
+			chain.getRequest().remove(this.skipPostSearchName);
+		}
 
 	}
+	
+	
+	private FilterNode trimMemberOf(FilterNode root,HashSet<String> memberofs) throws CloneNotSupportedException {
+		FilterNode newNode;
+		
+		switch (root.getType()) {
+			case PRESENCE :
+			case SUBSTR:
+			case EQUALS :
+			case LESS_THEN :
+			case GREATER_THEN :
+				if (root.getName().equalsIgnoreCase(this.attributeName)) {
+					if (! memberofs.contains(root.getValue())) {
+						memberofs.add(root.getValue());
+					}
+					return new FilterNode(FilterType.PRESENCE,"objectClass","*");
+					
+				} else {
+					return new FilterNode(root.getType(),root.getName(),root.getValue());
+							
+				}
+				
+				
+				
+			case AND:
+			case OR:
+				
+				ArrayList<FilterNode> newChildren = new ArrayList<FilterNode>();
+				Iterator<FilterNode> it = root.getChildren().iterator();
+				while (it.hasNext()) {
+					FilterNode node = trimMemberOf(it.next(),memberofs);
+					if (node != null) {
+						newChildren.add(node);
+					}
+					
+				}
+				
+				return new FilterNode(root.getType(),newChildren);
+				
+				
+			case NOT:
+				FilterNode node = trimMemberOf(root.getNot(),memberofs);
+				if (node == null) {
+					return null;
+				}
+				return new FilterNode(node);
+		}
+		
+		return null;
+		
+	}
+	
+	
+	
+	
+	
+	
 
 	@Override
 	public void rename(RenameInterceptorChain chain, DistinguishedName dn, DistinguishedName newRdn, Bool deleteOldRdn,
@@ -147,59 +265,68 @@ public class VirtualMemberOf implements Insert {
 			throws LDAPException {
 		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
 		
-		boolean doAdd = false;
-		
-		if (attributes.size() == 0) {
-			doAdd = true;
-		} else {
-			for (Attribute attr : attributes) {
-				if (attr.getAttribute().getName().equalsIgnoreCase(this.attributeName)) {
-					doAdd = true;
+		if (! chain.getRequest().containsKey(this.skipPostSearchName)) {
+			boolean doAdd = false;
+			
+			if (attributes.size() == 0) {
+				doAdd = true;
+			} else {
+				for (Attribute attr : attributes) {
+					if (attr.getAttribute().getName().equalsIgnoreCase(this.attributeName)) {
+						doAdd = true;
+					}
 				}
 			}
-		}
-		
-		if (doAdd) {
-			boolean found = false;
-			for (String oc : entry.getEntry().getAttribute("objectClass").getStringValueArray()) {
-				if (oc.equalsIgnoreCase(this.applyToObjectClass)) {
-					found = true;
+			
+			if (doAdd) {
+				boolean found = false;
+				for (String oc : entry.getEntry().getAttribute("objectClass").getStringValueArray()) {
+					if (oc.equalsIgnoreCase(this.applyToObjectClass)) {
+						found = true;
+					}
+				}
+				doAdd = doAdd && found;
+			}
+			
+			if (doAdd) {
+				FilterNode oc = new FilterNode(FilterType.EQUALS,"objectClass",this.searchObjectClass);
+				FilterNode dn = new FilterNode(FilterType.EQUALS,this.searchAttribute,entry.getEntry().getDN());
+				ArrayList<FilterNode> nodes = new ArrayList<FilterNode>();
+				nodes.add(oc);
+				nodes.add(dn);
+				Filter newFilter = new Filter(new FilterNode(FilterType.AND,nodes));
+				
+				ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
+				
+				Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
+				SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
+				
+				
+				//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
+				
+				nchain.nextSearch(new DistinguishedName(this.searchBase), new Int(2), newFilter, nattrs, new Bool(false), nres, constraints);
+				
+				nres.start();
+				
+				LDAPAttribute memberof = new LDAPAttribute(this.attributeName);
+				
+				
+				while (nres.hasMore()) {
+					Entry group = nres.next();
+					memberof.addValue(group.getEntry().getDN());
+				}
+				
+				if (memberof.getStringValueArray() != null && memberof.getStringValueArray().length > 0) {
+					entry.getEntry().getAttributeSet().add(memberof);
 				}
 			}
-			doAdd = doAdd && found;
-		}
-		
-		if (doAdd) {
-			FilterNode oc = new FilterNode(FilterType.EQUALS,"objectClass",this.searchObjectClass);
-			FilterNode dn = new FilterNode(FilterType.EQUALS,this.searchAttribute,entry.getEntry().getDN());
-			ArrayList<FilterNode> nodes = new ArrayList<FilterNode>();
-			nodes.add(oc);
-			nodes.add(dn);
-			Filter newFilter = new Filter(new FilterNode(FilterType.AND,nodes));
 			
-			ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
-			
-			Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
-			SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
-			
-			
-			//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
-			
-			nchain.nextSearch(new DistinguishedName(this.searchBase), new Int(2), newFilter, nattrs, new Bool(false), nres, constraints);
-			
-			nres.start();
-			
-			LDAPAttribute memberof = new LDAPAttribute(this.attributeName);
-			
-			
-			while (nres.hasMore()) {
-				Entry group = nres.next();
-				memberof.addValue(group.getEntry().getDN());
+			if (chain.getRequest().containsKey(this.oldFilterName)) {
+				Filter origFilter = (Filter) chain.getRequest().get(this.oldFilterName);
+				entry.setReturnEntry(origFilter.getRoot().checkEntry(entry.getEntry()));
 			}
 			
-			if (memberof.getStringValueArray() != null && memberof.getStringValueArray().length > 0) {
-				entry.getEntry().getAttributeSet().add(memberof);
-			}
+			
 		}
 
 	}
