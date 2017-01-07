@@ -289,6 +289,9 @@ public class VirtualMemberOf implements Insert {
 			}
 			
 			if (doAdd) {
+				
+				chain.getRequest().put(this.skipPostSearchName, this.skipPostSearchName);
+				
 				FilterNode oc = new FilterNode(FilterType.EQUALS,"objectClass",this.searchObjectClass);
 				FilterNode dn = new FilterNode(FilterType.EQUALS,this.searchAttribute,entry.getEntry().getDN());
 				ArrayList<FilterNode> nodes = new ArrayList<FilterNode>();
@@ -298,9 +301,11 @@ public class VirtualMemberOf implements Insert {
 				
 				ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
 				
-				Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
-				SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
+				//Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
+				//SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
 				
+				Results nres = new Results(this.nameSpace.getRouter().getGlobalChain(),0);
+				SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),0,nameSpace.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
 				
 				//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
 				
@@ -319,6 +324,8 @@ public class VirtualMemberOf implements Insert {
 				if (memberof.getStringValueArray() != null && memberof.getStringValueArray().length > 0) {
 					entry.getEntry().getAttributeSet().add(memberof);
 				}
+				
+				chain.getRequest().remove(this.skipPostSearchName);
 			}
 			
 			if (chain.getRequest().containsKey(this.oldFilterName)) {
