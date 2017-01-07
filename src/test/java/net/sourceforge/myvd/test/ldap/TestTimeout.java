@@ -9,40 +9,49 @@ import com.novell.ldap.LDAPSearchResults;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestTimeout extends TestCase {
+public class TestTimeout  {
 
 	
-	private StartOpenLDAP baseServer;
-	private Server server;
-	private InsertChain globalChain;
-	private Router router;
+	private static StartOpenLDAP baseServer;
+	private static Server server;
+	private static InsertChain globalChain;
+	private static Router router;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+	@Before
+	public  void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
 		
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testtimeout.props");
 		server.startServer();
 		
-		this.globalChain = server.getGlobalChain();
-		this.router = server.getRouter();
+		globalChain = server.getGlobalChain();
+		router = server.getRouter();
 		
 		
  	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
-		this.baseServer.stopServer();
+	@After
+	public  void tearDown() throws Exception {
+		
+		server.stopServer();
+		baseServer.stopServer();
 
 	}
 	
+	@Test
 	public void testSearchTimeout() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
@@ -72,6 +81,7 @@ public class TestTimeout extends TestCase {
 		
 	}
 	
+	@Test
 	public void testBindTimeout() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);

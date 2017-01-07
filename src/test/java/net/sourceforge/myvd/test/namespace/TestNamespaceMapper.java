@@ -26,10 +26,16 @@ import junit.framework.TestCase;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestNamespaceMapper extends TestCase {
+public class TestNamespaceMapper  {
 
+	@Test
 	public void testNSRemoteSameLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("o=mycompany,c=us");
@@ -43,6 +49,7 @@ public class TestNamespaceMapper extends TestCase {
 		
 	}
 	
+	@Test
 	public void testNSRemoteGreaterLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("ou=joined");
@@ -56,6 +63,7 @@ public class TestNamespaceMapper extends TestCase {
 		
 	}
 	
+	@Test
 	public void testNSRemoteLessLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("o=mycompany,c=us");
@@ -69,6 +77,7 @@ public class TestNamespaceMapper extends TestCase {
 		
 	}
 	
+	@Test
 	public void testNSLocalSameLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("o=mycompany,c=us");
@@ -81,7 +90,7 @@ public class TestNamespaceMapper extends TestCase {
 		}
 		
 	}
-	
+	@Test
 	public void testNSLocalGreaterLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("o=joined");
@@ -94,7 +103,7 @@ public class TestNamespaceMapper extends TestCase {
 		}
 		
 	}
-	
+	@Test
 	public void testNSLocalLessLen() {
 		NamingUtils utils = new NamingUtils();
 		DN localBase = new DN("o=mycompany,c=us");

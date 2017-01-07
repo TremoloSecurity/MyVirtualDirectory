@@ -23,10 +23,16 @@ import net.sourceforge.myvd.inserts.accessControl.SubjectType;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestParseACI extends TestCase {
+public class TestParseACI  {
 	
+	@Test
 	public void testLoadACIs() throws Exception {
 		AccessMgr mgr = new AccessMgr();
 		mgr.addACI(new AccessControlItem(1,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#public:"));
@@ -97,7 +103,7 @@ public class TestParseACI extends TestCase {
 		
 	}
 	
-	
+	@Test
 	public void testGetBase() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#public:";
 		
@@ -108,6 +114,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsSubtree() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#public:";
 		
@@ -118,6 +125,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsEntry() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#entry#grant:r,w,o#[all]#public:";
 		
@@ -128,6 +136,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsGrant() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#public:";
 		
@@ -138,6 +147,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsDeny() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#deny:r,w,o#[all]#public:";
 		
@@ -148,6 +158,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsCorrectAttribPerms() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#deny:r,w,o#[all]#public:";
 		
@@ -166,6 +177,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsCorrectEntryPerms() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#deny:a,v#[all]#public:";
 		
@@ -184,7 +196,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
-	
+	@Test
 	public void testIsEntryPerm() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[entry]#public:";
 		
@@ -195,6 +207,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsAllAttribsPerm() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#public:";
 		
@@ -205,6 +218,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsPublic() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#public:";
 		
@@ -215,6 +229,7 @@ public class TestParseACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testIsGroup() throws Exception {
 		String aciStr = "cn=testbranch,dc=domain,dc=com#subtree#grant:r,w,o#[all]#group:cn=mygroup,dc=domain,dc=com";
 		

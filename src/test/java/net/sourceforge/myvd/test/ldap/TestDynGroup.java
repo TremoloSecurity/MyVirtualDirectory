@@ -24,30 +24,38 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestDynGroup extends TestCase {
+public class TestDynGroup  {
 
-	private StartOpenLDAP baseServer;
-	private StartMyVD server;
+	private static StartOpenLDAP baseServer;
+	private static StartMyVD server;
 
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/DynGroups",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/DynGroups",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/dyngroups.conf",50983);
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/dyngroups.conf",50983);
 	}
 
-	
+	@Test
 	public void testStartup() {
 		//do nothing
 	}
 	
+	@Test
 	public void testGetDynGroup() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -80,7 +88,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchMemberships() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -113,7 +121,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testGetDynWNoURLsGroup() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -146,7 +154,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupSMember() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -179,7 +187,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupDMember() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -212,7 +220,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupDMemberBase() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -245,7 +253,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testFailSearchSynGroupDMemberBase() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -271,7 +279,7 @@ public class TestDynGroup extends TestCase {
 		
 		
 	}
-	
+	@Test
 	public void testGetDynGroup2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -304,7 +312,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchMemberships2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -337,7 +345,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testGetDynWNoURLsGroup2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -370,7 +378,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupSMember2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -403,7 +411,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupDMember2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -436,7 +444,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testSearchSynGroupDMemberBase2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -469,7 +477,7 @@ public class TestDynGroup extends TestCase {
 			fail("no entries returned");
 		}
 	}
-	
+	@Test
 	public void testFailSearchSynGroupDMemberBase2() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -496,10 +504,11 @@ public class TestDynGroup extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		baseServer.stopServer();
+		server.stopServer();
 	}
 
 }

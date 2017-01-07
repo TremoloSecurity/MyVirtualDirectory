@@ -33,29 +33,41 @@ import com.novell.ldap.*;
 
 import com.novell.ldap.LDAPConnection;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
 import com.novell.ldap.*;
 
-public class TestJDBCLDAP extends TestCase {
+public class TestJDBCLDAP  {
 
-	InsertChain globalChain;
-	Router router;
-	private StartOpenLDAP baseServer;
-	private Server server;
+	static InsertChain globalChain;
+	static Router router;
+	static private StartOpenLDAP baseServer;
+	static private Server server;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testJDBCLDAP.props");
 		server.startServer();
 		
-		this.globalChain = server.getGlobalChain();
-		this.router = server.getRouter();
+		globalChain = server.getGlobalChain();
+		router = server.getRouter();
 	}
 	
+	@After
+	public void after() throws Exception {
+		baseServer.reloadAllData();
+	}
+	
+	@Test
 	public void testAdd() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -73,6 +85,7 @@ public class TestJDBCLDAP extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testUpdate() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -89,6 +102,7 @@ public class TestJDBCLDAP extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testUpdateEntry() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -106,7 +120,7 @@ public class TestJDBCLDAP extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testDelete() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -124,6 +138,7 @@ public class TestJDBCLDAP extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearch() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -142,10 +157,11 @@ public class TestJDBCLDAP extends TestCase {
 	}
 	
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
-		this.baseServer.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
+		baseServer.stopServer();
 	}
 
 }

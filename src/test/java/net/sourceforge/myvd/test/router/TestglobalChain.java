@@ -48,7 +48,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 
-public class TestglobalChain extends TestCase implements Insert {
+public class TestglobalChain  implements Insert {
 	
 	public void testdonothing() {
 		

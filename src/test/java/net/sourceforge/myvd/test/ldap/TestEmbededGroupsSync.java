@@ -29,16 +29,22 @@ import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenDS;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestEmbededGroupsSync extends TestCase {
+public class TestEmbededGroupsSync  {
 
 	
-	private StartMyVD server2;
-	private StartOpenDS opends;
+	private static StartMyVD server2;
+	private static StartOpenDS opends;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setUp() throws Exception {
+		
 		
 		
 		this.opends = new StartOpenDS();
@@ -152,6 +158,7 @@ public class TestEmbededGroupsSync extends TestCase {
 		
 	}*/
 	
+	@Test
 	public void testSearchSyncMemberships() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -233,8 +240,9 @@ public class TestEmbededGroupsSync extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
+	@After
+	public void tearDown() throws Exception {
+		
 		
 		this.server2.stopServer();
 		this.opends.stopServer();

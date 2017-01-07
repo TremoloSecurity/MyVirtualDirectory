@@ -33,6 +33,7 @@ import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
 import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.Attribute;
@@ -66,22 +67,28 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestLocalChainLDAP extends TestCase {
+public class TestLocalChainLDAP  {
 
-	StartOpenLDAP server;
+	static StartOpenLDAP server;
 
-	LDAPInterceptor interceptor;
+	static LDAPInterceptor interceptor;
 
-	InsertChain chain;
+	static InsertChain chain;
 
-	private PasswordChangeOperation pwdInterceptor;
+	private static PasswordChangeOperation pwdInterceptor;
 
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.server = new StartOpenLDAP();
-		this.server.startServer(
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		server = new StartOpenLDAP();
+		server.startServer(
 				System.getenv("PROJ_DIR") + "/test/TestLDAP", 10983,
 				"cn=admin,dc=domain,dc=com", "manager");
 
@@ -108,9 +115,15 @@ public class TestLocalChainLDAP extends TestCase {
 		interceptor.configure("TestLDAP", props, ns
 				);
 		
-		this.pwdInterceptor.configure("pwdInterceptor",nprops,ns);
+		pwdInterceptor.configure("pwdInterceptor",nprops,ns);
 	}
 
+	@After
+	public void after() throws Exception {
+		server.reloadAllData();
+	}
+	
+	@Test
 	public void testSearch() throws Exception {
 		HashMap<String, LDAPEntry> control = new HashMap<String, LDAPEntry>();
 
@@ -184,6 +197,7 @@ public class TestLocalChainLDAP extends TestCase {
 
 	}
 
+	@Test
 	public void testAdd() throws Exception {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -224,6 +238,7 @@ public class TestLocalChainLDAP extends TestCase {
 
 	}
 
+	@Test
 	public void testModify() throws Exception {
 		LDAPEntry entry;
 
@@ -266,6 +281,7 @@ public class TestLocalChainLDAP extends TestCase {
 		con.disconnect();
 	}
 
+	@Test
 	public void testBind() {
 		BindInterceptorChain bindChain;
 
@@ -323,6 +339,7 @@ public class TestLocalChainLDAP extends TestCase {
 		
 	}
 
+	@Test
 	public void testDelete() throws LDAPException {
 
 		HashMap session = new HashMap();
@@ -353,6 +370,7 @@ public class TestLocalChainLDAP extends TestCase {
 
 	}
 
+	@Test
 	public void testRenameDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -391,6 +409,8 @@ public class TestLocalChainLDAP extends TestCase {
 		con.disconnect();
 	}
 	
+	
+	@Test
 	public void testRenameRDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -429,6 +449,7 @@ public class TestLocalChainLDAP extends TestCase {
 		con.disconnect();
 	}
 
+	@Test
 	public void testExtendedOp() throws IOException, LDAPException {
 //		 first we weill run the extended operation
 		ByteArrayOutputStream encodedData = new ByteArrayOutputStream();
@@ -481,9 +502,9 @@ public class TestLocalChainLDAP extends TestCase {
 		
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 	}
 
 }

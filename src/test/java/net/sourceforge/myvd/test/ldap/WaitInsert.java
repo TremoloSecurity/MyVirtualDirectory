@@ -31,7 +31,7 @@ import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 
-public class WaitInsert extends TestCase implements Insert {
+public class WaitInsert  implements Insert {
 
 	public void testDoNothing () {
 		
@@ -199,6 +199,12 @@ public class WaitInsert extends TestCase implements Insert {
 	public void shutdown() {
 		
 		
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

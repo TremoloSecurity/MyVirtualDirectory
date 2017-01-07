@@ -25,37 +25,46 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestJoinAD extends TestCase {
+public class TestJoinAD  {
 
-	private StartOpenLDAP ad;
-	private StartOpenLDAP unix;
-	private StartMyVD myvd;
+	private static StartOpenLDAP ad;
+	private static StartOpenLDAP unix;
+	private static StartMyVD myvd;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.ad = new StartOpenLDAP();
-		this.ad.startServer(
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		ad = new StartOpenLDAP();
+		ad.startServer(
 				System.getenv("PROJ_DIR") + "/test/TestAD", 10983,
 				"cn=admin,dc=test,dc=mydomain,dc=com", "manager");
 		
-		this.unix = new StartOpenLDAP();
-		this.unix.startServer(
+		unix = new StartOpenLDAP();
+		unix.startServer(
 				System.getenv("PROJ_DIR") + "/test/TestADPosix", 11983,
 				"cn=admin,o=unix", "manager");
 		
-		this.myvd = new StartMyVD();
-		this.myvd.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/ad-posix.conf",50983);
+		myvd = new StartMyVD();
+		myvd.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/ad-posix.conf",50983);
 	}
 	
+	@Test
 	public void testStartup() {
 		//System.out.println("");
 	}
 	
+	@Test
 	public void testSearchUser() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -89,6 +98,7 @@ public class TestJoinAD extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSearchUserByUIDNumber() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -122,6 +132,7 @@ public class TestJoinAD extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSearchShadowUser() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -155,6 +166,7 @@ public class TestJoinAD extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSearchLinuxGroup() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -188,6 +200,7 @@ public class TestJoinAD extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testBindUser() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -229,11 +242,12 @@ public class TestJoinAD extends TestCase {
 		}
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.myvd.stopServer();
-		this.ad.stopServer();
-		this.unix.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		myvd.stopServer();
+		ad.stopServer();
+		unix.stopServer();
 	}
 
 }

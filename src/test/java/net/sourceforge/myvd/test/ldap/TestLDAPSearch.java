@@ -22,52 +22,60 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestLDAPSearch extends TestCase {
+public class TestLDAPSearch  {
 
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private StartMyVD server;
-	private StartOpenLDAP adServer;
+	private static StartOpenLDAP baseServer;
+	private static  StartOpenLDAP internalServer;
+	private static  StartOpenLDAP externalServer;
+	private static  StartMyVD server;
+	private static  StartOpenLDAP adServer;
 
-	public void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",
+	
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",
 				10983, "cn=admin,dc=domain,dc=com", "manager");
 
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR")
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR")
 				+ "/test/InternalUsersCustom", 11983,
 				"cn=admin,ou=internal,dc=domain,dc=com", "manager");
 
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR")
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR")
 				+ "/test/ExternalUsers", 12983,
 				"cn=admin,ou=external,dc=domain,dc=com", "manager");
 
-		this.adServer = new StartOpenLDAP();
-		this.adServer.startServer(System.getenv("PROJ_DIR") + "/test/TestAD",
+		adServer = new StartOpenLDAP();
+		adServer.startServer(System.getenv("PROJ_DIR") + "/test/TestAD",
 				13983, "cn=admin,dc=test,dc=mydomain,dc=com", "manager");
 
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR")
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR")
 				+ "/test/TestServer/basicvd.props", 50983);
 	}
 
-	public void tearDown() throws Exception {
-		super.tearDown();
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.server.stopServer();
-		this.adServer.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		server.stopServer();
+		adServer.stopServer();
 	}
 
 	public void testPresence() throws LDAPException {

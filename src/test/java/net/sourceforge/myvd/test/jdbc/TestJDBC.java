@@ -37,14 +37,19 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchResults;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestJDBC extends TestCase {
+public class TestJDBC {
 
-	Server server;
+	static Server server;
 	
 	
-	private void deleteDir(File path) {
+	private static void deleteDir(File path) {
 		
 		if (path.isDirectory()) {
 			File[] children = path.listFiles();
@@ -57,8 +62,9 @@ public class TestJDBC extends TestCase {
 		}
 	}
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public  void setUp() throws Exception {
+		
 		
 		System.getProperties().setProperty("derby.system.home", System.getenv("PROJ_DIR") + "/test/derbyHome");
 		
@@ -88,14 +94,16 @@ public class TestJDBC extends TestCase {
 		}
 		
 		
-		this.server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter/vldap.props");
-		this.server.startServer();
+		server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter/vldap.props");
+		server.startServer();
 	}
 
+	@Test
 	public void testStartup() {
 		//do notthing
 	}
 	
+	@Test
 	public void testAdd() throws Exception {
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
@@ -138,7 +146,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testModReplace() throws Exception {
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
@@ -200,6 +208,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testModAdd() throws Exception {
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
@@ -261,6 +270,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testModDelValue() throws Exception {
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
@@ -321,6 +331,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAllUsers() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -406,7 +417,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testSimpleSearch() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -460,6 +471,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testANDSearch() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -496,6 +508,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testANDObjectClassSearch() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -532,6 +545,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAllGroups() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -597,6 +611,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testGroupMembership() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -632,7 +647,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testBaseSearchRoot() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -667,6 +682,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testBaseSearchObject() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -703,6 +719,7 @@ public class TestJDBC extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSubtreeFromUser() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -740,10 +757,10 @@ public class TestJDBC extends TestCase {
 	}
 	
 	
-	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@After
+	public  void tearDown() throws Exception {
+		
+		server.stopServer();
 		
 		try {
 			DriverManager.getConnection("jdbc:derby:dbdb;shutdown=true");

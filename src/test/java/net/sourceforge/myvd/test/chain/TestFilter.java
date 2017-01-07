@@ -21,11 +21,16 @@ import net.sourceforge.myvd.types.FilterNode;
 import net.sourceforge.myvd.types.FilterType;
 
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestFilter extends TestCase {
+public class TestFilter  {
 
-	
+	@Test
 	public void testPresenceToString() {
 		FilterNode node = new FilterNode(FilterType.PRESENCE,"objectClass","");
 		
@@ -36,6 +41,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testEqualsToString() {
 		FilterNode node = new FilterNode(FilterType.EQUALS,"objectClass","inetOrgPerson");
 		
@@ -46,6 +52,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testLessThenToString() {
 		FilterNode node = new FilterNode(FilterType.LESS_THEN,"objectClass","LT");
 		
@@ -56,6 +63,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testGreaterThenToString() {
 		FilterNode node = new FilterNode(FilterType.GREATER_THEN,"objectClass","GT");
 		
@@ -65,6 +73,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testNotToString() {
 		
 		FilterNode nnode = new FilterNode(FilterType.PRESENCE,"objectClass","");
@@ -77,6 +86,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testAndToString() {
 		
 		ArrayList<FilterNode> parts = new ArrayList<FilterNode>();
@@ -93,6 +103,7 @@ public class TestFilter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testOrToString() {
 		
 		ArrayList<FilterNode> parts = new ArrayList<FilterNode>();

@@ -24,6 +24,7 @@ import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.accessControl.AccessControlItem;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.types.DistinguishedName;
 import net.sourceforge.myvd.types.Password;
@@ -31,27 +32,33 @@ import net.sourceforge.myvd.types.SessionVariables;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestValidateSubjects extends TestCase {
-	private StartOpenLDAP openldapServer;
-	private Server server;
-	private InsertChain globalChain;
-	private Router router;
+public class TestValidateSubjects  {
+	private static StartOpenLDAP openldapServer;
+	private static  Server server;
+	private static  InsertChain globalChain;
+	private static  Router router;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.openldapServer = new StartOpenLDAP();
-		this.openldapServer.startServer(System.getenv("PROJ_DIR") + "/test/ACITest",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		openldapServer = new StartOpenLDAP();
+		openldapServer.startServer(System.getenv("PROJ_DIR") + "/test/ACITest",10983,"cn=admin,dc=domain,dc=com","manager");
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testACI.props");
 		server.startServer();
 		
-		this.globalChain = server.getGlobalChain();
-		this.router = server.getRouter();
+		globalChain = server.getGlobalChain();
+		router = server.getRouter();
  	}
 	
-	
+	@Test
 	public void testPublic() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#public:");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -61,6 +68,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSubtreePass() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#subtree:ou=users,dc=domain,dc=com");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -70,6 +78,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSubtreeFail() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#subtree:ou=apps,dc=domain,dc=com");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -79,6 +88,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testThisPass() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#this:");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -88,6 +98,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testThisFail() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#this:");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -97,6 +108,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testDNPass() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#dn:uid=testuser,ou=users,dc=domain,dc=com");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -106,6 +118,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testDNFail() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#dn:uid=testuser1,ou=users,dc=domain,dc=com");
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,this.globalChain,new HashMap<Object,Object>(),new HashMap<Object,Object>(),this.router);
@@ -115,6 +128,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 
+	@Test
 	public void testStaticGroupPass() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#group:cn=staticgroup1,ou=groups,dc=domain,dc=com");
 		HashMap<Object,Object> session = new HashMap<Object,Object>();
@@ -133,6 +147,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testStaticGroupFail() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#group:cn=staticgroup1,ou=groups,dc=domain,dc=com");
 		
@@ -145,6 +160,7 @@ public class TestValidateSubjects extends TestCase {
 		
 	}
 	
+	@Test
 	public void testDynGroupPass() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#dynamic-group:cn=dynamicgroup1,ou=groups,dc=domain,dc=com");
 		HashMap<Object,Object> session = new HashMap<Object,Object>();
@@ -163,6 +179,7 @@ public class TestValidateSubjects extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testDynGroupFail() throws Exception {
 		AccessControlItem aci = new AccessControlItem(0,"cn=test,ou=myorg,dc=domain,dc=com#entry#grant:r,w,o#[all]#dynamic-group:cn=dynamicgroup1,ou=groups,dc=domain,dc=com");
 		HashMap<Object,Object> session = new HashMap<Object,Object>();
@@ -176,9 +193,10 @@ public class TestValidateSubjects extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.openldapServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		openldapServer.stopServer();
+		server.stopServer();
 	}
 }

@@ -36,13 +36,19 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
 import net.sourceforge.myvd.test.util.Util;
 
-public class TestJoin extends TestCase {
+public class TestJoin  {
 
 	private StartOpenLDAP server;
 	private StartMyVD myvd;
@@ -60,8 +66,9 @@ public class TestJoin extends TestCase {
 		}
 	}
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public  void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
 		
 		/*File dbdatalog = new File(System.getenv("PROJ_DIR") + "/test/TestJoin/db/joindb.log");
 		File dbdata = new File(System.getenv("PROJ_DIR") + "/test/TestJoin/db/joindb.script.orig");
@@ -118,8 +125,9 @@ public class TestJoin extends TestCase {
 		
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
+	@After
+	public void tearDown() throws Exception {
+		
 		this.server.stopServer();
 		this.myvd.stopServer();
 		
@@ -130,12 +138,14 @@ public class TestJoin extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testStartup() {
 		//do nothing
 		//System.out.println();
 		
 	}
 	
+	@Test
 	public void testAdd() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -170,6 +180,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchWholeTree() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -196,6 +207,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchPrimary() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -222,6 +234,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchJoined() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -248,6 +261,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testBaseSearch() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -274,6 +288,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 
+	@Test
 	public void testSearchPickAttribs() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -300,6 +315,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testModPrimary() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -331,6 +347,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testModJoined() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -366,6 +383,7 @@ public class TestJoin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testDelete() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);

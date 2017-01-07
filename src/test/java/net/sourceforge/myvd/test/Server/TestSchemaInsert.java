@@ -9,25 +9,39 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestSchemaInsert extends TestCase {
+public class TestSchemaInsert  {
 
-	private StartMyVD server;
+	private static StartMyVD server;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testSchema.conf",50983);
+		
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testSchema.conf",50983);
 	}
 	
+	@AfterClass
+	public static void shutDown() throws Exception {
+		server.stopServer();
+	}
+	
+	@Test
 	public void testStartup() throws Exception {
 		int x = 1;
 	}
 	
+	@Test
 	public void testReadSchema() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);

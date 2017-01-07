@@ -58,7 +58,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 
-public class ExceptionInterceptor extends TestCase implements Insert {
+public class ExceptionInterceptor implements Insert {
 	
 	public void testdonothing() {
 		

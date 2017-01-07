@@ -21,13 +21,18 @@ import com.novell.ldap.util.LDIFReader;
 
 import net.sourceforge.myvd.server.Server;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestDBGroup extends TestCase {
+public class TestDBGroup  {
 
-	Server server;
+	static Server server;
 	
-	private void deleteDir(File path) {
+	private static void deleteDir(File path) {
 		
 		if (path.isDirectory()) {
 			File[] children = path.listFiles();
@@ -40,8 +45,9 @@ public class TestDBGroup extends TestCase {
 		}
 	}
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		
 		
 		System.getProperties().setProperty("derby.system.home", System.getenv("PROJ_DIR") + "/test/derbyHome");
 		
@@ -70,15 +76,16 @@ public class TestDBGroup extends TestCase {
 			//ignore?
 		}
 		
-		this.server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter-Simple/myvd-dbgroups.props");
-		this.server.startServer();
+		server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter-Simple/myvd-dbgroups.props");
+		server.startServer();
 	}
 
-	
+	@Test
 	public void testStartServer() {
 		//System.out.println("");
 	}
 	
+	@Test
 	public void testBaseSearch() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -88,6 +95,7 @@ public class TestDBGroup extends TestCase {
 		
 	}
 	
+	@Test
 	public void testWildcardSearchSubtree() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -97,6 +105,7 @@ public class TestDBGroup extends TestCase {
 		
 	}
 	
+	@Test
 	public void testWildcardSearchOneLevel() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -106,9 +115,10 @@ public class TestDBGroup extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 		
 		
 		try {

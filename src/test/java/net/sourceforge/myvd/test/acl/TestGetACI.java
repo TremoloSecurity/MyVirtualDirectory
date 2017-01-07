@@ -32,14 +32,20 @@ import net.sourceforge.myvd.types.SessionVariables;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestGetACI extends TestCase {
+public class TestGetACI  {
 	
 	private AccessMgr accessManager;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setUp() throws Exception {
+		
 		
 		this.accessManager = new AccessMgr();
 		accessManager.addACI(new AccessControlItem(0,"dc=domain,dc=com#subtree#deny:v,c,d#[entry]#public:"));
@@ -53,7 +59,7 @@ public class TestGetACI extends TestCase {
 		
  	}
 	
-	
+	@Test
 	public void testBindUserEntries() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));
@@ -63,6 +69,7 @@ public class TestGetACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testBindUserAttribs() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser,ou=users,dc=domain,dc=com"),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));
@@ -73,6 +80,7 @@ public class TestGetACI extends TestCase {
 		
 	}
 	
+	@Test
 	public void testBindUserEntriesFail() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser2,ou=users,dc=domain,dc=com"),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));
@@ -82,6 +90,7 @@ public class TestGetACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testBindUserEntriesSpecificEntry() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName("uid=testuser2,ou=users,dc=domain,dc=com"),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));
@@ -91,6 +100,7 @@ public class TestGetACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testNoBindEntry() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(""),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));
@@ -100,6 +110,7 @@ public class TestGetACI extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testNoBindAttribs() throws Exception {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(""),new Password(""),0,new InsertChain(new Insert[0]),new HashMap<Object,Object>(),new HashMap<Object,Object>(),new Router(new InsertChain(new Insert[0])));

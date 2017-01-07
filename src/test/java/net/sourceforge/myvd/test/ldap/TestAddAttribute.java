@@ -22,90 +22,83 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestAddAttribute extends TestCase {
+public class TestAddAttribute {
 
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private StartMyVD server;
-	
-	public void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
-		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsersCustom",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
-		
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
-		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/addattribute.props",50983);
+	private static StartOpenLDAP baseServer;
+	private static StartOpenLDAP internalServer;
+	private static StartOpenLDAP externalServer;
+	private static StartMyVD server;
+
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base", 10983, "cn=admin,dc=domain,dc=com", "manager");
+
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsersCustom", 11983,
+				"cn=admin,ou=internal,dc=domain,dc=com", "manager");
+
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers", 12983,
+				"cn=admin,ou=external,dc=domain,dc=com", "manager");
+
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/addattribute.props", 50983);
 	}
 
-	public void tearDown() throws Exception {
-		super.tearDown();
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		server.stopServer();
 	}
-	
 
+	@Test
+	public void testUserSearchNoAttrs() throws LDAPException {
 
-public void testUserSearchNoAttrs() throws LDAPException {
-	
-	
-	
-	
-	
-	LDAPAttributeSet attribs = new LDAPAttributeSet();
-	attribs.add(new LDAPAttribute("objectClass","customPerson"));
-	//attribs.getAttribute("objectClass").addValue("customPerson");
-	attribs.add(new LDAPAttribute("cn","Test User"));
-	attribs.add(new LDAPAttribute("sn","User"));
-	//attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-	attribs.add(new LDAPAttribute("uid","testUser"));
-	attribs.add(new LDAPAttribute("userPassword","secret"));
-	attribs.add(new LDAPAttribute("o","myorg"));
-	attribs.add(new LDAPAttribute("sumNum","5"));
-	//attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-	LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us",attribs);
-	
-	
-	
-	
-	LDAPConnection con = new LDAPConnection();
-	con.connect("localhost",50983);
-	//con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-	LDAPSearchResults res = con.search("o=mycompany,c=us",2,"(cn=Test User)",new String[0],false);
-	
-	
-	
-	
-	
-	
-	
-	/*if (results.size() != 3) {
-		fail("incorrect number of result sets : " + results.size());
-		return;
-	}*/
-	
-	
-	
-	int size = 0;
-	
+		LDAPAttributeSet attribs = new LDAPAttributeSet();
+		attribs.add(new LDAPAttribute("objectClass", "customPerson"));
+		// attribs.getAttribute("objectClass").addValue("customPerson");
+		attribs.add(new LDAPAttribute("cn", "Test User"));
+		attribs.add(new LDAPAttribute("sn", "User"));
+		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
+		attribs.add(new LDAPAttribute("uid", "testUser"));
+		attribs.add(new LDAPAttribute("userPassword", "secret"));
+		attribs.add(new LDAPAttribute("o", "myorg"));
+		attribs.add(new LDAPAttribute("sumNum", "5"));
+		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
+		LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us", attribs);
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("o=mycompany,c=us", 2, "(cn=Test User)", new String[0], false);
+
+		/*
+		 * if (results.size() != 3) { fail("incorrect number of result sets : "
+		 * + results.size()); return; }
+		 */
+
+		int size = 0;
+
 		while (res.hasMore()) {
 			LDAPEntry fromDir = res.next();
-			LDAPEntry controlEntry = null;//control.get(fromDir.getEntry().getDN());
-			
+			LDAPEntry controlEntry = null;// control.get(fromDir.getEntry().getDN());
+
 			if (size == 0) {
 				controlEntry = entry2;
 			} else if (size == 1) {
@@ -113,69 +106,54 @@ public void testUserSearchNoAttrs() throws LDAPException {
 			} else {
 				controlEntry = null;
 			}
-			
+
 			if (controlEntry == null) {
 				fail("Entry " + fromDir.getDN() + " should not be returned");
 				return;
 			}
-			
-			if (! Util.compareEntry(fromDir,controlEntry)) {
+
+			if (!Util.compareEntry(fromDir, controlEntry)) {
 				fail("The entry was not correct : " + fromDir.toString());
 				return;
 			}
-			
+
 			size++;
 		}
-	
-	
-	if (size != 1) {
-		fail("Not the correct number of entries : " + size);
-	}
-		
-	con.disconnect();
-	
-}
 
-public void testUserSearchWithAttrs() throws LDAPException {
-	
-	
-	
-	
-	
-	LDAPAttributeSet attribs = new LDAPAttributeSet();
-	
-	attribs.add(new LDAPAttribute("uid","testUser"));
-	attribs.add(new LDAPAttribute("o","myorg"));
-	
-	LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us",attribs);
-	
-	
-	
-	
-	LDAPConnection con = new LDAPConnection();
-	con.connect("localhost",50983);
-	//con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-	LDAPSearchResults res = con.search("o=mycompany,c=us",2,"(cn=Test User)",new String[] {"uid","o"},false);
-	
-	
-	
-	
-	
-	
-	
-	/*if (results.size() != 3) {
-		fail("incorrect number of result sets : " + results.size());
-		return;
-	}*/
-	
-	
-	
-	int size = 0;
-	
+		if (size != 1) {
+			fail("Not the correct number of entries : " + size);
+		}
+
+		con.disconnect();
+
+	}
+
+	@Test
+	public void testUserSearchWithAttrs() throws LDAPException {
+
+		LDAPAttributeSet attribs = new LDAPAttributeSet();
+
+		attribs.add(new LDAPAttribute("uid", "testUser"));
+		attribs.add(new LDAPAttribute("o", "myorg"));
+
+		LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us", attribs);
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("o=mycompany,c=us", 2, "(cn=Test User)", new String[] { "uid", "o" }, false);
+
+		/*
+		 * if (results.size() != 3) { fail("incorrect number of result sets : "
+		 * + results.size()); return; }
+		 */
+
+		int size = 0;
+
 		while (res.hasMore()) {
 			LDAPEntry fromDir = res.next();
-			LDAPEntry controlEntry = null;//control.get(fromDir.getEntry().getDN());
-			
+			LDAPEntry controlEntry = null;// control.get(fromDir.getEntry().getDN());
+
 			if (size == 0) {
 				controlEntry = entry2;
 			} else if (size == 1) {
@@ -183,70 +161,54 @@ public void testUserSearchWithAttrs() throws LDAPException {
 			} else {
 				controlEntry = null;
 			}
-			
+
 			if (controlEntry == null) {
 				fail("Entry " + fromDir.getDN() + " should not be returned");
 				return;
 			}
-			
-			if (! Util.compareEntry(fromDir,controlEntry)) {
+
+			if (!Util.compareEntry(fromDir, controlEntry)) {
 				fail("The entry was not correct : " + fromDir.toString());
 				return;
 			}
-			
+
 			size++;
 		}
-	
-	
-	if (size != 1) {
-		fail("Not the correct number of entries : " + size);
-	}
-		
-	con.disconnect();
-	
-}
 
-public void testNoAttr() throws LDAPException {
-	
-	
-	
-	
-	
-	LDAPAttributeSet attribs = new LDAPAttributeSet();
-	
-	attribs.add(new LDAPAttribute("ou","internal"));
-	attribs.add(new LDAPAttribute("objectClass","organizationalUnit"));
-	
-	
-	LDAPEntry entry2 = new LDAPEntry("ou=internal,o=mycompany,c=us",attribs);
-	
-	
-	
-	
-	LDAPConnection con = new LDAPConnection();
-	con.connect("localhost",50983);
-	//con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-	LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us",0,"(objectClass=*)",new String[0],false);
-	
-	
-	
-	
-	
-	
-	
-	/*if (results.size() != 3) {
-		fail("incorrect number of result sets : " + results.size());
-		return;
-	}*/
-	
-	
-	
-	int size = 0;
-	
+		if (size != 1) {
+			fail("Not the correct number of entries : " + size);
+		}
+
+		con.disconnect();
+
+	}
+
+	@Test
+	public void testNoAttr() throws LDAPException {
+
+		LDAPAttributeSet attribs = new LDAPAttributeSet();
+
+		attribs.add(new LDAPAttribute("ou", "internal"));
+		attribs.add(new LDAPAttribute("objectClass", "organizationalUnit"));
+
+		LDAPEntry entry2 = new LDAPEntry("ou=internal,o=mycompany,c=us", attribs);
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 0, "(objectClass=*)", new String[0], false);
+
+		/*
+		 * if (results.size() != 3) { fail("incorrect number of result sets : "
+		 * + results.size()); return; }
+		 */
+
+		int size = 0;
+
 		while (res.hasMore()) {
 			LDAPEntry fromDir = res.next();
-			LDAPEntry controlEntry = null;//control.get(fromDir.getEntry().getDN());
-			
+			LDAPEntry controlEntry = null;// control.get(fromDir.getEntry().getDN());
+
 			if (size == 0) {
 				controlEntry = entry2;
 			} else if (size == 1) {
@@ -254,28 +216,26 @@ public void testNoAttr() throws LDAPException {
 			} else {
 				controlEntry = null;
 			}
-			
+
 			if (controlEntry == null) {
 				fail("Entry " + fromDir.getDN() + " should not be returned");
 				return;
 			}
-			
-			if (! Util.compareEntry(fromDir,controlEntry)) {
+
+			if (!Util.compareEntry(fromDir, controlEntry)) {
 				fail("The entry was not correct : " + fromDir.toString());
 				return;
 			}
-			
+
 			size++;
 		}
-	
-	
-	if (size != 1) {
-		fail("Not the correct number of entries : " + size);
-	}
-		
-	con.disconnect();
-	
-}
 
+		if (size != 1) {
+			fail("Not the correct number of entries : " + size);
+		}
+
+		con.disconnect();
+
+	}
 
 }

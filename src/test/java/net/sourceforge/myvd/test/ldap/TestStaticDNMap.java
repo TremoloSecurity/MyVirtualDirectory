@@ -30,33 +30,40 @@ import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenDS;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestStaticDNMap extends TestCase {
+public class TestStaticDNMap  {
 
 	
-	private StartMyVD server2;
-	private StartOpenDS opends;
+	private static StartMyVD server2;
+	private static StartOpenDS opends;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
 		
 		
-		this.opends = new StartOpenDS();
+		
+		opends = new StartOpenDS();
 		opends.startServer(System.getenv("PROJ_DIR") + "/test/EmbeddedGroups",12389,"cn=Directory Manager","secret");
 		
-		this.server2 = new StartMyVD();
-		this.server2.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/staticdnmap.conf",50983);
+		server2 = new StartMyVD();
+		server2.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/staticdnmap.conf",50983);
 		
 		
 	}
 
-	
+	@Test
 	public void testStartup() {
 		//do nothing
 	}
 	
 	
+	@Test
 	public void testValidateNonPrived() throws Exception {
 		//this should fail
 		
@@ -75,6 +82,7 @@ public class TestStaticDNMap extends TestCase {
 		
 	}
 	
+	@Test
 	public void testBindAsSysUser() throws Exception {
 		//this should fail
 		
@@ -95,11 +103,12 @@ public class TestStaticDNMap extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
+	@AfterClass
+	public static void tearDown() throws Exception {
 		
-		this.server2.stopServer();
-		this.opends.stopServer();
+		
+		server2.stopServer();
+		opends.stopServer();
 	}
 
 }

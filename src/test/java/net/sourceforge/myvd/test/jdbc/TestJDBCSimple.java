@@ -37,13 +37,18 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchResults;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestJDBCSimple extends TestCase {
+public class TestJDBCSimple  {
 
-	Server server;
+	static Server server;
 	
-	private void deleteDir(File path) {
+	private static void deleteDir(File path) {
 		
 		if (path.isDirectory()) {
 			File[] children = path.listFiles();
@@ -56,8 +61,9 @@ public class TestJDBCSimple extends TestCase {
 		}
 	}
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		
 	
 		System.getProperties().setProperty("derby.system.home", System.getenv("PROJ_DIR") + "/test/derbyHome");
 		
@@ -111,15 +117,17 @@ public class TestJDBCSimple extends TestCase {
 		out.close();
 		*/
 		
-		this.server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter-Simple/vldap.props");
-		this.server.startServer();
+		server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter-Simple/vldap.props");
+		server.startServer();
 	}
 
+	@Test
 	public void testStartup() {
 		//do notthing
 		//System.out.println("");
 	}
 	
+	@Test
 	public void testSearchNoAttribsFilter() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -149,6 +157,7 @@ public class TestJDBCSimple extends TestCase {
 		
 	}
 	
+	@Test
 	public void testAllUsersNoWhereOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -232,7 +241,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testSimpleSearchNoWhereOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -267,6 +276,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSimpleCaseFilter() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -301,6 +311,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSimpleCaseAttrib() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -335,6 +346,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAllUsersWhereOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -401,7 +413,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testSimpleSearchWhereOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -436,6 +448,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAllUsersWhereNoOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -504,7 +517,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testSimpleSearchWhereNoOrder() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -539,6 +552,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testPbkdf2BindSuccess() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -548,6 +562,7 @@ public class TestJDBCSimple extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testPbkdf2BindFail() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -583,10 +598,10 @@ public class TestJDBCSimple extends TestCase {
 	}*/
 	
 	
-	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 		
 		try {
 			DriverManager.getConnection("jdbc:derby:;shutdown=true");

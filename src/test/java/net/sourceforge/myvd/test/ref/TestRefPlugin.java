@@ -37,6 +37,7 @@ import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
 import net.sourceforge.myvd.test.chain.TestChain;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.Attribute;
@@ -73,35 +74,41 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestRefPlugin extends TestCase {
+public class TestRefPlugin  {
 
 
 	
 	
-	Insert[] globalChain;
-	Router router;
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private Server server;
-	private StartOpenLDAP masterServer;
+	static Insert[] globalChain;
+	static Router router;
+	private static StartOpenLDAP baseServer;
+	private static StartOpenLDAP internalServer;
+	private static StartOpenLDAP externalServer;
+	private static Server server;
+	private static StartOpenLDAP masterServer;
 	
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
 		
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
-		this.masterServer = new StartOpenLDAP();
-		this.masterServer.startServer(System.getenv("PROJ_DIR") + "/test/Master",13983,"cn=admin,dc=domain,dc=com","manager");
+		masterServer = new StartOpenLDAP();
+		masterServer.startServer(System.getenv("PROJ_DIR") + "/test/Master",13983,"cn=admin,dc=domain,dc=com","manager");
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testMaster.props");
 		server.startServer();
@@ -110,6 +117,15 @@ public class TestRefPlugin extends TestCase {
 		
  	}
 	
+	@After
+	public void after() throws Exception {
+		baseServer.reloadAllData();
+		internalServer.reloadAllData();
+		externalServer.reloadAllData();
+		masterServer.reloadAllData();
+	}
+	
+	@Test
 	public void testStartServer() throws Exception {
 		
 		
@@ -126,7 +142,7 @@ public class TestRefPlugin extends TestCase {
 		
 	}
 	
-	
+	@Test
 public void testSearchSubtreeResults() throws LDAPException {
 		
 		
@@ -213,7 +229,7 @@ public void testSearchSubtreeResults() throws LDAPException {
 
 
 	
-	
+	@Test
 public void testSearchOneLevelResults() throws LDAPException {
 		
 		
@@ -283,7 +299,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 	}
 	
-	
+	@Test
 	public void testAddInternal() throws LDAPException {
 		
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -341,7 +357,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 	}
 
-	
+	@Test
 	public void testAddExternal() throws LDAPException {
 		
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -398,7 +414,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 	}
 	
-	
+	@Test
 	public void testModifyExternal() throws LDAPException {
 		LDAPEntry entry;
 		
@@ -433,7 +449,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testModifyInternal() throws LDAPException {
 		LDAPEntry entry;
 		
@@ -465,7 +481,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testBind() throws LDAPException {
 		BindInterceptorChain bindChain;
 		
@@ -508,7 +524,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testDelete() throws LDAPException {
 		
 		LDAPConnection con = new LDAPConnection();
@@ -531,7 +547,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testRenameRDN() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -564,7 +580,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		con.disconnect();
 	}
 
-	
+	@Test
 	public void testRenameDN() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -596,7 +612,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testRenameDNSeperateServers() throws LDAPException {
 		
 
@@ -634,7 +650,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testExtendedOp() throws IOException, LDAPException {
 //		 first we weill run the extended operation
 		ByteArrayOutputStream encodedData = new ByteArrayOutputStream();
@@ -678,14 +694,14 @@ public void testSearchOneLevelResults() throws LDAPException {
 		con.disconnect();
 	}
 	
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.masterServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		masterServer.stopServer();
+		server.stopServer();
 	}
 
 	

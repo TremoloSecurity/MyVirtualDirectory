@@ -11,13 +11,18 @@ import java.sql.Statement;
 import org.junit.Test;
 
 import net.sourceforge.myvd.server.Server;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class SearchFromRoot extends TestCase {
+public class SearchFromRoot  {
 
-	Server server;
+	static Server  server;
 	
-	private void deleteDir(File path) {
+	private static void deleteDir(File path) {
 		
 		if (path.isDirectory()) {
 			File[] children = path.listFiles();
@@ -30,8 +35,9 @@ public class SearchFromRoot extends TestCase {
 		}
 	}
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		
 		
 		System.getProperties().setProperty("derby.system.home", System.getenv("PROJ_DIR") + "/test/derbyHome");
 		
@@ -61,13 +67,13 @@ public class SearchFromRoot extends TestCase {
 		}
 		
 		
-		this.server = new Server(System.getenv("PROJ_DIR") + "/test/FromRoot/myvd-db.conf");
-		this.server.startServer();
+		server = new Server(System.getenv("PROJ_DIR") + "/test/FromRoot/myvd-db.conf");
+		server.startServer();
 	}
 	
-
-	protected void tearDown() throws Exception {
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		server.stopServer();
 		
 		try {
 			DriverManager.getConnection("jdbc:derby:dbdb;shutdown=true");

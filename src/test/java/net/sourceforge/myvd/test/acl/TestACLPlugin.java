@@ -24,6 +24,7 @@ import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.accessControl.AccessControlItem;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.DistinguishedName;
@@ -38,26 +39,35 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
 
-public class TestACLPlugin extends TestCase {
-	private StartOpenLDAP openldapServer;
-	private Server server;
-	private InsertChain globalChain;
-	private Router router;
+import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
+
+public class TestACLPlugin  {
+	private static StartOpenLDAP openldapServer;
+	private static Server server;
+	private static InsertChain globalChain;
+	private static Router router;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.openldapServer = new StartOpenLDAP();
-		this.openldapServer.startServer(System.getenv("PROJ_DIR") + "/test/ACITest",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		openldapServer = new StartOpenLDAP();
+		openldapServer.startServer(System.getenv("PROJ_DIR") + "/test/ACITest",10983,"cn=admin,dc=domain,dc=com","manager");
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testACLs.props");
 		server.startServer();
 		
-		this.globalChain = server.getGlobalChain();
-		this.router = server.getRouter();
+		globalChain = server.getGlobalChain();
+		router = server.getRouter();
  	}
 	
+	@Test
 	public void testAddAnonFail() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -83,6 +93,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAddBoundFail() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -109,6 +120,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testAddBoundSucceed() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -125,6 +137,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchUsersBound() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -151,6 +164,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchRootNotBound() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -177,6 +191,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchGroupsBound() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -200,6 +215,7 @@ public class TestACLPlugin extends TestCase {
 		con.disconnect();
 	}
 	
+	@Test
 	public void testSearchGroupsNoException() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
@@ -217,10 +233,10 @@ public class TestACLPlugin extends TestCase {
 			con.disconnect();
 	}
 	
-	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.openldapServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		openldapServer.stopServer();
+		server.stopServer();
 	}
 }

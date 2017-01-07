@@ -23,35 +23,43 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class SetRDN extends TestCase {
+public class SetRDN  {
 
 	
-	private StartOpenLDAP externalServer;
-	private StartMyVD server;
-	private StartOpenLDAP adServer;
+	private static StartOpenLDAP externalServer;
+	private static StartMyVD server;
+	private static StartOpenLDAP adServer;
 
-	public void setUp() throws Exception {
-		super.setUp();
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
-		this.adServer = new StartOpenLDAP();
-		this.adServer.startServer(System.getenv("PROJ_DIR") + "/test/TestAD",13983,"cn=admin,dc=test,dc=mydomain,dc=com","manager");
+		adServer = new StartOpenLDAP();
+		adServer.startServer(System.getenv("PROJ_DIR") + "/test/TestAD",13983,"cn=admin,dc=test,dc=mydomain,dc=com","manager");
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/setrdn.props",50983);
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/setrdn.props",50983);
 	}
 	
+	@Test
 	public void testStartup() {
 		//do nothing
 	}
 	
-	
+	@Test
 public void testUidSearch() throws LDAPException {
 		
 		
@@ -122,7 +130,7 @@ public void testUidSearch() throws LDAPException {
 		con.disconnect();
 		
 	}
-
+@Test
 public void testUidSearchOnlyUID() throws LDAPException {
 	
 	
@@ -194,7 +202,7 @@ public void testUidSearchOnlyUID() throws LDAPException {
 	con.disconnect();
 	
 }
-	
+	@Test
 	public void testEntry() throws LDAPException {
 		
 		
@@ -265,13 +273,13 @@ public void testUidSearchOnlyUID() throws LDAPException {
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testAnonBind() throws LDAPException {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost",50983);
 		con.bind(3, "anonymous", new byte[0]);
 	}
-	
+	@Test
 public void testBaseSearch() throws LDAPException {
 		
 		
@@ -346,7 +354,7 @@ public void testBaseSearch() throws LDAPException {
 		
 		con.disconnect();
 	}
-	
+	@Test
 public void testGroupMemberBase() throws LDAPException {
 	
 	
@@ -420,7 +428,7 @@ public void testGroupMemberBase() throws LDAPException {
 	
 	con.disconnect();
 }
-
+@Test
 public void testGroupMemberFilter() throws LDAPException {
 	
 	
@@ -495,10 +503,11 @@ public void testGroupMemberFilter() throws LDAPException {
 	con.disconnect();
 }
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
-		this.externalServer.stopServer();
-		this.adServer.stopServer();
+@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
+		externalServer.stopServer();
+		adServer.stopServer();
 	}
 }

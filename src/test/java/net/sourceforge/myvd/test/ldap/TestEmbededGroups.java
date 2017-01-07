@@ -24,37 +24,48 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartApacheDS;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestEmbededGroups extends TestCase {
+public class TestEmbededGroups {
 
-	private StartOpenLDAP baseServer;
-	private StartMyVD server;
+	private static StartOpenLDAP baseServer;
+	private static StartMyVD server;
 	
 	
-
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/EmbeddedGroups",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/EmbeddedGroups",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/embgroups.conf",50983);
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/embgroups.conf",50983);
 		
 		
 		
 	}
 
+	@After
+	public void after() throws Exception {
+		baseServer.reloadAllData();
+	}
 	
+	@Test
 	public void testStartup() {
 		//do nothing
 	}
 	
-	
+	@Test
 	public void testGetEmbGroup() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -88,6 +99,7 @@ public class TestEmbededGroups extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSearchMemberships() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -121,6 +133,7 @@ public class TestEmbededGroups extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testFailSearchSynGroupDMemberBase() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -149,6 +162,7 @@ public class TestEmbededGroups extends TestCase {
 		
 	}
 	
+	@Test
 	public void testSearchSyncMemberships() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -243,10 +257,11 @@ public class TestEmbededGroups extends TestCase {
 		
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		baseServer.stopServer();
+		server.stopServer();
 		
 	}
 

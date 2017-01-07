@@ -23,6 +23,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPLocalException;
 import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchResult;
+import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
 public class StartOpenLDAP {
@@ -31,6 +32,45 @@ public class StartOpenLDAP {
 	
 	Process process;
 	int port;
+
+	private String adminDN;
+
+	private String adminPass;
+
+	private String fullPath;
+	
+	
+	
+	
+	public void reloadAllData() throws Exception {
+		
+		LDAPConnection con = new LDAPConnection();
+		con.connect("127.0.0.1", this.port);
+		con.bind(this.adminDN, this.adminPass);
+		LDIFReader reader = new LDIFReader(new FileInputStream(fullPath + "/data.ldif"));
+		
+		
+		LDAPMessage msg = reader.readMessage();
+		this.deleteNode(((LDAPSearchResult) msg).getEntry().getDN(), con,true);
+		con.disconnect();
+		
+		
+		
+		this.loadLDIF(fullPath,adminDN,adminPass,port,true);
+	}
+	
+	void deleteNode(String dn,LDAPConnection con,boolean childrenOnly) throws Exception {
+		LDAPSearchResults children = con.search(dn, 1, "(objectClass=*)", new String[]{"1.1"}, false);
+		while (children.hasMore()) {
+			deleteNode(children.next().getDN(),con,false);
+		}
+		System.err.println("Deleting " + dn);
+		
+		if (!childrenOnly) {
+			con.delete(dn);
+		}
+		
+	}
 	
 	public void stopServer() {
 		if (this.process != null) {
@@ -71,7 +111,7 @@ public class StartOpenLDAP {
 		
 	}
 	
-	private void loadLDIF(String path,String adminDN,String adminPass,int port) throws LDAPException, FileNotFoundException, IOException {
+	private void loadLDIF(String path,String adminDN,String adminPass,int port, boolean skipFirst) throws LDAPException, FileNotFoundException, IOException {
 		try {
 			this.port = port;
 			LDAPConnection con = new LDAPConnection();
@@ -84,6 +124,10 @@ public class StartOpenLDAP {
 			
 			
 			LDAPMessage msg;
+			
+			if (skipFirst) {
+				reader.readMessage();
+			}
 			
 			while ((msg = reader.readMessage()) != null) {
 				System.err.println("Msg : " + msg);
@@ -112,6 +156,12 @@ public class StartOpenLDAP {
 	}
 	
 	public boolean startServer(String fullPath,int port,String adminDN,String adminPass,int sslPort) throws IOException,Exception {
+		
+		this.adminDN = adminDN;
+		this.adminPass = adminPass;
+		this.fullPath = fullPath;
+		
+		
 		LDAPConnection con = new LDAPConnection();
 		try {
 			con.connect("127.0.0.1",port);
@@ -168,7 +218,7 @@ public class StartOpenLDAP {
 					con.disconnect();
 				}
 				
-				this.loadLDIF(fullPath,adminDN,adminPass,port);
+				this.loadLDIF(fullPath,adminDN,adminPass,port,false);
 				servers.put(port, this);
 				return true;
 			} catch (LDAPException e) {

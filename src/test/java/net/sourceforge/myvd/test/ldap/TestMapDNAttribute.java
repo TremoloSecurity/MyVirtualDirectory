@@ -30,29 +30,42 @@ import com.novell.ldap.util.LDIFReader;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestMapDNAttribute extends TestCase {
+public class TestMapDNAttribute {
 
-	private StartOpenLDAP server;
-	private StartMyVD myvd;
+	private static StartOpenLDAP server;
+	private static StartMyVD myvd;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
 		
-		this.server = new StartOpenLDAP();
-		this.server.startServer(
+		
+		server = new StartOpenLDAP();
+		server.startServer(
 				System.getenv("PROJ_DIR") + "/test/InternalUsers", 10983,
 				"cn=admin,ou=internal,dc=domain,dc=com", "manager");
 		
-		this.myvd = new StartMyVD();
-		this.myvd.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testdnmap.conf",50983);
+		myvd = new StartMyVD();
+		myvd.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testdnmap.conf",50983);
 	}
 	
+	
+	@After
+	public void after() throws Exception {
+		server.reloadAllData();
+	}
+	
+	@Test
 	public void testStartup() {
 		//do nothing
 	}
-
+	@Test
 	public void testBaseSearch() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -86,7 +99,7 @@ public class TestMapDNAttribute extends TestCase {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testFilterSearch() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -126,12 +139,13 @@ public class TestMapDNAttribute extends TestCase {
 		con.disconnect();
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.myvd.stopServer();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		myvd.stopServer();
+		server.stopServer();
 	}
-
+	@Test
 	public void testAdd() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -171,7 +185,7 @@ public class TestMapDNAttribute extends TestCase {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testMod() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);

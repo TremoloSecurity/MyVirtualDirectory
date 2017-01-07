@@ -35,6 +35,7 @@ import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
 import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.test.chain.TestChain;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.Attribute;
@@ -69,38 +70,44 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestChooseRoute extends TestCase {
+public class TestChooseRoute  {
 
 
-	LDAPInterceptor baseInterceptor;
-	InsertChain chain;
-	InsertChain globalChain;
-	Router router;
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private StartOpenLDAP bogusInternalServer;
-	private StartOpenLDAP bogusExternalServer;
-	private PasswordChangeOperation pwdInterceptor;
+	static LDAPInterceptor baseInterceptor;
+	static InsertChain chain;
+	static InsertChain globalChain;
+	static Router router;
+	private static StartOpenLDAP baseServer;
+	private static StartOpenLDAP internalServer;
+	private static StartOpenLDAP externalServer;
+	private static StartOpenLDAP bogusInternalServer;
+	private static StartOpenLDAP bogusExternalServer;
+	private static PasswordChangeOperation pwdInterceptor;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
 		
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
-		this.bogusExternalServer = new StartOpenLDAP();
-		this.bogusExternalServer.startServer(System.getenv("PROJ_DIR") + "/test/BogusExternal",13983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		bogusExternalServer = new StartOpenLDAP();
+		bogusExternalServer.startServer(System.getenv("PROJ_DIR") + "/test/BogusExternal",13983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
-		this.bogusInternalServer = new StartOpenLDAP();
-		this.bogusInternalServer.startServer(System.getenv("PROJ_DIR") + "/test/BogusInternal",14983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		bogusInternalServer = new StartOpenLDAP();
+		bogusInternalServer.startServer(System.getenv("PROJ_DIR") + "/test/BogusInternal",14983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
 		//setup the ldap interceptors
 		baseInterceptor = new LDAPInterceptor();
@@ -124,7 +131,7 @@ public class TestChooseRoute extends TestCase {
 		NameSpace ns = new NameSpace("LDAP", new DistinguishedName(new DN("o=mycompany,c=us")), 0, chain,false);
 		baseInterceptor.configure("TestLDAP",props,ns);
 		
-		this.router = new Router(new InsertChain(new Insert[0]));
+		router = new Router(new InsertChain(new Insert[0]));
 		router.addBackend("LDAPBase",ns.getBase().getDN(),ns);
 		
 		
@@ -234,7 +241,7 @@ public class TestChooseRoute extends TestCase {
 		
 		
 		tchain = new Insert[2];
-		this.globalChain = new InsertChain(tchain);
+		globalChain = new InsertChain(tchain);
 		tchain[0] = new TestglobalChain();
 		pwdInterceptor = new PasswordChangeOperation();
 		nprops = new Properties();
@@ -245,6 +252,17 @@ public class TestChooseRoute extends TestCase {
 		
  	}
 	
+	@After
+	public void after() throws Exception {
+		TestChooseRoute.baseServer.reloadAllData();
+		//TestChooseRoute.bogusExternalServer.reloadAllData();
+		//TestChooseRoute.bogusInternalServer.reloadAllData();
+		TestChooseRoute.externalServer.reloadAllData();
+		TestChooseRoute.internalServer.reloadAllData();
+		
+	}
+	
+	@Test
 	public void testSearchSubtreeResults() throws LDAPException {
 		
 		
@@ -274,7 +292,7 @@ public class TestChooseRoute extends TestCase {
 		
 		
 		
-		Results res = new Results(this.globalChain);
+		Results res = new Results(globalChain);
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
 		
@@ -287,7 +305,7 @@ public class TestChooseRoute extends TestCase {
 		
 		BindInterceptorChain bindChain = new BindInterceptorChain(new DistinguishedName(""),new Password(),0,new InsertChain(new Insert[0]),session,new HashMap());
 		bindChain.nextBind(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),new LDAPConstraints());
-		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,router);
+		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		ArrayList<Attribute> attribsToRequest = new ArrayList<Attribute>();
 		attribsToRequest.add(new Attribute("1.1"));
 		chain.nextSearch(new DistinguishedName(new DN("o=mycompany")),new Int(2),new Filter("(objectClass=inetOrgPerson)"),attribsToRequest,new Bool(false),res,new LDAPSearchConstraints());
@@ -341,7 +359,7 @@ public class TestChooseRoute extends TestCase {
 	
 
 
-	
+	@Test
 	
 public void testSearchOneLevelResults() throws LDAPException {
 		
@@ -372,12 +390,12 @@ public void testSearchOneLevelResults() throws LDAPException {
 		backends.add("LDAPBase");
 		request.put(RequestVariables.ROUTE_NAMESPACE,backends);
 		
-		Results res = new Results(this.globalChain);
+		Results res = new Results(globalChain);
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
 		BindInterceptorChain bindChain = new BindInterceptorChain(new DistinguishedName(""),new Password(),0,new InsertChain(new Insert[0]),session,new HashMap());
 		bindChain.nextBind(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),new LDAPConstraints());
-		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,router);
+		SearchInterceptorChain chain = new SearchInterceptorChain(new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		ArrayList<Attribute> attribsToRequest = new ArrayList<Attribute>();
 		attribsToRequest.add(new Attribute("1.1"));
 		chain.nextSearch(new DistinguishedName(new DN("o=mycompany")),new Int(1),new Filter("(objectClass=*)"),attribsToRequest,new Bool(false),res,new LDAPSearchConstraints());
@@ -430,7 +448,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 	}
 	
-	
+	@Test
 	public void testAddInternal() throws LDAPException {
 		
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -448,7 +466,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		Entry newEntry = new Entry(entry);
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
-		AddInterceptorChain chain = new AddInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,router);
+		AddInterceptorChain chain = new AddInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		
 		chain.nextAdd(newEntry,new LDAPConstraints());
 		
@@ -493,7 +511,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		
 	}
-	
+	@Test
 	public void testAddExternal() throws LDAPException {
 		
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -511,7 +529,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		request.put(RequestVariables.ROUTE_NAMESPACE,"LDAPExternal");
 		
 		
-		AddInterceptorChain chain = new AddInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=external,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,this.router);
+		AddInterceptorChain chain = new AddInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=external,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		
 		chain.nextAdd(newEntry,new LDAPConstraints());
 		
@@ -557,7 +575,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 	}
 	
-	
+	@Test
 	public void testModifyExternal() throws LDAPException {
 		LDAPEntry entry;
 		
@@ -569,7 +587,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		ArrayList<String> backends = new ArrayList<String>();
 		request.put(RequestVariables.ROUTE_NAMESPACE,"LDAPExternal");
 		
-		ModifyInterceptorChain chain = new ModifyInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=external,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,router);
+		ModifyInterceptorChain chain = new ModifyInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=external,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		
 		
 		ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
@@ -598,7 +616,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 			fail("Entry not correct : " + result.toString());
 		}
 	}
-	
+	@Test
 	public void testModifyInternal() throws LDAPException {
 		LDAPEntry entry;
 		
@@ -610,7 +628,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		ArrayList<String> backends = new ArrayList<String>();
 		request.put(RequestVariables.ROUTE_NAMESPACE,"LDAPInternal");
 		
-		ModifyInterceptorChain chain = new ModifyInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,this.router);
+		ModifyInterceptorChain chain = new ModifyInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		
 		
 		ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
@@ -639,7 +657,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 			fail("Entry not correct : " + result.toString());
 		}
 	}
-	
+	@Test
 	public void testBind() {
 		BindInterceptorChain bindChain;
 		
@@ -653,7 +671,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		backends.add("LDAPBase");
 		request.put(RequestVariables.ROUTE_NAMESPACE,backends);
 		
-		bindChain = new BindInterceptorChain(null,null,0,this.globalChain,session,request,this.router);
+		bindChain = new BindInterceptorChain(null,null,0,globalChain,session,request,router);
 			
 		try {
 			bindChain.nextBind(new DistinguishedName(new DN("ou=internal,o=mycompany")),new Password("nopass".getBytes()),new LDAPConstraints());
@@ -668,7 +686,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		//try a successfull bind
 		session = new HashMap<Object,Object>();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
-		bindChain = new BindInterceptorChain(null,null,0,this.globalChain,session,request,this.router);
+		bindChain = new BindInterceptorChain(null,null,0,globalChain,session,request,router);
 			
 		try {
 			bindChain.nextBind(new DistinguishedName(new DN("ou=internal,o=mycompany")),new Password("secret".getBytes()),new LDAPConstraints());
@@ -685,7 +703,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 //		first try a failed bind
 		session = new HashMap<Object,Object>();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
-		bindChain = new BindInterceptorChain(null,null,0,this.globalChain,session,request,this.router);
+		bindChain = new BindInterceptorChain(null,null,0,globalChain,session,request,router);
 			
 		try {
 			bindChain.nextBind(new DistinguishedName(new DN("ou=internal,o=mycompany")),new Password("nopass".getBytes()),new LDAPConstraints());
@@ -697,7 +715,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 				
 		}
 	}
-	
+	@Test
 	public void testDelete() throws LDAPException {
 		
 		HashMap session = new HashMap();
@@ -705,7 +723,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		HashMap request = new HashMap();
 		
 		request.put(RequestVariables.ROUTE_NAMESPACE,"LDAPInternal");
-		DeleteInterceptorChain chain = new DeleteInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,this.globalChain,session,request,this.router);
+		DeleteInterceptorChain chain = new DeleteInterceptorChain(new DistinguishedName(new DN("cn=admin,ou=internal,o=mycompany,c=us")), new Password("manager".getBytes()),0,globalChain,session,request,router);
 		
 		chain.nextDelete(new DistinguishedName("ou=internal,o=mycompany"),new LDAPConstraints());
 		
@@ -725,7 +743,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		
 	}
-	
+	@Test
 	public void testRenameRDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -737,8 +755,8 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		RenameInterceptorChain chain = new RenameInterceptorChain(
 				new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")),
-				new Password("manager".getBytes()), 0, this.globalChain,
-				session, request,this.router);
+				new Password("manager".getBytes()), 0, globalChain,
+				session, request,router);
 
 		chain.nextRename(new DistinguishedName("ou=internal,o=mycompany"),new DistinguishedName("cn=New Test User"),new Bool(true),new LDAPConstraints());
 
@@ -767,7 +785,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		}
 	}
 
-	
+	@Test
 	public void testRenameDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -780,8 +798,8 @@ public void testSearchOneLevelResults() throws LDAPException {
 		
 		RenameInterceptorChain chain = new RenameInterceptorChain(
 				new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")),
-				new Password("manager".getBytes()), 0, this.globalChain,
-				session, request,this.router);
+				new Password("manager".getBytes()), 0, globalChain,
+				session, request,router);
 
 		chain.nextRename(new DistinguishedName("ou=internal,o=mycompany"),new DistinguishedName("cn=New Test User"),new DistinguishedName("ou=internal,o=mycompany,c=us"),new Bool(true),new LDAPConstraints());
 
@@ -809,7 +827,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 			fail("entry not renamed");
 		}
 	}
-	
+	@Test
 	public void testRenameDNSeperateServers() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -820,7 +838,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		request.put(RequestVariables.ROUTE_NAMESPACE_RENAME,"LDAPExternal");
 		RenameInterceptorChain chain = new RenameInterceptorChain(
 				new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")),
-				new Password("manager".getBytes()), 0, this.globalChain,
+				new Password("manager".getBytes()), 0, globalChain,
 			
 				session,request,router);
 
@@ -855,7 +873,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 			fail("entry not renamed");
 		}
 	}
-	
+	@Test
 	public void testExtendedOp() throws IOException, LDAPException {
 //		 first we weill run the extended operation
 		ByteArrayOutputStream encodedData = new ByteArrayOutputStream();
@@ -884,7 +902,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 				new ArrayList<String>());
 		ExetendedOperationInterceptorChain extChain = new ExetendedOperationInterceptorChain(
 				new DistinguishedName(""), new Password(""), 0,
-				this.globalChain, session, new HashMap<Object, Object>(),router);
+				globalChain, session, new HashMap<Object, Object>(),router);
 
 		extChain.nextExtendedOperations(localOp,new LDAPConstraints());
 		
@@ -904,14 +922,14 @@ public void testSearchOneLevelResults() throws LDAPException {
 	}
 	
 	
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.bogusExternalServer.stopServer();
-		this.bogusInternalServer.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		bogusExternalServer.stopServer();
+		bogusInternalServer.stopServer();
 	}
 
 	

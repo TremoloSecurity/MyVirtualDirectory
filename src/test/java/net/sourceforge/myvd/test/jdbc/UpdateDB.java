@@ -56,7 +56,7 @@ import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 
-public class UpdateDB extends TestCase implements Insert {
+public class UpdateDB  implements Insert {
 	
 	public void testdonothing() {
 		

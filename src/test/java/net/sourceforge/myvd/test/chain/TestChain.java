@@ -49,7 +49,7 @@ import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.util.DN;
 
-public class TestChain extends TestCase implements Insert {
+public class TestChain  implements Insert {
 	
 	public void testdonothing() {
 		

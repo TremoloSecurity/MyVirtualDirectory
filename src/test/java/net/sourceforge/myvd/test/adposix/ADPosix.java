@@ -31,18 +31,24 @@ import com.novell.ldap.LDAPSearchResult;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.util.LDIFReader;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class ADPosix extends TestCase {
+public class ADPosix {
 
-	private StartOpenLDAP simAd;
-	private StartMyVD server;
+	private static StartOpenLDAP simAd;
+	private static StartMyVD server;
 	
 	
-	private void deleteDir(File path) {
+	private static void deleteDir(File path) {
 		
 		if (path.isDirectory()) {
 			File[] children = path.listFiles();
@@ -55,8 +61,9 @@ public class ADPosix extends TestCase {
 		}
 	}
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
 		
 		System.getProperties().setProperty("derby.system.home", System.getenv("PROJ_DIR") + "/test/derbyHome");
 		
@@ -80,15 +87,17 @@ public class ADPosix extends TestCase {
 		simAd = new StartOpenLDAP();
 		simAd.startServer(System.getenv("PROJ_DIR") + "/test/ADPosixSim",10983,"cn=administrator,cn=users,dc=test,dc=mydomain,dc=com","p@ssw0rd");
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/ad-join-posix-comp-derby.conf",50983);
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/ad-join-posix-comp-derby.conf",50983);
 	}
 
+	@Test
 	public void testStartup() {
 		boolean x = true;
 		x=x;
 	}
 	
+	@Test
 	public void testLinuxLogin() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -163,6 +172,7 @@ public class ADPosix extends TestCase {
 		
 	}
 	
+	@Test
 	public void testLinuxDirectoryListing() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -198,7 +208,7 @@ public class ADPosix extends TestCase {
 		con.disconnect();
 	}
 	
-	
+	@Test
 	public void testSearchJoined() throws Exception {
 		
 		
@@ -213,6 +223,7 @@ public class ADPosix extends TestCase {
 		con.disconnect();
 		
 	}
+
 
 	private String checkSearch(LDAPSearchResults res, String ldifName) throws LDAPException,
 			IOException, LDAPLocalException, FileNotFoundException {
@@ -242,6 +253,7 @@ public class ADPosix extends TestCase {
 		return "";
 	}
 	
+	@Test
 	public void testLinuxSudo() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -268,9 +280,10 @@ public class ADPosix extends TestCase {
 		con.disconnect();
 	}
 	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.simAd.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		simAd.stopServer();
 		try {
 			DriverManager.getConnection("jdbc:derby:;shutdown=true");
 		} catch (Throwable t) {

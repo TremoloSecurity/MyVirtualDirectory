@@ -17,26 +17,34 @@ import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPSearchResults;
 
 import net.sourceforge.myvd.test.util.StartMyVD;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestClientAuth extends TestCase {
+public class TestClientAuth  {
 
-	private StartMyVD server;
+	private static StartMyVD server;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		
 
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR")
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR")
 				+ "/test/TlsServer/conf/myvd.conf", 10983);
 
 	}
 
+	@Test
 	public void testStartup() {
 		// do nothing
 		System.out.print("");
 	}
 
+	@Test
 	public void testConnectSuccess() throws Exception {
 		KeyStore tks = KeyStore.getInstance(KeyStore.getDefaultType());
 		tks.load(new FileInputStream(System.getenv("PROJ_DIR")
@@ -73,9 +81,10 @@ public class TestClientAuth extends TestCase {
 		ldap.disconnect();
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 	}
 
 }

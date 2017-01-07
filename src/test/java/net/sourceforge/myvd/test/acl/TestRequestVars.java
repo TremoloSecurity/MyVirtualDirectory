@@ -50,7 +50,7 @@ import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 
-public class TestRequestVars extends TestCase implements Insert {
+public class TestRequestVars  implements Insert {
 
 	
 	public void testdonothing() {

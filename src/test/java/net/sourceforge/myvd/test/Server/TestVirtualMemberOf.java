@@ -36,6 +36,7 @@ import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
 import net.sourceforge.myvd.test.chain.TestChain;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
@@ -51,11 +52,6 @@ import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Result;
 import net.sourceforge.myvd.types.Results;
 import net.sourceforge.myvd.types.SessionVariables;
-
-
-
-
-
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -77,162 +73,141 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestVirtualMemberOf extends TestCase {
+public class TestVirtualMemberOf {
 
+	// Insert[] globalChain;
+	// Router router;
+	private static StartOpenLDAP baseServer;
+	private static StartOpenLDAP internalServer;
+	private static StartOpenLDAP externalServer;
+	private static StartMyVD server;
+	// private Server server;
 
-	
-	
-	//Insert[] globalChain;
-	//Router router;
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private StartMyVD server;
-	//private Server server;
-	
-	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
-		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
-		
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
-		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testVirtualMemberOf.props",50983);
-		
-		
-		//server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testconfig.props");
-		//server.startServer();
-		
-		
-		
-		//this.globalChain = server.getGlobalChain();
-		//this.router = server.getRouter();
-		
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base", 10983, "cn=admin,dc=domain,dc=com", "manager");
+
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsers", 11983,
+				"cn=admin,ou=internal,dc=domain,dc=com", "manager");
+
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers", 12983,
+				"cn=admin,ou=external,dc=domain,dc=com", "manager");
+
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/testVirtualMemberOf.props", 50983);
+
+		// server = new Server(System.getenv("PROJ_DIR") +
+		// "/test/TestServer/testconfig.props");
+		// server.startServer();
+
+		// globalChain = server.getGlobalChain();
+		// router = server.getRouter();
+
 		System.setProperty("javax.net.ssl.trustStore", System.getenv("PROJ_DIR") + "/test/TestServer/testconfig.jks");
-		
- 	}
-	
+
+	}
+
+	@Test
 	public void testStartServer() throws Exception {
-		
-		
+
 		LDAPConnection con = new LDAPConnection();
-		con.connect("127.0.0.1",50983);
-		//con.bind(3,"ou=internal,o=mycompany","secret".getBytes());
-		
-		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us",2,"(objectClass=*)",new String[0],false);
+		con.connect("127.0.0.1", 50983);
+		// con.bind(3,"ou=internal,o=mycompany","secret".getBytes());
+
+		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
 		while (res.hasMore()) {
 			System.out.println(res.next().getDN());
 		}
-		
+
 		con.disconnect();
-		
+
 	}
-	
-	
+
+	@Test
 	public void testSearchSubtreeResults() throws LDAPException {
-		
-		
-		
-		
-		
+
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
-		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
-		attribs.add(new LDAPAttribute("cn","Test User"));
-		attribs.add(new LDAPAttribute("sn","User"));
-		
-		attribs.add(new LDAPAttribute("uid","testUser"));
-		attribs.add(new LDAPAttribute("userPassword","secret"));
-		
-		LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us",attribs);
-		
+		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
+		attribs.add(new LDAPAttribute("cn", "Test User"));
+		attribs.add(new LDAPAttribute("sn", "User"));
+
+		attribs.add(new LDAPAttribute("uid", "testUser"));
+		attribs.add(new LDAPAttribute("userPassword", "secret"));
+
+		LDAPEntry entry2 = new LDAPEntry("cn=Test User,ou=internal,o=mycompany,c=us", attribs);
+
 		attribs = new LDAPAttributeSet();
-		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
-		attribs.add(new LDAPAttribute("cn","Test Cust"));
-		attribs.add(new LDAPAttribute("sn","Cust"));
-		attribs.add(new LDAPAttribute("uid","testCust"));
-		attribs.add(new LDAPAttribute("userPassword","secret"));
-		attribs.add(new LDAPAttribute("memberOf","cn=Test Group,ou=external,o=mycompany,c=us"));
-		
-		
-		LDAPEntry entry1 = new LDAPEntry("cn=Test Cust,ou=external,o=mycompany,c=us",attribs);
-		
-		
+		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
+		attribs.add(new LDAPAttribute("cn", "Test Cust"));
+		attribs.add(new LDAPAttribute("sn", "Cust"));
+		attribs.add(new LDAPAttribute("uid", "testCust"));
+		attribs.add(new LDAPAttribute("userPassword", "secret"));
+		attribs.add(new LDAPAttribute("memberOf", "cn=Test Group,ou=external,o=mycompany,c=us"));
+
+		LDAPEntry entry1 = new LDAPEntry("cn=Test Cust,ou=external,o=mycompany,c=us", attribs);
+
 		LDAPConnection con = new LDAPConnection();
-		con.connect("127.0.0.1",50983);
-		//con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("o=mycompany,c=us",2,"(objectClass=inetOrgPerson)",new String[]{},false);
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		con.connect("127.0.0.1", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("o=mycompany,c=us", 2, "(objectClass=inetOrgPerson)", new String[] {},
+				false);
+
 		int size = 0;
-		
-			while (res.hasMore()) {
-				
-				LDAPEntry fromDir = res.next();
-				
-				
-				LDAPEntry controlEntry = null;//control.get(fromDir.getEntry().getDN());
-				
-				if (size == 0) {
-					controlEntry = entry1;
-				} else if (size == 1) {
-					controlEntry = entry2;
-				} else {
-					controlEntry = null;
-				}
-				
-				if (controlEntry == null) {
-					fail("Entry " + fromDir.getDN() + " should not be returned");
-					return;
-				}
-				
-				if (! Util.compareEntry(fromDir,controlEntry)) {
-					fail("The entry was not correct : \n" + Util.toLDIF(fromDir) + "\nfrom control:\n" + Util.toLDIF(controlEntry)) ;
-					return;
-				}
-				
-				size++;
+
+		while (res.hasMore()) {
+
+			LDAPEntry fromDir = res.next();
+
+			LDAPEntry controlEntry = null;// control.get(fromDir.getEntry().getDN());
+
+			if (size == 0) {
+				controlEntry = entry1;
+			} else if (size == 1) {
+				controlEntry = entry2;
+			} else {
+				controlEntry = null;
 			}
-		
-		
+
+			if (controlEntry == null) {
+				fail("Entry " + fromDir.getDN() + " should not be returned");
+				return;
+			}
+
+			if (!Util.compareEntry(fromDir, controlEntry)) {
+				fail("The entry was not correct : \n" + Util.toLDIF(fromDir) + "\nfrom control:\n"
+						+ Util.toLDIF(controlEntry));
+				return;
+			}
+
+			size++;
+		}
+
 		if (size != 2) {
 			fail("Not the correct number of entries : " + size);
 		}
-			
-		
+
 		con.disconnect();
 	}
-	
-	
 
+	@AfterClass
+	public static void tearDown() throws Exception {
 
-
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.server.stopServer();
-		//this.server.stopServer();
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		server.stopServer();
+		// server.stopServer();
 	}
 
-	
 }
-
-

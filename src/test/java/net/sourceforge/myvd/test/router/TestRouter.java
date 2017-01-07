@@ -26,9 +26,15 @@ import net.sourceforge.myvd.types.DistinguishedName;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestRouter extends TestCase {
+public class TestRouter  {
+	@Test
 	public void testAddNamespaces() {
 		NameSpace root = new NameSpace("root",new DistinguishedName("dc=domain,dc=com"),0,null,false);
 		NameSpace internal = new NameSpace("internal",new DistinguishedName("ou=internal,dc=domain,dc=com"),10,null,false);
@@ -44,6 +50,7 @@ public class TestRouter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testAddNamespacesRev() {
 		NameSpace root = new NameSpace("root",new DistinguishedName("dc=domain,dc=com"),0,null,false);
 		NameSpace internal = new NameSpace("internal",new DistinguishedName("ou=internal,dc=domain,dc=com"),10,null,false);
@@ -145,6 +152,7 @@ public class TestRouter extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testSearchNamespaces() {
 		NameSpace root = new NameSpace("root",new DistinguishedName("dc=domain,dc=com"),0,null,false);
 		NameSpace internal = new NameSpace("internal",new DistinguishedName("ou=internal,dc=domain,dc=com"),10,null,false);
@@ -163,6 +171,7 @@ public class TestRouter extends TestCase {
 		
 	}
 	
+	@Test
 	public void testSearchNamespacesRev() {
 		NameSpace root = new NameSpace("root",new DistinguishedName("dc=domain,dc=com"),0,null,false);
 		NameSpace internal = new NameSpace("internal",new DistinguishedName("ou=internal,dc=domain,dc=com"),10,null,false);

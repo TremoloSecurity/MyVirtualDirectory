@@ -2,9 +2,16 @@ package net.sourceforge.myvd.test.ldap;
 
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestDN extends TestCase {
+public class TestDN  {
+	
+	@Test
 	public void testDNWithPlus() throws Exception {
 		//DN dn = new DN("cn=my\\+dn,dc=domain,dc=com");
 		DN dn = new DN("CN=Schedule\\+ Free Busy Information - COG,CN=Microsoft Exchange System Objects,DC=mwcog,DC=org");

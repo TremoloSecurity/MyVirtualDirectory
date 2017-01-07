@@ -74,117 +74,122 @@ import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.LDIFReader;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestAttributeRouter extends TestCase {
+public class TestAttributeRouter  {
 
 
 	
 	
-	InsertChain globalChain;
-	Router router;
-	private StartOpenLDAP baseServer;
-	private StartOpenLDAP internalServer;
-	private StartOpenLDAP externalServer;
-	private StartOpenLDAP localServer;
-	private Server server;
+	static InsertChain globalChain;
+	static Router router;
+	private static StartOpenLDAP baseServer;
+	private static StartOpenLDAP internalServer;
+	private static  StartOpenLDAP externalServer;
+	private static StartOpenLDAP localServer;
+	private static Server server;
 	
-	
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.baseServer = new StartOpenLDAP();
-		this.baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+	@BeforeClass
+	public static void setUp() throws Exception {
 		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsersRoute",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
+		baseServer = new StartOpenLDAP();
+		baseServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.externalServer = new StartOpenLDAP();
-		this.externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsersRoute",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/InternalUsersRoute",11983,"cn=admin,ou=internal,dc=domain,dc=com","manager");
 		
-		this.localServer = new StartOpenLDAP();
-		this.localServer.startServer(System.getenv("PROJ_DIR") + "/test/LocalUsers",13983,"cn=admin,ou=local,dc=domain,dc=com","manager");
+		externalServer = new StartOpenLDAP();
+		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsersRoute",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
+		
+		localServer = new StartOpenLDAP();
+		localServer.startServer(System.getenv("PROJ_DIR") + "/test/LocalUsers",13983,"cn=admin,ou=local,dc=domain,dc=com","manager");
 		
 		server = new Server(System.getenv("PROJ_DIR") + "/test/TestServer/testAttributeRoute.props");
 		server.startServer();
 		
-		this.globalChain = server.getGlobalChain();
-		this.router = server.getRouter();
+		globalChain = server.getGlobalChain();
+		router = server.getRouter();
 		
 		
  	}
 	
+	@Test
 	public void testControl() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(cn=testrouting)", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "control-results.ldif");
+		String chkRes = checkSearch(res, "control-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testInternal() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(|(cn=testrouting)(mail=internaluser@internal.domain.com))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "internal-results.ldif");
+		String chkRes = checkSearch(res, "internal-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
 	
-	
+	@Test
 	public void testInternalWrongCase() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(|(cn=testrouting)(mail=internaluser@INTERNAL.DOMAIN.COM))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "internal-results.ldif");
+		String chkRes = checkSearch(res, "internal-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testInternalWithOrMailNoRoute() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us",2, "(|(uid=internaluser)(mail=internaluser))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "internal-results.ldif");
+		String chkRes = checkSearch(res, "internal-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testExternal() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(|(cn=testrouting)(mail=externaluser@external.domain.com))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "external-results.ldif");
+		String chkRes = checkSearch(res, "external-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testExternalWithInternalBase() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
@@ -193,7 +198,7 @@ public class TestAttributeRouter extends TestCase {
 		try {
 		if (res.hasMore()) {
 			LDAPEntry e1 = res.next();
-			Assert.fail("Results came back");
+			fail("Results came back");
 		}
 		} catch  (LDAPException e) {
 			if (e.getResultCode() != 32) {
@@ -204,29 +209,29 @@ public class TestAttributeRouter extends TestCase {
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testDefault() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(|(cn=testrouting)(mail=localuser@local.domain.com))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "default-results.ldif");
+		String chkRes = checkSearch(res, "default-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
 		
 	}
-	
+	@Test
 	public void testInternalAndDefault() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
 		LDAPSearchResults res = con.search("o=mycompany,c=us",2, "(|(cn=testrouting)(mail=internaluser@internal.domain.com)(mail=localuser@local.domain.com))", new String[]{}, false);
-		String chkRes = this.checkSearch(res, "default_internal-results.ldif");
+		String chkRes = checkSearch(res, "default_internal-results.ldif");
 		
 		if (! chkRes.isEmpty()) {
-			Assert.fail(chkRes);
+			fail(chkRes);
 		}
 		
 		con.disconnect();
@@ -261,14 +266,14 @@ public class TestAttributeRouter extends TestCase {
 		return "";
 	}
 	
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
-		this.baseServer.stopServer();
-		this.internalServer.stopServer();
-		this.externalServer.stopServer();
-		this.localServer.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
+		baseServer.stopServer();
+		internalServer.stopServer();
+		externalServer.stopServer();
+		localServer.stopServer();
 	}
 
 	

@@ -36,6 +36,7 @@ import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
 import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.test.chain.TestChain;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.Attribute;
@@ -69,24 +70,31 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestSingleRouteLDAP extends TestCase {
+public class TestSingleRouteLDAP  {
 
-	StartOpenLDAP server;
+	static StartOpenLDAP server;
 
-	LDAPInterceptor interceptor;
+	static LDAPInterceptor interceptor;
 
-	InsertChain chain;
+	static InsertChain chain;
 
-	Router router;
+	static Router router;
 
-	private PasswordChangeOperation pwdInterceptor;
+	private static PasswordChangeOperation pwdInterceptor;
 
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.server = new StartOpenLDAP();
-		this.server.startServer(
+	
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		server = new StartOpenLDAP();
+		server.startServer(
 				System.getenv("PROJ_DIR") + "/test/TestLDAP", 10983,
 				"cn=admin,dc=domain,dc=com", "manager");
 
@@ -105,18 +113,24 @@ public class TestSingleRouteLDAP extends TestCase {
 		
 		Insert[] tchain = new Insert[3];
 		tchain[0] = new TestChainR();
-		tchain[1] = this.pwdInterceptor;
+		tchain[1] = pwdInterceptor;
 		tchain[2] = interceptor;
 		
 		chain = new InsertChain(tchain);
 		NameSpace ns = new NameSpace("LDAP", new DistinguishedName(new DN("o=mycompany,c=us")), 0, chain,false);
 		interceptor.configure("TestLDAP", props, ns);
-		this.pwdInterceptor.configure("pwdInterceptor",nprops,ns);
-		this.router = new Router(new InsertChain(new Insert[0]));
+		pwdInterceptor.configure("pwdInterceptor",nprops,ns);
+		router = new Router(new InsertChain(new Insert[0]));
 		router.addBackend("TestLDAP", ns.getBase().getDN(), ns);
 
 	}
+	
+	@After
+	public void after() throws Exception {
+		server.reloadAllData();
+	}
 
+	@Test
 	public void testSearch() throws LDAPException {
 		HashMap<String, LDAPEntry> control = new HashMap<String, LDAPEntry>();
 
@@ -186,7 +200,7 @@ public class TestSingleRouteLDAP extends TestCase {
 		}
 
 	}
-
+	@Test
 	public void testAdd() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -225,7 +239,7 @@ public class TestSingleRouteLDAP extends TestCase {
 		}
 
 	}
-
+	@Test
 	public void testModify() throws LDAPException {
 		LDAPEntry entry;
 		HashMap session = new HashMap();
@@ -264,7 +278,7 @@ public class TestSingleRouteLDAP extends TestCase {
 			fail("Entry not correct : " + result.toString());
 		}
 	}
-
+	@Test
 	public void testBind() {
 		BindInterceptorChain bindChain;
 		HashMap session = new HashMap();
@@ -317,7 +331,7 @@ public class TestSingleRouteLDAP extends TestCase {
 
 		}
 	}
-
+	@Test
 	public void testDelete() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
@@ -345,14 +359,14 @@ public class TestSingleRouteLDAP extends TestCase {
 		}
 
 	}
-
+	@Test
 	public void testRenameRDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
 				new ArrayList<String>());
 		RenameInterceptorChain chain = new RenameInterceptorChain(
 				new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")),
-				new Password("manager".getBytes()), 0, this.chain,
+				new Password("manager".getBytes()), 0, TestSingleRouteLDAP.chain,
 				session, new HashMap<Object, Object>());
 
 		router.rename(chain,new DistinguishedName("ou=internal,o=mycompany,c=us"),new DistinguishedName("cn=New Test User"),new Bool(true),new LDAPConstraints());
@@ -382,14 +396,14 @@ public class TestSingleRouteLDAP extends TestCase {
 		}
 	}
 
-	
+	@Test
 	public void testRenameDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
 				new ArrayList<String>());
 		RenameInterceptorChain chain = new RenameInterceptorChain(
 				new DistinguishedName(new DN("cn=admin,o=mycompany,c=us")),
-				new Password("manager".getBytes()), 0, this.chain,
+				new Password("manager".getBytes()), 0, TestSingleRouteLDAP.chain,
 				session, new HashMap<Object, Object>());
 
 		router.rename(chain,new DistinguishedName("ou=internal,o=mycompany,c=us"),new DistinguishedName("cn=New Test User"),new DistinguishedName("ou=internal,o=mycomapny,c=us"),new Bool(true),new LDAPConstraints());
@@ -418,7 +432,7 @@ public class TestSingleRouteLDAP extends TestCase {
 			fail("entry not renamed");
 		}
 	}
-	
+	@Test
 	public void testExtendedOp() throws IOException, LDAPException {
 //		 first we weill run the extended operation
 		ByteArrayOutputStream encodedData = new ByteArrayOutputStream();
@@ -474,9 +488,10 @@ public class TestSingleRouteLDAP extends TestCase {
 		}
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 	}
 
 }

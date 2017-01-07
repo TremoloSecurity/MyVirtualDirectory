@@ -32,6 +32,7 @@ import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
 import net.sourceforge.myvd.types.Attribute;
@@ -65,18 +66,24 @@ import com.novell.ldap.asn1.ASN1Tagged;
 import com.novell.ldap.asn1.LBEREncoder;
 import com.novell.ldap.util.DN;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestLDAP extends TestCase {
+public class TestLDAP  {
 
-	StartOpenLDAP server;
+	static StartOpenLDAP server;
 
-	LDAPInterceptor interceptor;
+	static LDAPInterceptor interceptor;
 
-	protected void setUp() throws Exception {
-		super.setUp();
-		this.server = new StartOpenLDAP();
-		this.server.startServer(
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
+		server = new StartOpenLDAP();
+		server.startServer(
 				System.getenv("PROJ_DIR") + "/test/TestLDAP", 10983,
 				"cn=admin,dc=domain,dc=com", "manager");
 
@@ -91,6 +98,14 @@ public class TestLDAP extends TestCase {
 				new DistinguishedName(new DN("o=mycompany,c=us")), 0, null,false));
 	}
 
+	
+	@After
+	public void after() throws Exception {
+		server.reloadAllData();
+	}
+	
+	@Test
+	
 	public void testSearch() throws LDAPException {
 		HashMap<String, LDAPEntry> control = new HashMap<String, LDAPEntry>();
 
@@ -161,6 +176,8 @@ public class TestLDAP extends TestCase {
 
 	}
 
+	
+	@Test
 	public void testAdd() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -203,6 +220,7 @@ public class TestLDAP extends TestCase {
 
 	}
 
+	@Test
 	public void testModify() throws LDAPException {
 		LDAPEntry entry;
 		HashMap session = new HashMap();
@@ -246,7 +264,7 @@ public class TestLDAP extends TestCase {
 		
 		con.disconnect();
 	}
-
+	@Test
 	public void testBind() {
 		BindInterceptorChain bindChain;
 
@@ -258,7 +276,7 @@ public class TestLDAP extends TestCase {
 				session, new HashMap<Object, Object>());
 
 		try {
-			this.interceptor.bind(bindChain, new DistinguishedName(new DN(
+			interceptor.bind(bindChain, new DistinguishedName(new DN(
 					"cn=Test User,ou=internal,o=mycompany,c=us")),
 					new Password("nopass".getBytes()), new LDAPConstraints());
 			fail("Bind succeeded");
@@ -277,7 +295,7 @@ public class TestLDAP extends TestCase {
 				session, new HashMap<Object, Object>());
 
 		try {
-			this.interceptor.bind(bindChain, new DistinguishedName(new DN(
+			interceptor.bind(bindChain, new DistinguishedName(new DN(
 					"cn=Test User,ou=internal,o=mycompany,c=us")),
 					new Password("secret".getBytes()), new LDAPConstraints());
 		} catch (LDAPException e) {
@@ -292,7 +310,7 @@ public class TestLDAP extends TestCase {
 				session, new HashMap<Object, Object>());
 
 		try {
-			this.interceptor.bind(bindChain, new DistinguishedName(new DN(
+			interceptor.bind(bindChain, new DistinguishedName(new DN(
 					"cn=Test User,ou=internal,o=mycompany,c=us")),
 					new Password("nopass".getBytes()), new LDAPConstraints());
 			fail("Bind succeeded");
@@ -305,7 +323,7 @@ public class TestLDAP extends TestCase {
 		
 	
 	}
-
+	@Test
 	public void testDelete() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -336,7 +354,7 @@ public class TestLDAP extends TestCase {
 		con.disconnect();
 
 	}
-
+	@Test
 	public void testRenameDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -374,7 +392,7 @@ public class TestLDAP extends TestCase {
 		
 		con.disconnect();
 	}
-	
+	@Test
 	public void testRenameRDN() throws LDAPException {
 		HashMap session = new HashMap();
 		session.put(SessionVariables.BOUND_INTERCEPTORS,
@@ -412,7 +430,7 @@ public class TestLDAP extends TestCase {
 		
 		con.disconnect();
 	}
-
+	@Test
 	public void testExtendedOp() throws IOException, LDAPException {
 		// first we weill run the extended operation
 		ByteArrayOutputStream encodedData = new ByteArrayOutputStream();
@@ -443,7 +461,7 @@ public class TestLDAP extends TestCase {
 				new DistinguishedName(""), new Password(""), 0,
 				new InsertChain(new Insert[0]), session, new HashMap<Object, Object>());
 
-		this.interceptor.extendedOperation(extChain, localOp,
+		interceptor.extendedOperation(extChain, localOp,
 				new LDAPConstraints());
 
 		BindInterceptorChain bindChain;
@@ -457,7 +475,7 @@ public class TestLDAP extends TestCase {
 				new HashMap<Object, Object>());
 
 		try {
-			this.interceptor.bind(bindChain, new DistinguishedName(new DN(
+			interceptor.bind(bindChain, new DistinguishedName(new DN(
 					"cn=Test User,ou=internal,o=mycompany,c=us")),
 					new Password("mysecret".getBytes()), new LDAPConstraints());
 
@@ -470,9 +488,10 @@ public class TestLDAP extends TestCase {
 	
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
 	}
 
 }

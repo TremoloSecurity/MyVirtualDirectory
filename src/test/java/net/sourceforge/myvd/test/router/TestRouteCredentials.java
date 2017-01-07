@@ -18,29 +18,38 @@ package net.sourceforge.myvd.test.router;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPSearchResults;
 
+import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartMyVD;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import static org.junit.Assert.*;
 
-public class TestRouteCredentials extends TestCase {
+public class TestRouteCredentials  {
 
-	private StartOpenLDAP internalServer;
-	private StartMyVD server;
+	private static StartOpenLDAP internalServer;
+	private static StartMyVD server;
 	
-	protected void setUp() throws Exception {
-		super.setUp();
+	@BeforeClass
+	public static void setUp() throws Exception {
+		OpenLDAPUtils.killAllOpenLDAPS();
 		
-		this.internalServer = new StartOpenLDAP();
-		this.internalServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
+		internalServer = new StartOpenLDAP();
+		internalServer.startServer(System.getenv("PROJ_DIR") + "/test/Base",10983,"cn=admin,dc=domain,dc=com","manager");
 		
-		this.server = new StartMyVD();
-		this.server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/myvd-router.props",50983);
+		server = new StartMyVD();
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/myvd-router.props",50983);
 	}
 	
+	@Test
 	public void testStartup () throws Exception {
 	
 	}
 	
+	@Test
 	public void testAdminBind() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
@@ -50,6 +59,7 @@ public class TestRouteCredentials extends TestCase {
 		
 	}
 	
+	@Test
 	public void testAdminBindSearch() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
@@ -66,6 +76,7 @@ public class TestRouteCredentials extends TestCase {
 		
 	}
 	
+	@Test
 	public void testAdminBindSearchSchema() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);
@@ -82,10 +93,11 @@ public class TestRouteCredentials extends TestCase {
 		
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		this.server.stopServer();
-		this.internalServer.stopServer();
+	@AfterClass
+	public static void tearDown() throws Exception {
+		
+		server.stopServer();
+		internalServer.stopServer();
 	}
 
 }
