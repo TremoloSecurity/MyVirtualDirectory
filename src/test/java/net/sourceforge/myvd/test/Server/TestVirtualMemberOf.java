@@ -199,6 +199,53 @@ public class TestVirtualMemberOf {
 
 		con.disconnect();
 	}
+	
+	@Test
+	public void testSearchSubtreeByMemberof() throws LDAPException {
+
+		LDAPAttributeSet attribs = new LDAPAttributeSet();
+		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
+		attribs.add(new LDAPAttribute("cn", "Test Cust"));
+		attribs.add(new LDAPAttribute("sn", "Cust"));
+		attribs.add(new LDAPAttribute("uid", "testCust"));
+		attribs.add(new LDAPAttribute("userPassword", "secret"));
+		attribs.add(new LDAPAttribute("memberOf", "cn=Test Group,ou=external,o=mycompany,c=us"));
+
+		LDAPEntry entry1 = new LDAPEntry("cn=Test Cust,ou=external,o=mycompany,c=us", attribs);
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("127.0.0.1", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("o=mycompany,c=us", 2, "(memberOf=cn=Test Cust,ou=external,o=mycompany,c=us)", new String[] {},
+				false);
+
+		int size = 0;
+		boolean found = false;
+		while (res.hasMore()) {
+
+			LDAPEntry fromDir = res.next();
+
+			LDAPEntry controlEntry = null;// control.get(fromDir.getEntry().getDN());
+
+			if (size == 0) {
+				controlEntry = entry1;
+			} else  {
+				fail("Too many results");
+			} 
+
+			
+			assertTrue(Util.compareEntry(fromDir, controlEntry));
+
+			
+
+			size++;
+		}
+		
+		
+		
+		con.disconnect();
+		assertTrue(found);
+	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {

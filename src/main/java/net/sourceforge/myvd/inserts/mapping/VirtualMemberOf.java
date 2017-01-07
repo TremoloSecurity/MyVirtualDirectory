@@ -180,7 +180,7 @@ public class VirtualMemberOf implements Insert {
 			ArrayList<Attribute> nattrs = new ArrayList<Attribute>();
 			
 			Results nres = new Results(this.nameSpace.getChain(),this.nameSpace.getChain().getPositionInChain(this) + 1 );
-			SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.getRouter());
+			SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
 			
 			
 			//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
