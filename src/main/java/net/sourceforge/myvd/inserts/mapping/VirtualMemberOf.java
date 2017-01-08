@@ -18,7 +18,9 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPConstraints;
+import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
@@ -60,6 +62,8 @@ public class VirtualMemberOf implements Insert {
 	String searchObjectClass;
 	String searchAttribute;
 	
+	
+	
 	boolean replace;
 	
 	@Override
@@ -80,6 +84,11 @@ public class VirtualMemberOf implements Insert {
 		this.searchAttribute = props.getProperty("searchAttribute");
 		
 		this.replace = props.getProperty("replace","false").equalsIgnoreCase("true");
+		
+		LDAPAttribute oc = new LDAPAttribute("objectClass");
+		oc.addValue("top");
+		oc.addValue(this.applyToObjectClass);
+
 
 	}
 
@@ -136,8 +145,9 @@ public class VirtualMemberOf implements Insert {
 		
 			HashSet<String> memberofs = new HashSet<String>();
 			FilterNode noMemberOfs = null;
+			Bool foundAttr = new Bool(false);
 			try {
-				noMemberOfs = trimMemberOf(filter.getRoot(),memberofs);
+				noMemberOfs = trimMemberOf(filter.getRoot(),memberofs,foundAttr);
 			} catch (CloneNotSupportedException e) {
 				throw new LDAPException("Error converting filter",LDAPException.OPERATIONS_ERROR,"Error converting filter",e);
 				
@@ -145,7 +155,11 @@ public class VirtualMemberOf implements Insert {
 			
 			chain.getRequest().put(this.oldFilterName, filter);
 			
-			chain.nextSearch(base, scope, new Filter(noMemberOfs), attributes, typesOnly, results, constraints);
+			if (memberofs.isEmpty() || foundAttr.getValue()) {
+				chain.nextSearch(base, scope, new Filter(noMemberOfs), attributes, typesOnly, results, constraints);
+			}
+			
+			
 			
 			chain.getRequest().put(this.skipPostSearchName, this.skipPostSearchName);
 			for (String memberof : memberofs) {
@@ -189,7 +203,7 @@ public class VirtualMemberOf implements Insert {
 	}
 	
 	
-	private FilterNode trimMemberOf(FilterNode root,HashSet<String> memberofs) throws CloneNotSupportedException {
+	private FilterNode trimMemberOf(FilterNode root,HashSet<String> memberofs, Bool foundAttr) throws CloneNotSupportedException {
 		FilterNode newNode;
 		
 		switch (root.getType()) {
@@ -205,6 +219,11 @@ public class VirtualMemberOf implements Insert {
 					return new FilterNode(FilterType.PRESENCE,"objectClass","*");
 					
 				} else {
+					
+					if (! root.getName().equalsIgnoreCase("objectclass")) {
+						foundAttr.setValue(true);
+					}
+					
 					return new FilterNode(root.getType(),root.getName(),root.getValue());
 							
 				}
@@ -217,7 +236,7 @@ public class VirtualMemberOf implements Insert {
 				ArrayList<FilterNode> newChildren = new ArrayList<FilterNode>();
 				Iterator<FilterNode> it = root.getChildren().iterator();
 				while (it.hasNext()) {
-					FilterNode node = trimMemberOf(it.next(),memberofs);
+					FilterNode node = trimMemberOf(it.next(),memberofs,foundAttr);
 					if (node != null) {
 						newChildren.add(node);
 					}
@@ -228,7 +247,7 @@ public class VirtualMemberOf implements Insert {
 				
 				
 			case NOT:
-				FilterNode node = trimMemberOf(root.getNot(),memberofs);
+				FilterNode node = trimMemberOf(root.getNot(),memberofs,foundAttr);
 				if (node == null) {
 					return null;
 				}
@@ -313,7 +332,22 @@ public class VirtualMemberOf implements Insert {
 				
 				nres.start();
 				
-				LDAPAttribute memberof = new LDAPAttribute(this.attributeName);
+				LDAPAttribute memberof = null;
+				if (this.replace) {
+					if (entry.getEntry().getAttribute(this.attributeName) != null) {
+						entry.getEntry().getAttributeSet().remove(this.attributeName);
+					}
+					
+					memberof = new LDAPAttribute(this.attributeName);
+				} else {
+					if (entry.getEntry().getAttribute(this.attributeName) != null) {
+						memberof = entry.getEntry().getAttributeSet().getAttribute(this.attributeName);
+						entry.getEntry().getAttributeSet().remove(this.attributeName);
+					} else {
+						memberof = new LDAPAttribute(this.attributeName);
+					}
+				}
+						
 				
 				
 				while (nres.hasMore()) {
