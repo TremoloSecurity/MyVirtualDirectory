@@ -324,7 +324,7 @@ public class VirtualMemberOf implements Insert {
 				//SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),this.nameSpace.getChain().getPositionInChain(this) + 1,nameSpace.getChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
 				
 				Results nres = new Results(this.nameSpace.getRouter().getGlobalChain(),0);
-				SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),0,nameSpace.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),this.nameSpace.isGlobal() ? this.nameSpace.getRouter() : null);
+				SearchInterceptorChain nchain = new SearchInterceptorChain(new DistinguishedName(this.searchBase),chain.getBindPassword(),0,nameSpace.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(), this.nameSpace.getRouter());
 				
 				//SearchInterceptorChain nchain = this.nameSpace.createSearchChain(this.nameSpace.getChain().getPositionInChain(this) + 1);
 				
