@@ -146,7 +146,7 @@ public class ServerCore {
 				
 				NameSpace ns = new NameSpace(nsName,new DistinguishedName(nsBase),weight,chain,false);
 				chain.setNameSpace(ns);
-				
+				ns.setRouter(router);
 				this.configureChain(prefix,chainList,chain,ns);
 				
 				router.addBackend(nsName,new DN(nsBase),ns);

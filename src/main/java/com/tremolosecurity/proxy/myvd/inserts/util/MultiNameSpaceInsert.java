@@ -94,6 +94,8 @@ public abstract class MultiNameSpaceInsert implements Insert {
 			
 			NameSpace ns = new NameSpace(nsName,new DistinguishedName(nsBase),weight,chain,false);
 			chain.setNameSpace(ns);
+			ns.setIsGlobal(false);
+			ns.setRouter(nameSpace.getRouter());
 			
 			this.nameSpaces.add(ns);
 			
