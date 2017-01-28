@@ -399,7 +399,7 @@ public class EmbeddedGroups implements Insert {
 					while (enumer.hasMoreElements()) {
 						String member = (String) enumer.nextElement();
 						DN memberDN = new DN(member);
-						if (groups.contains(memberDN)) {
+						if (groups.contains(memberDN.toString().toLowerCase())) {
 							this.createStaticMembers(chain, memberDN, constraints, members, false);
 						}
 						members.addValue(member);
