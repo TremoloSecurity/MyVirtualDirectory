@@ -49,6 +49,7 @@ import net.sourceforge.myvd.types.ExtendedOperation;
 import net.sourceforge.myvd.types.Filter;
 import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
+import net.sourceforge.myvd.types.Result;
 import net.sourceforge.myvd.types.Results;
 
 public abstract class MultiNameSpaceInsert implements Insert {
@@ -192,7 +193,16 @@ public abstract class MultiNameSpaceInsert implements Insert {
 			throws LDAPException {
 		for (NameSpace ns : this.nameSpaces) {
 			SearchInterceptorChain localChain = new SearchInterceptorChain(chain.getBindDN(),chain.getBindPassword(),0,ns.getChain(),chain.getSession(),chain.getRequest());
-			localChain.nextSearch(base,scope,filter,attributes,typesOnly,results,constraints);
+			Results nres = new Results(null);
+			
+			
+			localChain.nextSearch(base,scope,filter,attributes,typesOnly,nres,constraints);
+			
+			for (Result r : nres.getResults()) {
+				r.chain = chain;
+				r.localSource = chain.getInterceptors();
+				results.getResults().add(r);
+			}
 		}
 		
 
