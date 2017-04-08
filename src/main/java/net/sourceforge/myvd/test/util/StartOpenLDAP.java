@@ -191,8 +191,8 @@ public class StartOpenLDAP {
 		
 		clearData(fullPath);
 		this.createTestConf(fullPath);
-		String exec = System.getenv("SLAPD_PATH") + "/slapd -d 1 -h 'ldap://127.0.0.1:" + port + "/" + (sslPort > 0 ? " ldaps://:" + sslPort + "/" : "") + "' -f " + fullPath + "/slapd-gen.conf";
-		String[] execa = new String[] {System.getenv("SLAPD_PATH") + "/slapd","-d","1","-h","ldap://127.0.0.1:" + port + "/" + (sslPort > 0 ? " ldaps://:" + sslPort + "/" : ""),"-f",fullPath + "/slapd-gen.conf"};
+		String exec = System.getenv("SLAPD_PATH") + "/slapd -d 1 -h 'ldap://:" + port + "/" + (sslPort > 0 ? " ldaps://:" + sslPort + "/" : "") + "' -f " + fullPath + "/slapd-gen.conf";
+		String[] execa = new String[] {System.getenv("SLAPD_PATH") + "/slapd","-d","1","-h","ldap://:" + port + "/" + (sslPort > 0 ? " ldaps://:" + sslPort + "/" : ""),"-f",fullPath + "/slapd-gen.conf"};
 		
 		System.out.println(exec);
 		process = Runtime.getRuntime().exec(execa);
