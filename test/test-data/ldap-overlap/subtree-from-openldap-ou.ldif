@@ -1,0 +1,12 @@
+version: 1
+
+dn: ou=internal,dc=local,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+dn: cn=Test User,ou=internal,dc=local,dc=com
+objectClass: inetOrgPerson
+cn: Test User
+sn: User
+uid: testUser
+userPassword: secret
