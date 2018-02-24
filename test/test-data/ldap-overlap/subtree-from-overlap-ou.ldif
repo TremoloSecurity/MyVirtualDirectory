@@ -1,0 +1,23 @@
+version: 1
+
+
+
+dn: dc=domain,dc=local,dc=com
+objectClass: domain
+dc: domain
+
+dn: ou=external,dc=domain,dc=local,dc=com
+objectClass: organizationalUnit
+ou: external
+
+dn: cn=Test Cust,ou=external,dc=domain,dc=local,dc=com
+objectClass: inetOrgPerson
+cn: Test Cust
+sn: Cust
+uid: testCust
+userPassword: secret
+
+dn: cn=Test Group,ou=external,dc=domain,dc=local,dc=com
+objectClass: groupOfUniqueNames
+cn: Test Group
+uniqueMember: cn=Test Cust,ou=external,dc=domain,dc=com

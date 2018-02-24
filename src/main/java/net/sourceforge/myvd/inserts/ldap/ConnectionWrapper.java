@@ -16,7 +16,11 @@
 package net.sourceforge.myvd.inserts.ldap;
 
 import org.apache.logging.log4j.Logger;
-
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.SRVRecord;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.Password;
 
@@ -46,6 +50,7 @@ public class ConnectionWrapper {
 		this.locked = new Bool(false);
 		this.locked.setValue(false);
 		this.bindDN = null;
+		
 		
 	}
 	
@@ -195,8 +200,23 @@ public class ConnectionWrapper {
 		if (ldapcon == null) {
 			return null;
 		} else {
-			
-			ldapcon.connect(this.interceptor.host,this.interceptor.port);
+			String host = this.interceptor.host;
+
+			if (this.interceptor.useSrvDNS) {
+				Record[] records;
+				try {
+					records = new Lookup(host, Type.SRV).run();
+				} catch (TextParseException e) {
+					throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR),LDAPException.OPERATIONS_ERROR,"Could not lookup srv",e);
+				}
+				if (records == null) {
+					throw new LDAPException("No SRV records",LDAPException.OPERATIONS_ERROR,"");
+				}
+				SRVRecord srv = (SRVRecord) records[0];
+				host = srv.getTarget().toString();
+			}
+
+			ldapcon.connect(host,this.interceptor.port);
 			return ldapcon;
 		}
 	}

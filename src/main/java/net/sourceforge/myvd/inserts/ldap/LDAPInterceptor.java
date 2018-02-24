@@ -103,6 +103,7 @@ public class LDAPInterceptor implements Insert {
 	private long heartbeatIntervalMinis;
 	
 	private LDAPHeartBeat heartBeat;
+	public boolean useSrvDNS;
 	
 	public void configure(String name, Properties props,NameSpace nameSpace) throws LDAPException {
 		this.name = name;
@@ -164,6 +165,8 @@ public class LDAPInterceptor implements Insert {
 		this.maxStaleTime = Long.parseLong(props.getProperty("maxStaleTimeMillis","60000"));
 		logger.info("Maximum stale connection time in millis : " + this.maxStaleTime);
 		
+		this.useSrvDNS = props.getProperty("useSrvDNS", "false").equalsIgnoreCase("true");
+
 		this.pool = new LDAPConnectionPool(this, Integer.parseInt(props.getProperty("minimumConnections","5")), Integer.parseInt(props.getProperty("maximumConnections","30")), Integer.parseInt(props.getProperty("maximumRetries","5")),this.type,this.spmlImpl,this.isSoap);
 		
 		
@@ -183,6 +186,8 @@ public class LDAPInterceptor implements Insert {
 			this.heartBeat = new LDAPHeartBeat(this);
 			new Thread(this.heartBeat).start();
 		}
+
+		
 	}
 	
 	private ConnectionWrapper getConnection(DN bindDN,Password pass,boolean force,DN base,HashMap<Object,Object> session) throws LDAPException {

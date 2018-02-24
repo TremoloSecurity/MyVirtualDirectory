@@ -347,7 +347,9 @@ public class Router {
 			logger.debug("Determine scope");
 			Int localScope = new Int(scope.getValue());
 			if (scope.getValue() != 0) {
-				if (scope.getValue() == 1) {
+				if (holder.getBase().getDN().countRDNs() == searchBase.getDN().countRDNs() && ! holder.getBase().getDN().equals(searchBase.getDN())) {
+					continue;
+				} else if (scope.getValue() == 1) {
 					if (holder.getBase().getDN().countRDNs() - searchBase.getDN().countRDNs() == 1) {
 						localScope.setValue(0);
 						searchBase = new DistinguishedName(holder.getBase().getDN().toString());

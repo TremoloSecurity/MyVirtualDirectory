@@ -1,0 +1,16 @@
+version: 1
+
+dn: ou=groups,dc=local,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=internal,dc=local,dc=com
+objectClass: organizationalUnit
+ou: internal
+
+dn: dc=domain,dc=local,dc=com
+objectClass: domain
+dc: domain
+
+
+
