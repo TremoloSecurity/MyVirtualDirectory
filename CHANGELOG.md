@@ -1,3 +1,19 @@
+# 1.0.2
+**questions:**
+ - Combining AD as a branch of OpenLdap [\#33](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/33)
+
+**enhancements:**
+ - Add support for ldap host lookup by SRV [\#39](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/39)
+ - Release 1.0.2 [\#34](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/34)
+ - Release [\#30](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/30)
+
+**bugs:**
+ - Combining AD as a branch of OpenLdap [\#33](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/33)
+ - add bindPrimaryFirst to joiner docs [\#25](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/25)
+ - fix docs for UUIDtoText [\#17](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/17)
+ - RootObject not in documentation [\#14](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/14)
+
+
 # 1.0.1
 **bugs:**
  - add bindPrimaryFirst to joiner docs [\#25](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/25)
