@@ -15,6 +15,7 @@
  */
 package net.sourceforge.myvd.inserts.jdbc;
 
+import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -31,8 +32,7 @@ import java.util.Vector;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
-import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
+
 import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -62,8 +62,10 @@ import net.sourceforge.myvd.types.Results;
 import net.sourceforge.myvd.util.EntryUtil;
 import net.sourceforge.myvd.util.IteratorEntrySet;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchRequest;
@@ -86,8 +88,7 @@ import java.util.Vector;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.cpdsadapter.DriverAdapterCPDS;
-import org.apache.commons.dbcp.datasources.SharedPoolDataSource;
+
 import org.apache.logging.log4j.Logger;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -141,7 +142,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 	boolean useSimple;
 	
 	int maxCons;
-	int maxIdleCons;
+	//int maxIdleCons;
 	
 	DataSource ds;
 	
@@ -188,33 +189,27 @@ public class JdbcInsert implements Insert,JdbcPool {
 		
 		this.maxCons = Integer.parseInt(props.getProperty("maxCons","5"));
 		logger.info("Max Cons : " + this.maxCons);
-		this.maxIdleCons = Integer.parseInt(props.getProperty("maxIdleCons","5"));
-		logger.info("maxIdleCons : " + this.maxIdleCons);
+		//this.maxIdleCons = Integer.parseInt(props.getProperty("maxIdleCons","5"));
+		//logger.info("maxIdleCons : " + this.maxIdleCons);
 		
 		
-		DriverAdapterCPDS pool = new DriverAdapterCPDS();
-		
+	    ComboPooledDataSource cpds = new ComboPooledDataSource();
 		try {
-			pool.setDriver(driver);
-		} catch (ClassNotFoundException e) {
-			throw new LDAPException("Could not load JDBC Driver",LDAPException.OPERATIONS_ERROR,driver,e);
+			cpds.setDriverClass(driver);
+		} catch (PropertyVetoException e1) {
+			throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR), LDAPException.OPERATIONS_ERROR, "Could not load driver",e1);
 		}
-		pool.setUrl(url);
-		pool.setUser(user);
-		pool.setPassword(pwd);
-		pool.setMaxActive(maxCons);
-		pool.setMaxIdle(maxIdleCons);
-		
-		SharedPoolDataSource tds = new SharedPoolDataSource();
-        tds.setConnectionPoolDataSource(pool);
-        tds.setMaxActive(maxCons);
-        tds.setMaxWait(50);
-        tds.setTestOnBorrow(true);
-        
-        if (this.valQuery != null) {
-        	tds.setValidationQuery(this.valQuery);
-        }
-        this.ds = tds;
+		cpds.setJdbcUrl(url);
+		cpds.setUser(user);
+		cpds.setPassword(pwd);
+		cpds.setMaxPoolSize(this.maxCons);
+		//cpds.setma(this.maxIdleCons);
+		cpds.setPreferredTestQuery(this.valQuery);
+		cpds.setTestConnectionOnCheckin(true);
+	    cpds.setIdleConnectionTestPeriod(30);
+
+
+	    this.ds = cpds;
 		
 		base = nameSpace.getBase().toString();
 		
@@ -261,34 +256,6 @@ public class JdbcInsert implements Insert,JdbcPool {
 		
 		logger.info("table - " + table);
 		
-		try {
-			Class.forName(this.driver).newInstance();
-		} catch (Exception e) {
-			
-		}
-		
-		/*
-		try {
-			Connection con = DriverManager.getConnection(this.url,this.user,this.pwd);
-			
-			toker = new StringTokenizer(fields,",",false);
-			while (toker.hasMoreTokens()) {
-				String field = toker.nextToken();
-				ResultSet rs = con.getMetaData().getColumns(null, null, table, field);
-				rs.next();
-				String type = rs.getString("TYPE_NAME");
-				logger.info(field + " - " + type);
-			}
-			
-			PreparedStatement ps = null;
-			ps
-			
-			con.close();
-		} catch (SQLException e) {
-			logger.error("Error loading db schema",e);
-		}
-		
-		*/
 		
 		if (this.useSimple) {
 			this.searchSQL = this.SQL.substring(this.SQL.toLowerCase().indexOf(" from "));
@@ -511,10 +478,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 		
 		try {
 			con = getCon();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new LDAPException(e.toString(),LDAPException.OPERATIONS_ERROR,e.toString());
-		}
+		
 		
 		String mappedSearch;
 		String querySQL = "";
@@ -577,7 +541,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 		}
 		////System.out.println(querySQL);
 		//System.err.println(querySQL);
-		try {
+	
 			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Search SQL : \"" + querySQL + "\"");
@@ -601,9 +565,20 @@ public class JdbcInsert implements Insert,JdbcPool {
 			} else {
 				con.close();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.error("Failed search",e);
+			
+			try {
+				if (con != null && ! con.isClosed()) {
+					con.close();
+				}
+			} catch (SQLException e1) {
+				logger.warn("Error closing connection",e1);
+			}
+
 			throw new LDAPException(e.toString(),LDAPException.OPERATIONS_ERROR,e.toString());
+		} finally {
+			
 		}
 		
 		

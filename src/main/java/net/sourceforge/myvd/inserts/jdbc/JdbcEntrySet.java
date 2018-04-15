@@ -35,8 +35,13 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.util.DN;
 
+import org.apache.logging.log4j.Logger;
+
 
 public class JdbcEntrySet implements EntrySet {
+
+	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(JdbcEntrySet.class);
+
 	Connection con;
 	PreparedStatement ps;
 	ResultSet rs;
@@ -163,7 +168,7 @@ public class JdbcEntrySet implements EntrySet {
 			
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error processing search",e);
 		
 				closeCon();
 		
