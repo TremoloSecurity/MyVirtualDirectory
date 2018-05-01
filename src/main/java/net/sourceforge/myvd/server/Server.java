@@ -15,10 +15,15 @@
  */
 package net.sourceforge.myvd.server;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
@@ -412,7 +417,99 @@ public class Server {
         ldapServer.start();
         ((ExtendedRequestHandler) ldapServer.getExtendedRequestHandler()).init(globalChain, router);
 		
-        
+		final int shutdownPort = Integer.parseInt(props.getProperty("server.shutdown.port","-1"));
+		if (shutdownPort > 0) {
+			final String shutdownHost = props.getProperty("server.shutdown.host","127.0.0.1");
+			final String shutdownCommand = props.getProperty("server.shutdown.command","shutdown");
+
+			final Server server = this;
+
+			new Thread() {
+				public void run() {
+					logger.info("Starting shutdown socket listener");
+					try {
+						ServerSocket socket = new ServerSocket(shutdownPort,0,InetAddress.getByName(shutdownHost));
+						while (true) {
+							logger.info("shutdown waiting for input");
+							Socket clientSocket = null;
+							try {
+								clientSocket = socket.accept();
+							} catch (Throwable t) {
+								logger.warn("Could not accept connection",t);
+								continue;
+							}
+							logger.info("request received");
+						    //PrintWriter out =
+						    //    new PrintWriter(clientSocket.getOutputStream(), true);
+						    BufferedReader in = new BufferedReader(
+						        new InputStreamReader(clientSocket.getInputStream()));
+						    logger.info("reading data");
+						    String command = in.readLine();
+							logger.info("'" + command + "'");
+						    if (command != null) {
+						    	command.trim();
+							}
+						    logger.info("'" + command + "'");
+						    if (shutdownCommand.equalsIgnoreCase(command)) {
+						    	logger.info("Stopping threads");
+								
+								try {
+									server.stopServer();
+								} catch (Exception e1) {
+									logger.warn("Could not gracefully shutdown server",e1);
+								}
+
+								logger.info("Closing input stream");
+
+								try {
+									in.close();
+								} catch (Throwable t) {}
+
+								/*try {
+									out.close();
+								} catch (Throwable t) {}*/
+
+								logger.info("Closing client socket");
+								try {
+									clientSocket.close();
+								} catch (Throwable t) {}
+
+								logger.info("Closing server socket");
+								try {
+									socket.close();
+								} catch (Throwable t) {}
+
+								logger.info("Sleeping for 10 seconds");
+								try {
+									Thread.sleep(10000);
+									logger.info("Exiting");
+									System.exit(0);
+									return;
+								} catch (Exception e) {}
+
+						    } else {
+						    	command = null;
+						    	logger.info("invalid command");
+								try {
+									in.close();
+								} catch (Throwable t) {}
+
+								/*try {
+									out.close();
+								} catch (Throwable t) {}
+*/
+								try {
+									clientSocket.close();
+								} catch (Throwable t) {}
+
+						    }
+						}
+					} catch (IOException e) {
+						logger.error("Could not start shutdown listener",e);
+					}
+				}
+			}.start();
+		}
 		
 		
 	}

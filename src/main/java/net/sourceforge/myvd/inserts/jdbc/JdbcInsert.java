@@ -159,6 +159,8 @@ public class JdbcInsert implements Insert,JdbcPool {
 	boolean addBaseToFilter;
 	
 	
+	static HashMap<String,ComboPooledDataSource> poolCache = new HashMap<String,ComboPooledDataSource>();
+
 	HashMap<String,String> ldap2db,db2ldap;
 	private String name;
 	private boolean hasWhere;
@@ -192,25 +194,40 @@ public class JdbcInsert implements Insert,JdbcPool {
 		//this.maxIdleCons = Integer.parseInt(props.getProperty("maxIdleCons","5"));
 		//logger.info("maxIdleCons : " + this.maxIdleCons);
 		
+		String poolKey = (url+user).toLowerCase();
+
+		synchronized(poolCache) {
+			if (poolCache.get(poolKey) != null ) {
+				logger.info(this.name + " - using existing connection pool");
+				this.ds = poolCache.get(poolKey);
+			} else {
+				logger.info(this.name + " - creating connection pool");
+				ComboPooledDataSource cpds = new ComboPooledDataSource();
+				try {
+					cpds.setDriverClass(driver);
+				} catch (PropertyVetoException e1) {
+					throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR), LDAPException.OPERATIONS_ERROR, "Could not load driver",e1);
+				}
+				cpds.setJdbcUrl(url);
+				cpds.setUser(user);
+				cpds.setPassword(pwd);
+				cpds.setMaxPoolSize(this.maxCons);
+				//cpds.setma(this.maxIdleCons);
+				cpds.setPreferredTestQuery(this.valQuery);
+				cpds.setTestConnectionOnCheckin(true);
+				cpds.setIdleConnectionTestPeriod(30);
+				//TODO need to make configurable
+				cpds.setUnreturnedConnectionTimeout(Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","0")));
+				cpds.setDebugUnreturnedConnectionStackTraces(true);
+
+				cpds.setCheckoutTimeout(30000);
+
+
+				this.ds = cpds;
+				poolCache.put(poolKey, cpds);
+			}
 		
-	    ComboPooledDataSource cpds = new ComboPooledDataSource();
-		try {
-			cpds.setDriverClass(driver);
-		} catch (PropertyVetoException e1) {
-			throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR), LDAPException.OPERATIONS_ERROR, "Could not load driver",e1);
 		}
-		cpds.setJdbcUrl(url);
-		cpds.setUser(user);
-		cpds.setPassword(pwd);
-		cpds.setMaxPoolSize(this.maxCons);
-		//cpds.setma(this.maxIdleCons);
-		cpds.setPreferredTestQuery(this.valQuery);
-		cpds.setTestConnectionOnCheckin(true);
-	    cpds.setIdleConnectionTestPeriod(30);
-
-
-	    this.ds = cpds;
-		
 		base = nameSpace.getBase().toString();
 		
 		rdn = props.getProperty("rdn");
@@ -985,7 +1002,11 @@ public class JdbcInsert implements Insert,JdbcPool {
 	}
 
 	public void shutdown() {
-		// TODO Auto-generated method stub
+		synchronized(poolCache) {
+			for (String poolkey : poolCache.keySet()) {
+				poolCache.get(poolkey).close();
+			}
+		}
 		
 	}
 
