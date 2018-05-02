@@ -215,12 +215,11 @@ public class JdbcInsert implements Insert,JdbcPool {
 				//cpds.setma(this.maxIdleCons);
 				cpds.setPreferredTestQuery(this.valQuery);
 				cpds.setTestConnectionOnCheckin(true);
-				cpds.setIdleConnectionTestPeriod(30);
-				//TODO need to make configurable
+				cpds.setIdleConnectionTestPeriod(Integer.parseInt(props.getProperty("idleConnectionTestPeriod","30")));
 				cpds.setUnreturnedConnectionTimeout(Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","0")));
 				cpds.setDebugUnreturnedConnectionStackTraces(true);
 
-				cpds.setCheckoutTimeout(30000);
+				cpds.setCheckoutTimeout(Integer.parseInt(props.getProperty("checkoutTimeout","30000")));
 
 
 				this.ds = cpds;
