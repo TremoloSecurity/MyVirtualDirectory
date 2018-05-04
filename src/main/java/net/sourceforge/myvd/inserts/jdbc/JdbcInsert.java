@@ -187,6 +187,10 @@ public class JdbcInsert implements Insert,JdbcPool {
 		logger.info("Password : **********");
 		
 		this.valQuery = props.getProperty("validationQuery");
+		if (valQuery == null) {
+			logger.warn("No validation query specified, defaulting to 'SELECT 1'");
+			valQuery = "SELECT 1";
+		}
 		logger.info("Validation Query : '" + this.valQuery + "'");
 		
 		this.maxCons = Integer.parseInt(props.getProperty("maxCons","5"));
@@ -215,11 +219,14 @@ public class JdbcInsert implements Insert,JdbcPool {
 				//cpds.setma(this.maxIdleCons);
 				cpds.setPreferredTestQuery(this.valQuery);
 				cpds.setTestConnectionOnCheckin(true);
-				cpds.setIdleConnectionTestPeriod(Integer.parseInt(props.getProperty("idleConnectionTestPeriod","30")));
-				cpds.setUnreturnedConnectionTimeout(Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","0")));
+				int testPeriod = Integer.parseInt(props.getProperty("idleConnectionTestPeriod","30"));
+				cpds.setIdleConnectionTestPeriod(testPeriod);
+				int unreturnedConnectionTimeout = Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","30"));
+				cpds.setUnreturnedConnectionTimeout(unreturnedConnectionTimeout);
 				cpds.setDebugUnreturnedConnectionStackTraces(true);
 
-				cpds.setCheckoutTimeout(Integer.parseInt(props.getProperty("checkoutTimeout","30000")));
+				int checkoutTimeout = Integer.parseInt(props.getProperty("checkoutTimeout","30000"));
+				cpds.setCheckoutTimeout(checkoutTimeout);
 
 
 				this.ds = cpds;
@@ -1005,6 +1012,8 @@ public class JdbcInsert implements Insert,JdbcPool {
 			for (String poolkey : poolCache.keySet()) {
 				poolCache.get(poolkey).close();
 			}
+
+			poolCache.clear();
 		}
 		
 	}

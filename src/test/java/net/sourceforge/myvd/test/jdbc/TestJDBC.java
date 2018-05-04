@@ -41,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 
@@ -97,11 +98,12 @@ public class TestJDBC {
 		server = new Server(System.getenv("PROJ_DIR") + "/test/DBAdapter/vldap.props");
 		server.startServer();
 	}
-
+	
 	@Test
 	public void testStartup() {
 		//do notthing
 	}
+	
 	
 	@Test
 	public void testAdd() throws Exception {
