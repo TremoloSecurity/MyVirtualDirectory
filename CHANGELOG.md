@@ -1,3 +1,8 @@
+# 1.0.4
+
+**bugs:**
+ - Jdbc pools crashing on heavy load [\#41](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/41)
+
 # 1.0.2
 **questions:**
  - Combining AD as a branch of OpenLdap [\#33](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/33)
