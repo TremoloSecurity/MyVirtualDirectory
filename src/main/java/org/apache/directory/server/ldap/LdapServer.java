@@ -402,26 +402,26 @@ public class LdapServer extends DirectoryBackedService
             {
                 keyStore.load( fis, null );
             }
-        }
 
-        // Set up key manager factory to use our key store
-        String algorithm = Security.getProperty( "ssl.KeyManagerFactory.algorithm" );
+            // Set up key manager factory to use our key store
+            String algorithm = Security.getProperty( "ssl.KeyManagerFactory.algorithm" );
 
-        if ( algorithm == null )
-        {
-            algorithm = KeyManagerFactory.getDefaultAlgorithm();
-        }
+            if ( algorithm == null )
+            {
+                algorithm = KeyManagerFactory.getDefaultAlgorithm();
+            }
 
-        
-        keyManagerFactory = KeyManagerFactory.getInstance( algorithm );
 
-        if ( Strings.isEmpty( certificatePassword ) )
-        {
-            keyManagerFactory.init( keyStore, null );
-        }
-        else
-        {
-            keyManagerFactory.init( keyStore, certificatePassword.toCharArray() );
+            keyManagerFactory = KeyManagerFactory.getInstance( algorithm );
+
+            if ( Strings.isEmpty( certificatePassword ) )
+            {
+                keyManagerFactory.init( keyStore, null );
+            }
+            else
+            {
+                keyManagerFactory.init( keyStore, certificatePassword.toCharArray() );
+            }
         }
     }
 

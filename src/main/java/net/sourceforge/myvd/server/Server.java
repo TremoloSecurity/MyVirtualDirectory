@@ -82,12 +82,12 @@ import com.novell.ldap.LDAPException;
 
 
 public class Server {
-	
+
 	static Logger logger;
-	
+
 
 	public final static String VERSION = "1.0.3";
-	
+
 	String configFile;
 	Properties props;
 	private InsertChain globalChain;
@@ -102,7 +102,7 @@ public class Server {
 	private LdapServer ldapServer;
 
     private DnFactory dnFactory;
-	
+
 	public InsertChain getGlobalChain() {
 		return globalChain;
 	}
@@ -113,17 +113,17 @@ public class Server {
 
 	public Server(String configFile) throws FileNotFoundException, IOException {
 		this.configFile  = configFile;
-		
-		
-		
+
+
+
 		this.props = new Properties();
-		
+
 		props.load(new FileInputStream(this.configFile));
-		
+
 	}
-	
-	
-	
+
+
+
     /**
      * initialize the schema manager and add the schema partition to diectory service
      *
@@ -132,7 +132,7 @@ public class Server {
     private void initSchemaPartition() throws Exception
     {
         InstanceLayout instanceLayout = directoryService.getInstanceLayout();
-        
+
         File schemaPartitionDirectory = new File( instanceLayout.getPartitionsDirectory(), "schema" );
 
         // Extract the schema on disk (a brand new one) and load the registries
@@ -162,11 +162,11 @@ public class Server {
         }
 
         directoryService.setSchemaManager( schemaManager );
-        
+
         if (this.dnFactory == null) {
         	this.dnFactory = new DefaultDnFactory(schemaManager,new net.sf.ehcache.Cache(new CacheConfiguration("myvd-apacheds-dns",10000)));
         }
-        
+
         // Init the LdifPartition with schema
         LdifPartition schemaLdifPartition = new LdifPartition( schemaManager, this.dnFactory );
         schemaLdifPartition.setPartitionPath( schemaPartitionDirectory.toURI() );
@@ -176,49 +176,49 @@ public class Server {
         schemaPartition.setWrappedPartition( schemaLdifPartition );
         directoryService.setSchemaPartition( schemaPartition );
     }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private void deleteDir(File d) {
     	if (d.isDirectory()) {
     		File[] subs = d.listFiles();
     		for (File f : subs) {
     			deleteDir(f);
     		}
-    		
+
     		if (! d.delete()) {
     			logger.error("Could not delete directory : '" + d.getAbsolutePath() + "'");
     		}
@@ -228,61 +228,61 @@ public class Server {
     		}
     	}
     }
-	
-	
-	
-	
-	
+
+
+
+
+
 	public void startServer() throws Exception {
 		String portString;
-		
-		
-		
-		
-		
+
+
+
+
+
 		//this is a hack for testing.
 		if (logger == null) {
 			getDefaultLog();
 		}
-		
+
 		String apachedsPath = this.configFile.substring(0,this.configFile.lastIndexOf(File.separator) + 1) + "apacheds-data";
-		
+
 		logger.info("ApacheDS System Directory Path : '" + apachedsPath + "'");
-		
-		
-		
+
+
+
 		File cfgPath = new File(apachedsPath);
-		
+
 		if (cfgPath.isDirectory()) {
 			logger.warn("ApacheDS system partition exists, deleting to clear it out");
 			this.deleteDir(cfgPath);
 		}
-		
-		
+
+
 		this.serverCore = new ServerCore(this.props);
-		
+
 		this.serverCore.startService();
-		
+
 		this.globalChain = serverCore.getGlobalChain();
 		this.router = serverCore.getRouter();
-		
-		
-		
-		
-		
+
+
+
+
+
 		this.directoryService = new DefaultDirectoryService();
         directoryService.setShutdownHookEnabled(false);
         directoryService.setAccessControlEnabled(false);
         directoryService.setAllowAnonymousAccess(true);
         directoryService.setInstanceLayout(new InstanceLayout(new File(apachedsPath)));
         directoryService.setReferralManager(new MyVDReferalManager());
-        
-        
-        
-        
+
+
+
+
         // first load the schema
         initSchemaPartition();
-        
+
      // then the system partition
         // this is a MANDATORY partition
         // DO NOT add this via addPartition() method, trunk code complains about duplicate partition
@@ -292,131 +292,135 @@ public class Server {
         systemPartition.setPartitionPath( new File( directoryService.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId() ).toURI() );
         systemPartition.setSuffixDn( new Dn( ServerDNConstants.SYSTEM_DN ) );
         systemPartition.setSchemaManager( directoryService.getSchemaManager() );
-        
+
         // mandatory to call this method to set the system partition
         // Note: this system partition might be removed from trunk
         directoryService.setSystemPartition( systemPartition );
-        
+
         // Disable the ChangeLog system
         directoryService.getChangeLog().setEnabled( false );
         directoryService.setDenormalizeOpAttrsEnabled( true );
-        
+
         String binaryAttributes = this.props.getProperty("server.binaryAttribs","");
 		StringTokenizer toker = new StringTokenizer(binaryAttributes);
-		
+
 		HashSet<String> binaryAttrs = new HashSet<String>();
 		while (toker.hasMoreTokens()) {
 			String token = toker.nextToken().toLowerCase();
 			binaryAttrs.add(token);
 			ApacheDSUtil.addBinaryAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
 		}
-        
-        
+
+
         List<Interceptor> newlist = new ArrayList<Interceptor>();
         newlist.add(new MyVDInterceptor(globalChain,router,directoryService.getSchemaManager(),binaryAttrs));
-        
+
         directoryService.setInterceptors(newlist);
-        
+
         directoryService.startup();
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         this.ldapServer = new LdapServer();
         ldapServer.setDirectoryService(directoryService);
-		
+
         ArrayList<TcpTransport> transports = new ArrayList<TcpTransport>();
-        
+
 		portString = props.getProperty("server.listener.port","");
 		if (! portString.equals("")) {
-			TcpTransport ldapTransport = new TcpTransport(Integer.parseInt(portString));
+			String host = props.getProperty("server.listener.host", "");
+
+			TcpTransport ldapTransport = host.equals("")
+										 ? new TcpTransport(Integer.parseInt(portString))
+										 : new TcpTransport(host, Integer.parseInt(portString));
 	        transports.add(ldapTransport);
 		}
-		
-		
-        
+
+
+
 		portString = props.getProperty("server.secure.listener.port","");
-		
+
 		if (! portString.equals("")) {
 			String keyStorePath = props.getProperty("server.secure.keystore","");
-			
+
 			if (! keyStorePath.startsWith(File.separator)) {
 				keyStorePath = this.configFile.substring(0,this.configFile.lastIndexOf(File.separator) + 1) + keyStorePath;
 			}
-			
-			
+
+
 			logger.debug("Key store : " + keyStorePath);
-			
+
 			String keyStorePass = props.getProperty("server.secure.keypass","");
-			
+
 			String clientMode = props.getProperty("server.secure.clientmode","none");
-			
+
 			ArrayList<String> allowedNames = new ArrayList<String>();
 			String allowedNamesStr = props.getProperty("server.secure.allowedAliases","");
 			toker = new StringTokenizer(allowedNamesStr,",",false);
-			
+
 			while (toker.hasMoreTokens()) {
 				allowedNames.add(toker.nextToken());
 			}
-			
+
 			KeyStore keystore;
 			try {
 				if (clientMode.equalsIgnoreCase("want")) {
 					ldapServer.setTlsWantClientAuth(true);
 				}
-				
+
 				if (clientMode.equalsIgnoreCase("need")) {
 					ldapServer.setTlsNeedClientAuth(true);
 				}
-				
+
 				ldapServer.setTlsAllowedNames(allowedNames);
-				
-				
+
+
 				ldapServer.setKeystoreFile(keyStorePath);
 				ldapServer.setCertificatePassword(keyStorePass);
-				
+
 				TcpTransport ldapsTransport = new TcpTransport(Integer.parseInt(portString));
 				ldapsTransport.enableSSL(true);
-				
+
 				if (clientMode.equalsIgnoreCase("want")) {
 					ldapsTransport.setWantClientAuth(true);
 				}
-				
+
 				if (clientMode.equalsIgnoreCase("need")) {
 					ldapsTransport.setNeedClientAuth(true);
 				}
-				
-				
+
+
 				transports.add(ldapsTransport);
-				
+
 			} catch (Throwable t) {
 				logger.error("Could not start LDAPS listener",t);
 				t.printStackTrace();
 			}
-		        
+
 		}
-		
+
 		Transport[] t = new Transport[transports.size()];
-		
+
 		int i=0;
 		for (Transport tt : transports) {
 			t[i] = tt;
 			i++;
 		}
-		
+
 		long maxSizeLimit = Long.parseLong(props.getProperty("server.listener.maxSizeLimit","0"));
 		ldapServer.setMaxSizeLimit(maxSizeLimit);
-		
+
 		int maxTimeLimit = Integer.parseInt(props.getProperty("server.listener.maxTimeLimit","0"));
 		ldapServer.setMaxTimeLimit(maxTimeLimit);
-		
-		
+
+
 		ldapServer.setTransports(t);
         ldapServer.start();
         ((ExtendedRequestHandler) ldapServer.getExtendedRequestHandler()).init(globalChain, router);
-		
+
 		final int shutdownPort = Integer.parseInt(props.getProperty("server.shutdown.port","-1"));
 		if (shutdownPort > 0) {
 			final String shutdownHost = props.getProperty("server.shutdown.host","127.0.0.1");
@@ -452,7 +456,7 @@ public class Server {
 						    logger.info("'" + command + "'");
 						    if (shutdownCommand.equalsIgnoreCase(command)) {
 						    	logger.info("Stopping threads");
-								
+
 								try {
 									server.stopServer();
 								} catch (Exception e1) {
@@ -510,26 +514,26 @@ public class Server {
 				}
 			}.start();
 		}
-		
-		
+
+
 	}
 
 	private static void getDefaultLog() {
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 	}
 
@@ -585,13 +589,13 @@ public class Server {
 			logger.debug("LDAP listener started");
 		}
 	}*/
-	
+
 	public void stopServer() throws Exception {
 		//this.minaRegistry.unbindAll();
 		logger.info("Shutting down server");
 		this.ldapServer.stop();
 		this.directoryService.shutdown();
-		
+
 		//this.stopLDAP0(Integer.parseInt(props.getProperty("server.listener.port","389")));
 		for (int i=0,m=100;i<m;i++) {
 			try {
@@ -600,30 +604,30 @@ public class Server {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					
+
 				}
 			} catch (LDAPException e) {
 				//logger.error("Error",e);
 				break;
 			}
 		}
-		
+
 		this.router.shutDownRouter();
-		
+
 		logger.info("Server Stopped");
 	}
-	
-	
-	
+
+
+
 	public static void main(String[] args) throws Exception {
-		
-		
+
+
 		if (System.getProperty("nolog","0").equalsIgnoreCase("0")) {
-		
-			
+
+
 			Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
 		}
-		
+
 		logger.info("MyVirtualDirectory Version : " + Server.VERSION);
 		logger.info("Starting MyVirtualDirectory server...");
 		try {
@@ -633,8 +637,8 @@ public class Server {
 		} catch (Throwable t) {
 			logger.error("Error starting server : " + t.toString(),t);
 		}
-        
-		
+
+
 	}
 
 	private Properties getProps() {
@@ -702,6 +706,6 @@ public class Server {
 		}
         
     }*/
-	
-	
+
+
 }
