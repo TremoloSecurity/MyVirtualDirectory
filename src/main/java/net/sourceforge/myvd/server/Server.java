@@ -241,14 +241,14 @@ public class Server {
         this.ldapServer = new LdapServer();
         ldapServer.setDirectoryService(directoryService);
 
-        String authRequiredString = props.getProperty("server.listener.authRequired", "false");
+        String authRequiredString = props.getProperty("server.listener.authRequired", "false").trim();
         ldapServer.setAuthRequired(Boolean.valueOf(authRequiredString));
 
         ArrayList<TcpTransport> transports = new ArrayList<TcpTransport>();
 
-        portString = props.getProperty("server.listener.port", "");
+        portString = props.getProperty("server.listener.port", "").trim();
         if (!portString.equals("")) {
-            String host = props.getProperty("server.listener.host", "");
+            String host = props.getProperty("server.listener.host", "").trim();
 
             TcpTransport ldapTransport = host.equals("")
                                          ? new TcpTransport(Integer.parseInt(portString))
@@ -257,10 +257,10 @@ public class Server {
             transports.add(ldapTransport);
         }
 
-        portString = props.getProperty("server.secure.listener.port", "");
+        portString = props.getProperty("server.secure.listener.port", "").trim();
 
         if (!portString.equals("")) {
-            String keyStorePath = props.getProperty("server.secure.keystore", "");
+            String keyStorePath = props.getProperty("server.secure.keystore", "").trim();
 
             if (!keyStorePath.startsWith(File.separator)) {
                 keyStorePath = this.configFile.substring(0, this.configFile.lastIndexOf(File.separator) + 1) + keyStorePath;
