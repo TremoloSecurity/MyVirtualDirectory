@@ -178,27 +178,30 @@ public class Router {
     	
 		logger.debug("Is set namespace?");
     	if (chain.getRequest().containsKey(RequestVariables.ROUTE_NAMESPACE)) {
-    		logger.debug("namespace manually set");
-    		Object obj = chain.getRequest().get(RequestVariables.ROUTE_NAMESPACE);
-    		if (obj instanceof ArrayList) {
-    			ArrayList<String> list = (ArrayList<String>) obj;
-    			localBackends = new ArrayList<NameSpace>();
-    			Iterator<String> it = list.iterator();
-    			while (it.hasNext()) {
-    				NameSpace lns = this.backends.get(it.next());
-    				
-    				if (lns.getBase().getDN().isDescendantOf(dn.getDN()) || dn.getDN().equals(lns.getBase().getDN()) || dn.getDN().isDescendantOf(lns.getBase().getDN())) {
-    					localBackends.add(lns);
-    				}
-    				
-    				
-    			}
-    		} else if (obj instanceof String) {
-    			localBackends = new ArrayList<NameSpace>();
-    			localBackends.add(this.backends.get((String) obj));
-    		} else {
-    			throw new LDAPException("Invalid routing type",LDAPException.OPERATIONS_ERROR,"");
-    		}
+			logger.debug("namespace manually set");
+			Object obj = chain.getRequest().get(RequestVariables.ROUTE_NAMESPACE);
+			if (obj instanceof ArrayList) {
+				ArrayList<String> list = (ArrayList<String>) obj;
+				localBackends = new ArrayList<NameSpace>();
+				Iterator<String> it = list.iterator();
+				while (it.hasNext()) {
+					NameSpace lns = this.backends.get(it.next());
+
+					if (lns.getBase().getDN().isDescendantOf(dn.getDN()) || dn.getDN().equals(lns.getBase().getDN()) || dn.getDN().isDescendantOf(lns.getBase().getDN())) {
+						localBackends.add(lns);
+					}
+
+				}
+			} else if (obj instanceof String) {
+				localBackends = new ArrayList<NameSpace>();
+				localBackends.add(this.backends.get((String) obj));
+			} else {
+				throw new LDAPException("Invalid routing type", LDAPException.OPERATIONS_ERROR, "");
+			}
+
+    	} else if ("dn=root".equals(dn.getDN().toString().toLowerCase())) {
+			localBackends = new ArrayList<>(this.backends.values());
+
     	} else {
     		logger.debug("namespace set by router");
     		Level level = this.getLevel(dn.getDN());
