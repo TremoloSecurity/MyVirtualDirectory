@@ -140,12 +140,10 @@ public class Router {
 	}
 
     public void bind(BindInterceptorChain chain,DistinguishedName dn,Password pwd,LDAPConstraints constraints) throws LDAPException {
-
-
     	//check for an anonymouse user
     	if (pwd.getValue().length == 0) {
     		//user has not bind DN
-    		dn.setDN(new DN(""));
+    		dn.setDN(EMPTY_DN);
     		return;
     	}
 
@@ -178,11 +176,7 @@ public class Router {
 
 		logger.debug("Is set namespace?");
 
-		if (rootBase != null && (rootBase.equals(dn.getDN()) || EMPTY_DN.equals(dn.getDN()))) {
-			logger.debug("root base namespace set");
-			localBackends = new ArrayList<>(this.backends.values());
-
-		} else if (chain.getRequest().containsKey(RequestVariables.ROUTE_NAMESPACE)) {
+		if (chain.getRequest().containsKey(RequestVariables.ROUTE_NAMESPACE)) {
 			logger.debug("namespace manually set");
 			Object obj = chain.getRequest().get(RequestVariables.ROUTE_NAMESPACE);
 			if (obj instanceof ArrayList) {
@@ -320,15 +314,13 @@ public class Router {
 
 
     public void search(SearchInterceptorChain chain,DistinguishedName base,Int scope,Filter filter,ArrayList<Attribute> attributes,Bool typesOnly,Results results,LDAPSearchConstraints constraints) throws LDAPException {
-
 		logger.debug("Entering router search");
 
 		int notFounds = 0;
 		HashSet<String> toExclude = (HashSet<String>) chain.getRequest().get(RequestVariables.ROUTE_NAMESPACE_EXCLUDE);
 
-
 		logger.debug("Determining local levels");
-		ArrayList<NameSpace> localBackends = this.getLocalLevels(chain,base);
+		ArrayList<NameSpace> localBackends = this.getLocalLevels(chain, base);
 		logger.debug("Determined local levels");
 		Iterator<NameSpace> it = localBackends.iterator();
 
@@ -443,7 +435,14 @@ public class Router {
 	}
 
     public Level getLevel(DN name) {
-    	if (name.countRDNs() == 0) {
+		if (rootBase != null && (rootBase.equals(name) || EMPTY_DN.equals(name))) {
+			logger.debug("root base namespace set");
+			Level level = new Level();
+			level.backends.addAll(this.backends.values());
+			return level;
+		}
+
+		if (name.countRDNs() == 0) {
     		Level level = new Level();
     		level.backends.add(this.rootNS);
     		return level;
