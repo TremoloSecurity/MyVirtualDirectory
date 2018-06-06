@@ -16,14 +16,10 @@
 package net.sourceforge.myvd.router;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
-
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
 
 import org.apache.logging.log4j.Logger;
 
@@ -38,7 +34,6 @@ import net.sourceforge.myvd.chain.RenameInterceptorChain;
 import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
-import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.types.Attribute;
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.DNComparer;
@@ -54,23 +49,22 @@ import net.sourceforge.myvd.types.Results;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPExtendedOperation;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.RDN;
 
-
-
 public class Router {
+
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(Router.class);
+
+	static final DN EMPTY_DN = new DN();
 
     /** the backends keyed by normalized suffix strings */
     LinkedHashMap<String,NameSpace> backends = new LinkedHashMap<String,NameSpace>();
 
     /** Contains a mapping from a name to available contexts */
     TreeMap<DN,Level> subtree;
-
 
     boolean writeAll;
 
@@ -184,7 +178,7 @@ public class Router {
 
 		logger.debug("Is set namespace?");
 
-		if (rootBase != null && rootBase.equals(dn.getDN())) {
+		if (rootBase != null && (rootBase.equals(dn.getDN()) || EMPTY_DN.equals(dn.getDN()))) {
 			logger.debug("root base namespace set");
 			localBackends = new ArrayList<>(this.backends.values());
 
@@ -392,11 +386,7 @@ public class Router {
 		if (notFounds == localBackends.size()) {
 			throw new LDAPException("Could not find base",LDAPException.NO_SUCH_OBJECT,"");
 		}
-
-
 	}
-
-
 
     public void addBackend(String label,DN name, NameSpace namespace) {
     	namespace.setRouter(this);
@@ -448,16 +438,11 @@ public class Router {
 
 			}
 
-
-
 			curr = curr.getParent();
-
 		}
-
 	}
 
     public Level getLevel(DN name) {
-
     	if (name.countRDNs() == 0) {
     		Level level = new Level();
     		level.backends.add(this.rootNS);
@@ -510,10 +495,6 @@ public class Router {
 	public void rename(RenameInterceptorChain chain,DistinguishedName dn,DistinguishedName newRdn, DistinguishedName newParentDN, Bool deleteOldRdn,LDAPConstraints constraints) throws LDAPException {
 		DN oldDN = new DN(dn.getDN().toString());
 		DN newPDN = new DN(newParentDN.getDN().toString());
-
-
-
-
 
 		NameSpace oldNs = this.getLocalBackendsWrite(chain,dn.getDN().toString());
 		NameSpace newNs = this.getLocalBackendsWrite(chain,newPDN.toString(),true);
