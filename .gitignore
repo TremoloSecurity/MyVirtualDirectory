@@ -2,7 +2,6 @@
 /build/
 /bin/
 target/
-null
 .idea
 *.iml
 server/**/*
