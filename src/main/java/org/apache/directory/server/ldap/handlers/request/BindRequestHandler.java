@@ -90,6 +90,8 @@ public class BindRequestHandler extends LdapRequestHandler<BindRequest> {
      */
     // This will suppress PMD.EmptyCatchBlock warnings in this method
     public void handleSimpleAuth(LdapSession ldapSession, BindRequest bindRequest) throws Exception {
+        LOG.debug(String.format("handleSimpleAuth: %s", bindRequest.getDn().toString()));
+
         DirectoryService directoryService = ldapServer.getDirectoryService();
 
         // if the user is already bound, we have to unbind him
