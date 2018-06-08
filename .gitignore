@@ -4,7 +4,6 @@
 target/
 .idea
 *.iml
-server/**/*
 
 # OS Files #
 .DS_Store
