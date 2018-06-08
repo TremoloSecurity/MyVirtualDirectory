@@ -67,36 +67,41 @@ public class TestStartServerAuthRequired {
     @Test
     public void testStartServer_BindWithCredentialsShouldPass() throws Exception {
         LDAPConnection con = new LDAPConnection();
-        con.connect("127.0.0.1", 50983);
+        try {
+            con.connect("127.0.0.1", 50983);
 
-        con.bind(3, "cn=admin,ou=internal,o=mycompany,c=us", "manager".getBytes(Charset.forName("UTF-8")));
+            con.bind(3, "cn=admin,ou=internal,o=mycompany,c=us", "manager".getBytes(Charset.forName("UTF-8")));
 
-        LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
-        while (res.hasMore()) {
-            System.out.println(res.next().getDN());
+            LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
+            while (res.hasMore()) {
+                System.out.println(res.next().getDN());
+            }
+
+        } finally {
+            con.disconnect();
         }
-
-        con.disconnect();
     }
 
     @Test(expected = LDAPException.class)
     public void testStartServer_BindWithoutCredentialsShouldFail() throws Exception {
         LDAPConnection con = new LDAPConnection();
-        con.connect("127.0.0.1", 50983);
+        try {
+            con.connect("127.0.0.1", 50983);
 
-        con.bind(3, null, new byte[0]);
+            con.bind(3, null, new byte[0]);
 
-        LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
-        while (res.hasMore()) {
-            System.out.println(res.next().getDN());
+            LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
+            while (res.hasMore()) {
+                System.out.println(res.next().getDN());
+            }
+
+        } finally {
+            con.disconnect();
         }
-
-        con.disconnect();
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-
         baseServer.stopServer();
         internalServer.stopServer();
         externalServer.stopServer();
