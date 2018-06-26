@@ -74,20 +74,13 @@ public class Router {
 
     boolean searchAll;
 
-    DN rootBase;
-
-    public Router(InsertChain globalChain, DN rootBase) {
-        this.rootBase = rootBase;
+    public Router(InsertChain globalChain) {
         this.subtree = new TreeMap<DN,Level>(new DNComparer());
         this.globalChain = globalChain;
         if (this.globalChain.getNameSpace() != null) {
             this.globalChain.getNameSpace().setIsGlobal(true);
             this.globalChain.getNameSpace().setRouter(this);
         }
-    }
-
-    public Router(InsertChain globalChain) {
-        this(globalChain, null);
     }
 
     public void add(AddInterceptorChain chain,Entry entry,LDAPConstraints constraints) throws LDAPException {
@@ -435,13 +428,6 @@ public class Router {
 	}
 
     public Level getLevel(DN name) {
-		if (rootBase != null && (rootBase.equals(name) || EMPTY_DN.equals(name))) {
-			logger.debug("root base namespace set");
-			Level level = new Level();
-			level.backends.addAll(this.backends.values());
-			return level;
-		}
-
 		if (name.countRDNs() == 0) {
     		Level level = new Level();
     		level.backends.add(this.rootNS);
@@ -573,7 +559,6 @@ public class Router {
 		this.searchAll = router.searchAll;
 		this.subtree = router.subtree;
 		this.writeAll = router.writeAll;
-        this.rootBase = router.rootBase;
 	}
 }
 

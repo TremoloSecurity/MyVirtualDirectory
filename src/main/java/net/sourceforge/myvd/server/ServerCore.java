@@ -95,11 +95,7 @@ public class ServerCore {
     }
 
     private void buildNamespaces() throws InstantiationException, IllegalAccessException, ClassNotFoundException, LDAPException {
-        String rootBaseString = props.getProperty("server.rootBase", "");
-
-        final Router router = !rootBaseString.isEmpty()
-                        ? new Router(this.globalChain, new DN(rootBaseString))
-                        : new Router(this.globalChain);
+        final Router router = new Router(this.globalChain);
 
         String nss = props.getProperty("server.nameSpaces");
         StringTokenizer toker = new StringTokenizer(nss, ",");
