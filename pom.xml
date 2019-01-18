@@ -29,15 +29,15 @@
 		<repository>
 			<id>tremolosecurity-dependencies</id>
 			<name>Tremolo Security Inc Custom Repository</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/dependencies/</url>
+			<url>https://nexus.tremolo.io/repository/dependencies/</url>
 		</repository>
 	</repositories>
 
 	<distributionManagement>
 		<repository>
-			<id>deployment</id>
-			<name>Tremolo Security Releases</name>
-			<url>https://www.tremolosecurity.com/nexus/content/repositories/releases/</url>
+			<id>nexus.tremolo.io</id>
+			<name>tremolo.io-releases</name>
+			<url>https://nexus.tremolo.io/repository/releases/</url>
 		</repository>
 
 	</distributionManagement>
