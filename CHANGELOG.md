@@ -1,3 +1,8 @@
+# 1.0.5
+
+**tasks:**
+ - 1.0.5 Release [\#51](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/51)
+
 # 1.0.4
 
 **enhancements:**
