@@ -172,6 +172,10 @@ public class JdbcInsert implements Insert,JdbcPool {
 
 	private String valQuery;
 	
+	public static HashMap<String,ComboPooledDataSource> getPoolCache() {
+		return poolCache;
+	}
+
 	public void configure(String name, Properties props, NameSpace nameSpace)
 			throws LDAPException {
 		
