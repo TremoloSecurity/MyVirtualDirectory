@@ -21,3 +21,18 @@ All contributions should be submitted as pull requests.  All pull requests must 
 ## Submitting Vulnerabilities
 
 Please send all vulnerabilities to security@tremolosecurity.com.  Tremolo Security maintains an internal GitLab deployment where we will track vulnerabilities until a patch is released at which point the issue will be posted to the public GitHub repository with full credit given to the discoverer of the vulnerability.  We will respond to any vulnerability reports within 14 days of receipt.
+
+## Building Without Unit Tests
+
+To build MyVirtualDirectory without the unit tests, run `mvn package -DskipTests=true`
+
+## Building With Unit Tests
+
+In order to run the unit tests OpenLDAP's slapd must be installed *NOTE* MacOS' OpenLDAP server will not work.  If you're using MacOS use either brew or macports to run slapd.  Once slapd is installed, create the following environment variabls:
+
+| Environment Variable | Example | Description |
+| -------------------- | ------- | ----------- |
+| PROJ_DIR             | /path/to/MyVirtualDirectory | The path to the MyVirtualDirectory project |
+| SCHEMA_DIR           | /etc/openldap | Path to OpenLDAP's pre-build schemas |
+| SLAPD_PATH | /usr/sbin | Directory containing the `slapd` binary |
+| TMP_DIR | /tmp/ldap | A temporary directory used for creating local ldap servers *NOTE* this directory must exist before running tests |

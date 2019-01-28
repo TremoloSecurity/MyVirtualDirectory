@@ -1,7 +1,11 @@
 # 1.0.4
 
+**enhancements:**
+ - make the jdbcinsert pool cache available outside of th einsert [\#45](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/45)
+
 **bugs:**
  - Jdbc pools crashing on heavy load [\#41](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/41)
+
 
 # 1.0.2
 **questions:**
