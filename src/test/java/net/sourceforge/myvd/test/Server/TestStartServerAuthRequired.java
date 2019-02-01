@@ -30,6 +30,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+
 public class TestStartServerAuthRequired {
 
     private static StartOpenLDAP baseServer;
@@ -82,7 +84,7 @@ public class TestStartServerAuthRequired {
         }
     }
 
-    @Test(expected = LDAPException.class)
+    @Test
     public void testStartServer_BindWithInvalidPasswordShouldFail() throws Exception {
         LDAPConnection con = new LDAPConnection();
         try {
@@ -94,13 +96,16 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
-
+        } catch (LDAPException e) {
+            if (e.getResultCode() != 49) {
+                fail();
+            }
         } finally {
             con.disconnect();
         }
     }
 
-    @Test(expected = LDAPException.class)
+    @Test
     public void testStartServer_BindWithInvalidUserShouldFail() throws Exception {
         LDAPConnection con = new LDAPConnection();
         try {
@@ -112,13 +117,16 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
-
+        } catch (LDAPException e) {
+            if (e.getResultCode() != 49) {
+                fail();
+            }
         } finally {
             con.disconnect();
         }
     }
 
-    @Test(expected = LDAPException.class)
+    @Test
     public void testStartServer_BindWithoutCredentialsShouldFail() throws Exception {
         LDAPConnection con = new LDAPConnection();
         try {
@@ -130,7 +138,10 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
-
+        } catch (LDAPException e) {
+            if (e.getResultCode() != 49) {
+                fail();
+            }
         } finally {
             con.disconnect();
         }
