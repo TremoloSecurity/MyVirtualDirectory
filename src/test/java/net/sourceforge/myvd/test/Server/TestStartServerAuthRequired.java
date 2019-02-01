@@ -30,6 +30,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class TestStartServerAuthRequired {
@@ -96,10 +97,10 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
+            
+            fail();
         } catch (LDAPException e) {
-            if (e.getResultCode() != 49) {
-                fail();
-            }
+        	assertEquals(LDAPException.INVALID_CREDENTIALS,e.getResultCode());
         } finally {
             con.disconnect();
         }
@@ -117,10 +118,10 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
+            
+            fail();
         } catch (LDAPException e) {
-            if (e.getResultCode() != 49) {
-                fail();
-            }
+        	assertEquals(LDAPException.INVALID_CREDENTIALS,e.getResultCode());
         } finally {
             con.disconnect();
         }
@@ -138,10 +139,9 @@ public class TestStartServerAuthRequired {
             while (res.hasMore()) {
                 System.out.println(res.next().getDN());
             }
+            fail();
         } catch (LDAPException e) {
-            if (e.getResultCode() != 49) {
-                fail();
-            }
+            assertEquals(LDAPException.AUTH_METHOD_NOT_SUPPORTED,e.getResultCode());
         } finally {
             con.disconnect();
         }
