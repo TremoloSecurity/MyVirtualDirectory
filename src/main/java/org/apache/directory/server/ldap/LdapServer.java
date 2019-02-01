@@ -19,7 +19,6 @@
  */
 package org.apache.directory.server.ldap;
 
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -36,8 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -72,7 +69,6 @@ import org.apache.directory.api.ldap.model.message.SearchResultReference;
 import org.apache.directory.api.ldap.model.message.UnbindRequest;
 import org.apache.directory.api.ldap.model.message.extended.NoticeOfDisconnect;
 import org.apache.directory.api.util.Strings;
-import org.apache.directory.ldap.client.api.NoVerificationTrustManager;
 import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.core.api.partition.PartitionNexus;
 import org.apache.directory.server.core.security.CoreKeyStoreSpi;
@@ -213,6 +209,9 @@ public class LdapServer extends DirectoryBackedService
     /** The list of realms serviced by this host. */
     private List<String> saslRealms;
 
+    /** Is authentication required. */
+    private boolean authRequired;
+
     /** The protocol handlers */
     // MessageReceived handlers
     private LdapRequestHandler<AbandonRequest> abandonRequestHandler;
@@ -321,7 +320,7 @@ public class LdapServer extends DirectoryBackedService
 
         if ( getBindRequestHandler() == null )
         {
-            BindRequestHandler bindRequestHandler = new BindRequestHandler();
+            BindRequestHandler bindRequestHandler = new BindRequestHandler( authRequired );
             bindRequestHandler.setSaslMechanismHandlers( saslMechanismHandlers );
 
             setBindHandlers( bindRequestHandler, new BindResponseHandler() );
@@ -402,26 +401,26 @@ public class LdapServer extends DirectoryBackedService
             {
                 keyStore.load( fis, null );
             }
-        }
 
-        // Set up key manager factory to use our key store
-        String algorithm = Security.getProperty( "ssl.KeyManagerFactory.algorithm" );
+            // Set up key manager factory to use our key store
+            String algorithm = Security.getProperty( "ssl.KeyManagerFactory.algorithm" );
 
-        if ( algorithm == null )
-        {
-            algorithm = KeyManagerFactory.getDefaultAlgorithm();
-        }
+            if ( algorithm == null )
+            {
+                algorithm = KeyManagerFactory.getDefaultAlgorithm();
+            }
 
-        
-        keyManagerFactory = KeyManagerFactory.getInstance( algorithm );
 
-        if ( Strings.isEmpty( certificatePassword ) )
-        {
-            keyManagerFactory.init( keyStore, null );
-        }
-        else
-        {
-            keyManagerFactory.init( keyStore, certificatePassword.toCharArray() );
+            keyManagerFactory = KeyManagerFactory.getInstance( algorithm );
+
+            if ( Strings.isEmpty( certificatePassword ) )
+            {
+                keyManagerFactory.init( keyStore, null );
+            }
+            else
+            {
+                keyManagerFactory.init( keyStore, certificatePassword.toCharArray() );
+            }
         }
     }
 
@@ -524,7 +523,7 @@ public class LdapServer extends DirectoryBackedService
 
             IoFilterChainBuilder chain;
 
-            if ( transport.isSSLEnabled() )
+            if (transport.isSSLEnabled() )
             {
                 chain = LdapsInitializer.init( this, ( TcpTransport ) transport );
             }
@@ -1054,7 +1053,6 @@ public class LdapServer extends DirectoryBackedService
         this.saslPrincipal = saslPrincipal;
     }
 
-
     /**
      * Returns the quality-of-protection, used by DIGEST-MD5 and GSSAPI.
      *
@@ -1098,6 +1096,13 @@ public class LdapServer extends DirectoryBackedService
         this.saslRealms = saslRealms;
     }
 
+    public boolean isAuthRequired() {
+        return authRequired;
+    }
+
+    public void setAuthRequired(boolean authRequired) {
+        this.authRequired = authRequired;
+    }
 
     /**
      */
