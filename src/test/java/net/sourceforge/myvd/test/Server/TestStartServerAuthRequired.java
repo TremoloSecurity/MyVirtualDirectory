@@ -83,6 +83,42 @@ public class TestStartServerAuthRequired {
     }
 
     @Test(expected = LDAPException.class)
+    public void testStartServer_BindWithInvalidPasswordShouldFail() throws Exception {
+        LDAPConnection con = new LDAPConnection();
+        try {
+            con.connect("127.0.0.1", 50983);
+
+            con.bind(3, "cn=admin,ou=internal,o=mycompany,c=us", "xxx".getBytes(Charset.forName("UTF-8")));
+
+            LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
+            while (res.hasMore()) {
+                System.out.println(res.next().getDN());
+            }
+
+        } finally {
+            con.disconnect();
+        }
+    }
+
+    @Test(expected = LDAPException.class)
+    public void testStartServer_BindWithInvalidUserShouldFail() throws Exception {
+        LDAPConnection con = new LDAPConnection();
+        try {
+            con.connect("127.0.0.1", 50983);
+
+            con.bind(3, "cn=xxx,ou=internal,o=mycompany,c=us", "xxx".getBytes(Charset.forName("UTF-8")));
+
+            LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
+            while (res.hasMore()) {
+                System.out.println(res.next().getDN());
+            }
+
+        } finally {
+            con.disconnect();
+        }
+    }
+
+    @Test(expected = LDAPException.class)
     public void testStartServer_BindWithoutCredentialsShouldFail() throws Exception {
         LDAPConnection con = new LDAPConnection();
         try {
