@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "JUnit",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "projectName": "myvd-server",
+            "mainClass": "org.junit.runner.JUnitCore",
+            "args": "net.sourceforge.myvd.test.join.TestJoin",
+            "sourcePaths": [
+              "${workspaceRoot}"
+            ],
+            "env": {
+                
+                "PROJ_DIR":"/home/mlb/git/MyVirtualDirectory",
+                "SCHEMA_DIR":"/etc/openldap",
+                "SLAPD_PATH":"/usr/sbin",
+                
+                "TMP_DIR":"/tmp/ldap"
+            },
+            "vmArgs" : "-Dlog4j.configurationFile=/home/mlb/git/OpenUnison/unison/open-unison-webapp/src/main/webapp/WEB-INF/classes/log4j2.xml"
+            
+            
+            
+            
+            
+          },
+        {
+            "type": "java",
+            "name": "Debug (Attach)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "run": {
+        "default": "",
+        "items": [
+            {
+                "name": "myvd-server",
+                "projectName": "myvd-server",
+                "workingDirectory": "/Users/mlb/git/MyVirtualDirectory",
+                "args": [],
+                "vmargs": [],
+                "env": {},
+                "preLaunchTask": ""
+            }
+        ]
+    },
+    "debug": {
+        "default": "",
+        "items": [
+            {
+                "name": "myvd-server",
+                "projectName": "myvd-server",
+                "workingDirectory": "/Users/mlb/git/MyVirtualDirectory",
+                "args": [],
+                "vmargs": [],
+                "env": {},
+                "preLaunchTask": ""
+            }
+        ]
+    }
+}
