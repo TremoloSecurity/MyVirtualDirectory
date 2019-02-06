@@ -24,7 +24,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,15 +31,15 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
 import net.sourceforge.myvd.server.apacheds.MyVDInterceptor;
 import net.sourceforge.myvd.server.apacheds.MyVDReferalManager;
+
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPException;
 
 import org.apache.directory.api.ldap.model.entry.DefaultAttribute;
 import org.apache.directory.api.ldap.model.name.Dn;
@@ -60,94 +59,70 @@ import org.apache.directory.server.core.api.schema.SchemaPartition;
 import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
 import org.apache.directory.server.core.partition.ldif.LdifPartition;
 import org.apache.directory.server.core.shared.DefaultDnFactory;
+import org.apache.directory.server.i18n.I18n;
 import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.ldap.handlers.request.ExtendedRequestHandler;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
-import org.apache.directory.server.i18n.I18n;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.config.AppenderRef;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.log4j.core.layout.PatternLayout;
-
-import com.novell.ldap.LDAPConnection;
-import com.novell.ldap.LDAPException;
-
-
 public class Server {
-	
-	static Logger logger;
-	
 
-	public final static String VERSION = "1.0.4";
-	
-	String configFile;
-	Properties props;
-	private InsertChain globalChain;
-	private Router router;
-
-	private ServerCore serverCore;
+    static Logger logger;
 
 
-	private DefaultDirectoryService directoryService;
+	public final static String VERSION = "1.0.5";
 
+    String configFile;
+    Properties props;
+    private InsertChain globalChain;
+    private Router router;
 
-	private LdapServer ldapServer;
+    private ServerCore serverCore;
+
+    private DefaultDirectoryService directoryService;
+
+    private LdapServer ldapServer;
 
     private DnFactory dnFactory;
-	
-	public InsertChain getGlobalChain() {
-		return globalChain;
-	}
 
-	public Router getRouter() {
-		return router;
-	}
+    public InsertChain getGlobalChain() {
+        return globalChain;
+    }
 
-	public Server(String configFile) throws FileNotFoundException, IOException {
-		this.configFile  = configFile;
-		
-		
-		
-		this.props = new Properties();
-		
-		props.load(new FileInputStream(this.configFile));
-		
-	}
-	
-	
-	
+    public Router getRouter() {
+        return router;
+    }
+
+    public Server(String configFile) throws FileNotFoundException, IOException {
+        this.configFile = configFile;
+
+        this.props = new Properties();
+
+        props.load(new FileInputStream(this.configFile));
+
+    }
+
     /**
      * initialize the schema manager and add the schema partition to diectory service
      *
      * @throws Exception if the schema LDIF files are not found on the classpath
      */
-    private void initSchemaPartition() throws Exception
-    {
+    private void initSchemaPartition() throws Exception {
         InstanceLayout instanceLayout = directoryService.getInstanceLayout();
-        
-        File schemaPartitionDirectory = new File( instanceLayout.getPartitionsDirectory(), "schema" );
+
+        File schemaPartitionDirectory = new File(instanceLayout.getPartitionsDirectory(), "schema");
 
         // Extract the schema on disk (a brand new one) and load the registries
-        if ( schemaPartitionDirectory.exists() )
-        {
-            System.out.println( "schema partition already exists, skipping schema extraction" );
-        }
-        else
-        {
-            SchemaLdifExtractor extractor = new DefaultSchemaLdifExtractor( instanceLayout.getPartitionsDirectory() );
+        if (schemaPartitionDirectory.exists()) {
+            System.out.println("schema partition already exists, skipping schema extraction");
+        } else {
+            SchemaLdifExtractor extractor = new DefaultSchemaLdifExtractor(instanceLayout.getPartitionsDirectory());
             extractor.extractOrCopy();
         }
 
-        SchemaLoader loader = new LdifSchemaLoader( schemaPartitionDirectory );
-        SchemaManager schemaManager = new DefaultSchemaManager( loader );
+        SchemaLoader loader = new LdifSchemaLoader(schemaPartitionDirectory);
+        SchemaManager schemaManager = new DefaultSchemaManager(loader);
 
         // We have to load the schema now, otherwise we won't be able
         // to initialize the Partitions, as we won't be able to parse
@@ -156,382 +131,314 @@ public class Server {
 
         List<Throwable> errors = schemaManager.getErrors();
 
-        if ( errors.size() != 0 )
-        {
-            throw new Exception( I18n.err( I18n.ERR_317, Exceptions.printErrors( errors ) ) );
+        if (errors.size() != 0) {
+            throw new Exception(I18n.err(I18n.ERR_317, Exceptions.printErrors(errors)));
         }
 
-        directoryService.setSchemaManager( schemaManager );
-        
+        directoryService.setSchemaManager(schemaManager);
+
         if (this.dnFactory == null) {
-        	this.dnFactory = new DefaultDnFactory(schemaManager,new net.sf.ehcache.Cache(new CacheConfiguration("myvd-apacheds-dns",10000)));
+            this.dnFactory = new DefaultDnFactory(schemaManager, new net.sf.ehcache.Cache(new CacheConfiguration("myvd-apacheds-dns", 10000)));
         }
-        
+
         // Init the LdifPartition with schema
-        LdifPartition schemaLdifPartition = new LdifPartition( schemaManager, this.dnFactory );
-        schemaLdifPartition.setPartitionPath( schemaPartitionDirectory.toURI() );
+        LdifPartition schemaLdifPartition = new LdifPartition(schemaManager, this.dnFactory);
+        schemaLdifPartition.setPartitionPath(schemaPartitionDirectory.toURI());
 
         // The schema partition
-        SchemaPartition schemaPartition = new SchemaPartition( schemaManager );
-        schemaPartition.setWrappedPartition( schemaLdifPartition );
-        directoryService.setSchemaPartition( schemaPartition );
+        SchemaPartition schemaPartition = new SchemaPartition(schemaManager);
+        schemaPartition.setWrappedPartition(schemaLdifPartition);
+        directoryService.setSchemaPartition(schemaPartition);
     }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
     private void deleteDir(File d) {
-    	if (d.isDirectory()) {
-    		File[] subs = d.listFiles();
-    		for (File f : subs) {
-    			deleteDir(f);
-    		}
-    		
-    		if (! d.delete()) {
-    			logger.error("Could not delete directory : '" + d.getAbsolutePath() + "'");
-    		}
-    	} else {
-    		if (! d.delete()) {
-    			logger.error("Could not delete file : '" + d.getAbsolutePath() + "'");
-    		}
-    	}
+        if (d.isDirectory()) {
+            File[] subs = d.listFiles();
+            for (File f : subs) {
+                deleteDir(f);
+            }
+
+            if (!d.delete()) {
+                logger.error("Could not delete directory : '" + d.getAbsolutePath() + "'");
+            }
+        } else {
+            if (!d.delete()) {
+                logger.error("Could not delete file : '" + d.getAbsolutePath() + "'");
+            }
+        }
     }
-	
-	
-	
-	
-	
-	public void startServer() throws Exception {
-		String portString;
-		
-		
-		
-		
-		
-		//this is a hack for testing.
-		if (logger == null) {
-			getDefaultLog();
-		}
-		
-		String apachedsPath = this.configFile.substring(0,this.configFile.lastIndexOf(File.separator) + 1) + "apacheds-data";
-		
-		logger.info("ApacheDS System Directory Path : '" + apachedsPath + "'");
-		
-		
-		
-		File cfgPath = new File(apachedsPath);
-		
-		if (cfgPath.isDirectory()) {
-			logger.warn("ApacheDS system partition exists, deleting to clear it out");
-			this.deleteDir(cfgPath);
-		}
-		
-		
-		this.serverCore = new ServerCore(this.props);
-		
-		this.serverCore.startService();
-		
-		this.globalChain = serverCore.getGlobalChain();
-		this.router = serverCore.getRouter();
-		
-		
-		
-		
-		
-		this.directoryService = new DefaultDirectoryService();
+
+    public void startServer() throws Exception {
+        String portString;
+
+        //this is a hack for testing.
+        if (logger == null) {
+            getDefaultLog();
+        }
+
+        String apachedsPath = this.configFile.substring(0, this.configFile.lastIndexOf(File.separator) + 1) + "apacheds-data";
+
+        logger.info("ApacheDS System Directory Path : '" + apachedsPath + "'");
+
+        File cfgPath = new File(apachedsPath);
+
+        if (cfgPath.isDirectory()) {
+            logger.warn("ApacheDS system partition exists, deleting to clear it out");
+            this.deleteDir(cfgPath);
+        }
+
+        this.serverCore = new ServerCore(this.props);
+
+        this.serverCore.startService();
+
+        this.globalChain = serverCore.getGlobalChain();
+        this.router = serverCore.getRouter();
+
+        this.directoryService = new DefaultDirectoryService();
         directoryService.setShutdownHookEnabled(false);
         directoryService.setAccessControlEnabled(false);
         directoryService.setAllowAnonymousAccess(true);
         directoryService.setInstanceLayout(new InstanceLayout(new File(apachedsPath)));
         directoryService.setReferralManager(new MyVDReferalManager());
-        
-        
-        
-        
+
         // first load the schema
         initSchemaPartition();
-        
-     // then the system partition
+
+        // then the system partition
         // this is a MANDATORY partition
         // DO NOT add this via addPartition() method, trunk code complains about duplicate partition
         // while initializing 
-        JdbmPartition systemPartition = new JdbmPartition(directoryService.getSchemaManager(),this.dnFactory);
-        systemPartition.setId( "system" );
-        systemPartition.setPartitionPath( new File( directoryService.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId() ).toURI() );
-        systemPartition.setSuffixDn( new Dn( ServerDNConstants.SYSTEM_DN ) );
-        systemPartition.setSchemaManager( directoryService.getSchemaManager() );
-        
+        JdbmPartition systemPartition = new JdbmPartition(directoryService.getSchemaManager(), this.dnFactory);
+        systemPartition.setId("system");
+        systemPartition.setPartitionPath(new File(directoryService.getInstanceLayout().getPartitionsDirectory(), systemPartition.getId()).toURI());
+        systemPartition.setSuffixDn(new Dn(ServerDNConstants.SYSTEM_DN));
+        systemPartition.setSchemaManager(directoryService.getSchemaManager());
+
         // mandatory to call this method to set the system partition
         // Note: this system partition might be removed from trunk
-        directoryService.setSystemPartition( systemPartition );
-        
+        directoryService.setSystemPartition(systemPartition);
+
         // Disable the ChangeLog system
-        directoryService.getChangeLog().setEnabled( false );
-        directoryService.setDenormalizeOpAttrsEnabled( true );
-        
-        String binaryAttributes = this.props.getProperty("server.binaryAttribs","");
-		StringTokenizer toker = new StringTokenizer(binaryAttributes);
-		
-		HashSet<String> binaryAttrs = new HashSet<String>();
-		while (toker.hasMoreTokens()) {
-			String token = toker.nextToken().toLowerCase();
-			binaryAttrs.add(token);
-			ApacheDSUtil.addBinaryAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
-		}
-        
-        
+        directoryService.getChangeLog().setEnabled(false);
+        directoryService.setDenormalizeOpAttrsEnabled(true);
+
+        String binaryAttributes = this.props.getProperty("server.binaryAttribs", "");
+        StringTokenizer toker = new StringTokenizer(binaryAttributes);
+
+        HashSet<String> binaryAttrs = new HashSet<String>();
+        while (toker.hasMoreTokens()) {
+            String token = toker.nextToken().toLowerCase();
+            binaryAttrs.add(token);
+            ApacheDSUtil.addBinaryAttributeToSchema(new DefaultAttribute(token), directoryService.getSchemaManager());
+        }
+
         List<Interceptor> newlist = new ArrayList<Interceptor>();
-        newlist.add(new MyVDInterceptor(globalChain,router,directoryService.getSchemaManager(),binaryAttrs));
-        
+        newlist.add(new MyVDInterceptor(globalChain, router, directoryService.getSchemaManager(), binaryAttrs));
+
         directoryService.setInterceptors(newlist);
-        
+
         directoryService.startup();
-        
-        
-        
-        
-        
-        
+
         this.ldapServer = new LdapServer();
         ldapServer.setDirectoryService(directoryService);
-		
+
+        String authRequiredString = props.getProperty("server.listener.authRequired", "false").trim();
+        ldapServer.setAuthRequired(Boolean.valueOf(authRequiredString));
+
         ArrayList<TcpTransport> transports = new ArrayList<TcpTransport>();
-        
-		portString = props.getProperty("server.listener.port","");
-		if (! portString.equals("")) {
-			TcpTransport ldapTransport = new TcpTransport(Integer.parseInt(portString));
-	        transports.add(ldapTransport);
-		}
-		
-		
-        
-		portString = props.getProperty("server.secure.listener.port","");
-		
-		if (! portString.equals("")) {
-			String keyStorePath = props.getProperty("server.secure.keystore","");
-			
-			if (! keyStorePath.startsWith(File.separator)) {
-				keyStorePath = this.configFile.substring(0,this.configFile.lastIndexOf(File.separator) + 1) + keyStorePath;
-			}
-			
-			
-			logger.debug("Key store : " + keyStorePath);
-			
-			String keyStorePass = props.getProperty("server.secure.keypass","");
-			
-			String clientMode = props.getProperty("server.secure.clientmode","none");
-			
-			ArrayList<String> allowedNames = new ArrayList<String>();
-			String allowedNamesStr = props.getProperty("server.secure.allowedAliases","");
-			toker = new StringTokenizer(allowedNamesStr,",",false);
-			
-			while (toker.hasMoreTokens()) {
-				allowedNames.add(toker.nextToken());
-			}
-			
-			KeyStore keystore;
-			try {
-				if (clientMode.equalsIgnoreCase("want")) {
-					ldapServer.setTlsWantClientAuth(true);
-				}
-				
-				if (clientMode.equalsIgnoreCase("need")) {
-					ldapServer.setTlsNeedClientAuth(true);
-				}
-				
-				ldapServer.setTlsAllowedNames(allowedNames);
-				
-				
-				ldapServer.setKeystoreFile(keyStorePath);
-				ldapServer.setCertificatePassword(keyStorePass);
-				
-				TcpTransport ldapsTransport = new TcpTransport(Integer.parseInt(portString));
-				ldapsTransport.enableSSL(true);
-				
-				if (clientMode.equalsIgnoreCase("want")) {
-					ldapsTransport.setWantClientAuth(true);
-				}
-				
-				if (clientMode.equalsIgnoreCase("need")) {
-					ldapsTransport.setNeedClientAuth(true);
-				}
-				
-				
-				transports.add(ldapsTransport);
-				
-			} catch (Throwable t) {
-				logger.error("Could not start LDAPS listener",t);
-				t.printStackTrace();
-			}
-		        
-		}
-		
-		Transport[] t = new Transport[transports.size()];
-		
-		int i=0;
-		for (Transport tt : transports) {
-			t[i] = tt;
-			i++;
-		}
-		
-		long maxSizeLimit = Long.parseLong(props.getProperty("server.listener.maxSizeLimit","0"));
-		ldapServer.setMaxSizeLimit(maxSizeLimit);
-		
-		int maxTimeLimit = Integer.parseInt(props.getProperty("server.listener.maxTimeLimit","0"));
-		ldapServer.setMaxTimeLimit(maxTimeLimit);
-		
-		
-		ldapServer.setTransports(t);
+
+        portString = props.getProperty("server.listener.port", "").trim();
+        if (!portString.equals("")) {
+            String host = props.getProperty("server.listener.host", "").trim();
+
+            TcpTransport ldapTransport = host.equals("")
+                                         ? new TcpTransport(Integer.parseInt(portString))
+                                         : new TcpTransport(host, Integer.parseInt(portString));
+            ldapTransport.setNeedClientAuth(true);
+            transports.add(ldapTransport);
+        }
+
+        portString = props.getProperty("server.secure.listener.port", "").trim();
+
+        if (!portString.equals("")) {
+            String keyStorePath = props.getProperty("server.secure.keystore", "").trim();
+
+            if (!keyStorePath.startsWith(File.separator)) {
+                keyStorePath = this.configFile.substring(0, this.configFile.lastIndexOf(File.separator) + 1) + keyStorePath;
+            }
+
+            logger.debug("Key store : " + keyStorePath);
+
+            String keyStorePass = props.getProperty("server.secure.keypass", "");
+
+            String clientMode = props.getProperty("server.secure.clientmode", "none");
+
+            ArrayList<String> allowedNames = new ArrayList<String>();
+            String allowedNamesStr = props.getProperty("server.secure.allowedAliases", "");
+            toker = new StringTokenizer(allowedNamesStr, ",", false);
+
+            while (toker.hasMoreTokens()) {
+                allowedNames.add(toker.nextToken());
+            }
+
+            KeyStore keystore;
+            try {
+                if (clientMode.equalsIgnoreCase("want")) {
+                    ldapServer.setTlsWantClientAuth(true);
+                }
+
+                if (clientMode.equalsIgnoreCase("need")) {
+                    ldapServer.setTlsNeedClientAuth(true);
+                }
+
+                ldapServer.setTlsAllowedNames(allowedNames);
+
+                ldapServer.setKeystoreFile(keyStorePath);
+                ldapServer.setCertificatePassword(keyStorePass);
+
+                TcpTransport ldapsTransport = new TcpTransport(Integer.parseInt(portString));
+                ldapsTransport.enableSSL(true);
+
+                if (clientMode.equalsIgnoreCase("want")) {
+                    ldapsTransport.setWantClientAuth(true);
+                }
+
+                if (clientMode.equalsIgnoreCase("need")) {
+                    ldapsTransport.setNeedClientAuth(true);
+                }
+
+                transports.add(ldapsTransport);
+
+            } catch (Throwable t) {
+                logger.error("Could not start LDAPS listener", t);
+                t.printStackTrace();
+            }
+
+        }
+
+        Transport[] t = new Transport[transports.size()];
+
+        int i = 0;
+        for (Transport tt : transports) {
+            t[i] = tt;
+            i++;
+        }
+
+        long maxSizeLimit = Long.parseLong(props.getProperty("server.listener.maxSizeLimit", "0"));
+        ldapServer.setMaxSizeLimit(maxSizeLimit);
+
+        int maxTimeLimit = Integer.parseInt(props.getProperty("server.listener.maxTimeLimit", "0"));
+        ldapServer.setMaxTimeLimit(maxTimeLimit);
+
+        ldapServer.setTransports(t);
         ldapServer.start();
         ((ExtendedRequestHandler) ldapServer.getExtendedRequestHandler()).init(globalChain, router);
-		
-		final int shutdownPort = Integer.parseInt(props.getProperty("server.shutdown.port","-1"));
-		if (shutdownPort > 0) {
-			final String shutdownHost = props.getProperty("server.shutdown.host","127.0.0.1");
-			final String shutdownCommand = props.getProperty("server.shutdown.command","shutdown");
 
-			final Server server = this;
+        final int shutdownPort = Integer.parseInt(props.getProperty("server.shutdown.port", "-1"));
+        if (shutdownPort > 0) {
+            final String shutdownHost = props.getProperty("server.shutdown.host", "127.0.0.1");
+            final String shutdownCommand = props.getProperty("server.shutdown.command", "shutdown");
 
-			new Thread() {
-				public void run() {
-					logger.info("Starting shutdown socket listener");
-					try {
-						ServerSocket socket = new ServerSocket(shutdownPort,0,InetAddress.getByName(shutdownHost));
-						while (true) {
-							logger.info("shutdown waiting for input");
-							Socket clientSocket = null;
-							try {
-								clientSocket = socket.accept();
-							} catch (Throwable t) {
-								logger.warn("Could not accept connection",t);
-								continue;
-							}
-							logger.info("request received");
-						    //PrintWriter out =
-						    //    new PrintWriter(clientSocket.getOutputStream(), true);
-						    BufferedReader in = new BufferedReader(
-						        new InputStreamReader(clientSocket.getInputStream()));
-						    logger.info("reading data");
-						    String command = in.readLine();
-							logger.info("'" + command + "'");
-						    if (command != null) {
-						    	command.trim();
-							}
-						    logger.info("'" + command + "'");
-						    if (shutdownCommand.equalsIgnoreCase(command)) {
-						    	logger.info("Stopping threads");
-								
-								try {
-									server.stopServer();
-								} catch (Exception e1) {
-									logger.warn("Could not gracefully shutdown server",e1);
-								}
+            final Server server = this;
 
-								logger.info("Closing input stream");
+            new Thread() {
+                public void run() {
+                    logger.info("Starting shutdown socket listener");
+                    try {
+                        ServerSocket socket = new ServerSocket(shutdownPort, 0, InetAddress.getByName(shutdownHost));
+                        while (true) {
+                            logger.info("shutdown waiting for input");
+                            Socket clientSocket = null;
+                            try {
+                                clientSocket = socket.accept();
+                            } catch (Throwable t) {
+                                logger.warn("Could not accept connection", t);
+                                continue;
+                            }
+                            logger.info("request received");
+                            //PrintWriter out =
+                            //    new PrintWriter(clientSocket.getOutputStream(), true);
+                            BufferedReader in = new BufferedReader(
+                                    new InputStreamReader(clientSocket.getInputStream()));
+                            logger.info("reading data");
+                            String command = in.readLine();
+                            logger.info("'" + command + "'");
+                            if (command != null) {
+                                command.trim();
+                            }
+                            logger.info("'" + command + "'");
+                            if (shutdownCommand.equalsIgnoreCase(command)) {
+                                logger.info("Stopping threads");
 
-								try {
-									in.close();
-								} catch (Throwable t) {}
+                                try {
+                                    server.stopServer();
+                                } catch (Exception e1) {
+                                    logger.warn("Could not gracefully shutdown server", e1);
+                                }
+
+                                logger.info("Closing input stream");
+
+                                try {
+                                    in.close();
+                                } catch (Throwable t) {
+                                }
 
 								/*try {
-									out.close();
+                                    out.close();
 								} catch (Throwable t) {}*/
 
-								logger.info("Closing client socket");
-								try {
-									clientSocket.close();
-								} catch (Throwable t) {}
+                                logger.info("Closing client socket");
+                                try {
+                                    clientSocket.close();
+                                } catch (Throwable t) {
+                                }
 
-								logger.info("Closing server socket");
-								try {
-									socket.close();
-								} catch (Throwable t) {}
+                                logger.info("Closing server socket");
+                                try {
+                                    socket.close();
+                                } catch (Throwable t) {
+                                }
 
-								logger.info("Sleeping for 10 seconds");
-								try {
-									Thread.sleep(10000);
-									logger.info("Exiting");
-									System.exit(0);
-									return;
-								} catch (Exception e) {}
+                                logger.info("Sleeping for 10 seconds");
+                                try {
+                                    Thread.sleep(10000);
+                                    logger.info("Exiting");
+                                    System.exit(0);
+                                    return;
+                                } catch (Exception e) {
+                                }
 
-						    } else {
-						    	command = null;
-						    	logger.info("invalid command");
-								try {
-									in.close();
-								} catch (Throwable t) {}
+                            } else {
+                                command = null;
+                                logger.info("invalid command");
+                                try {
+                                    in.close();
+                                } catch (Throwable t) {
+                                }
 
 								/*try {
 									out.close();
 								} catch (Throwable t) {}
 */
-								try {
-									clientSocket.close();
-								} catch (Throwable t) {}
+                                try {
+                                    clientSocket.close();
+                                } catch (Throwable t) {
+                                }
 
-						    }
-						}
-					} catch (IOException e) {
-						logger.error("Could not start shutdown listener",e);
-					}
-				}
-			}.start();
-		}
-		
-		
-	}
+                            }
+                        }
+                    } catch (IOException e) {
+                        logger.error("Could not start shutdown listener", e);
+                    }
+                }
+            }.start();
+        }
 
-	private static void getDefaultLog() {
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
-	}
+    }
+
+    private static void getDefaultLog() {
+        logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
+    }
 
 	/*private void startLDAP(String portString,IoFilterChainBuilder chainBuilder) throws LdapNamingException, IOException {
 		if (! portString.equals("")) {
@@ -585,61 +492,56 @@ public class Server {
 			logger.debug("LDAP listener started");
 		}
 	}*/
-	
-	public void stopServer() throws Exception {
-		//this.minaRegistry.unbindAll();
-		logger.info("Shutting down server");
-		this.ldapServer.stop();
-		this.directoryService.shutdown();
-		
-		//this.stopLDAP0(Integer.parseInt(props.getProperty("server.listener.port","389")));
-		for (int i=0,m=100;i<m;i++) {
-			try {
-				LDAPConnection con = new LDAPConnection();
-				con.connect("127.0.0.1",Integer.parseInt(props.getProperty("server.listener.port","389")));
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					
-				}
-			} catch (LDAPException e) {
-				//logger.error("Error",e);
-				break;
-			}
-		}
-		
-		this.router.shutDownRouter();
-		
-		logger.info("Server Stopped");
-	}
-	
-	
-	
-	public static void main(String[] args) throws Exception {
-		
-		
-		if (System.getProperty("nolog","0").equalsIgnoreCase("0")) {
-		
-			
-			Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
-		}
-		
-		logger.info("MyVirtualDirectory Version : " + Server.VERSION);
-		logger.info("Starting MyVirtualDirectory server...");
-		try {
-			Server server = new Server(args[0]);
-			server.startServer();
-			logger.info("Server started");
-		} catch (Throwable t) {
-			logger.error("Error starting server : " + t.toString(),t);
-		}
-        
-		
-	}
 
-	private Properties getProps() {
-		return this.props;
-	}
+    public void stopServer() throws Exception {
+        //this.minaRegistry.unbindAll();
+        logger.info("Shutting down server");
+        this.ldapServer.stop();
+        this.directoryService.shutdown();
+
+        //this.stopLDAP0(Integer.parseInt(props.getProperty("server.listener.port","389")));
+        for (int i = 0, m = 100; i < m; i++) {
+            try {
+                LDAPConnection con = new LDAPConnection();
+                con.connect("127.0.0.1", Integer.parseInt(props.getProperty("server.listener.port", "389")));
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+
+                }
+            } catch (LDAPException e) {
+                //logger.error("Error",e);
+                break;
+            }
+        }
+
+        this.router.shutDownRouter();
+
+        logger.info("Server Stopped");
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        if (System.getProperty("nolog", "0").equalsIgnoreCase("0")) {
+
+            Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
+        }
+
+        logger.info("MyVirtualDirectory Version : " + Server.VERSION);
+        logger.info("Starting MyVirtualDirectory server...");
+        try {
+            Server server = new Server(args[0]);
+            server.startServer();
+            logger.info("Server started");
+        } catch (Throwable t) {
+            logger.error("Error starting server : " + t.toString(), t);
+        }
+
+    }
+
+    private Properties getProps() {
+        return this.props;
+    }
 	
 	/*private void stopLDAP0( int port )
     {
@@ -702,6 +604,5 @@ public class Server {
 		}
         
     }*/
-	
-	
+
 }

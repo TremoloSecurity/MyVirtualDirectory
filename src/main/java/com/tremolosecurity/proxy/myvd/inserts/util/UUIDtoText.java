@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.commons.codec.binary.Hex;
+
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;

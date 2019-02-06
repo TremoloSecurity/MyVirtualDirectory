@@ -197,10 +197,10 @@ public class StartOpenLDAP {
 		System.out.println(exec);
 		process = Runtime.getRuntime().exec(execa);
 		
-		
-		
-		StreamReader reader = new StreamReader(process.getInputStream(),false);
-		StreamReader errReader = new StreamReader(process.getErrorStream(),false);
+		boolean debug = Boolean.valueOf(System.getenv("DEBUG_SERVER"));
+
+		StreamReader reader = new StreamReader(process.getInputStream(), debug);
+		StreamReader errReader = new StreamReader(process.getErrorStream(), debug);
 		
 		reader.start();
 		errReader.start();
