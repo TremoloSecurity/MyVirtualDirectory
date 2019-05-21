@@ -171,6 +171,8 @@ public class JdbcInsert implements Insert,JdbcPool {
 	NameSpace ns;
 
 	private String valQuery;
+
+	private Properties props;
 	
 	public static HashMap<String,ComboPooledDataSource> getPoolCache() {
 		return poolCache;
@@ -180,6 +182,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 			throws LDAPException {
 		
 		this.name = name;
+		this.props = props;
 		
 		driver = props.getProperty("driver");
 		logger.info("Driver : " + driver);
@@ -202,42 +205,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 		//this.maxIdleCons = Integer.parseInt(props.getProperty("maxIdleCons","5"));
 		//logger.info("maxIdleCons : " + this.maxIdleCons);
 		
-		String poolKey = (url+user).toLowerCase();
-
-		synchronized(poolCache) {
-			if (poolCache.get(poolKey) != null ) {
-				logger.info(this.name + " - using existing connection pool");
-				this.ds = poolCache.get(poolKey);
-			} else {
-				logger.info(this.name + " - creating connection pool");
-				ComboPooledDataSource cpds = new ComboPooledDataSource();
-				try {
-					cpds.setDriverClass(driver);
-				} catch (PropertyVetoException e1) {
-					throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR), LDAPException.OPERATIONS_ERROR, "Could not load driver",e1);
-				}
-				cpds.setJdbcUrl(url);
-				cpds.setUser(user);
-				cpds.setPassword(pwd);
-				cpds.setMaxPoolSize(this.maxCons);
-				//cpds.setma(this.maxIdleCons);
-				cpds.setPreferredTestQuery(this.valQuery);
-				cpds.setTestConnectionOnCheckin(true);
-				int testPeriod = Integer.parseInt(props.getProperty("idleConnectionTestPeriod","30"));
-				cpds.setIdleConnectionTestPeriod(testPeriod);
-				int unreturnedConnectionTimeout = Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","30"));
-				cpds.setUnreturnedConnectionTimeout(unreturnedConnectionTimeout);
-				cpds.setDebugUnreturnedConnectionStackTraces(true);
-
-				int checkoutTimeout = Integer.parseInt(props.getProperty("checkoutTimeout","30000"));
-				cpds.setCheckoutTimeout(checkoutTimeout);
-
-
-				this.ds = cpds;
-				poolCache.put(poolKey, cpds);
-			}
-		
-		}
+		generatePool(props);
 		base = nameSpace.getBase().toString();
 		
 		rdn = props.getProperty("rdn");
@@ -331,6 +299,45 @@ public class JdbcInsert implements Insert,JdbcPool {
 		
 		this.ns = nameSpace;
 
+	}
+
+	private void generatePool(Properties props) throws LDAPException {
+		String poolKey = (url+user).toLowerCase();
+
+		synchronized(poolCache) {
+			if (poolCache.get(poolKey) != null ) {
+				logger.info(this.name + " - using existing connection pool");
+				this.ds = poolCache.get(poolKey);
+			} else {
+				logger.info(this.name + " - creating connection pool");
+				ComboPooledDataSource cpds = new ComboPooledDataSource();
+				try {
+					cpds.setDriverClass(driver);
+				} catch (PropertyVetoException e1) {
+					throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR), LDAPException.OPERATIONS_ERROR, "Could not load driver",e1);
+				}
+				cpds.setJdbcUrl(url);
+				cpds.setUser(user);
+				cpds.setPassword(pwd);
+				cpds.setMaxPoolSize(this.maxCons);
+				//cpds.setma(this.maxIdleCons);
+				cpds.setPreferredTestQuery(this.valQuery);
+				cpds.setTestConnectionOnCheckin(true);
+				int testPeriod = Integer.parseInt(props.getProperty("idleConnectionTestPeriod","30"));
+				cpds.setIdleConnectionTestPeriod(testPeriod);
+				int unreturnedConnectionTimeout = Integer.parseInt(props.getProperty("unreturnedConnectionTimeout","30"));
+				cpds.setUnreturnedConnectionTimeout(unreturnedConnectionTimeout);
+				cpds.setDebugUnreturnedConnectionStackTraces(true);
+
+				int checkoutTimeout = Integer.parseInt(props.getProperty("checkoutTimeout","30000"));
+				cpds.setCheckoutTimeout(checkoutTimeout);
+
+
+				this.ds = cpds;
+				poolCache.put(poolKey, cpds);
+			}
+		
+		}
 	}
 
 	public void add(AddInterceptorChain chain, Entry entry,
@@ -689,8 +696,22 @@ public class JdbcInsert implements Insert,JdbcPool {
 	}
 
 	public Connection getCon() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
-		
-		return this.ds.getConnection();
+		try {
+			return this.ds.getConnection();
+		} catch (SQLException e) {
+			if (e.getMessage().contains("has been closed")) {
+				logger.warn("Pool is closed, recreating");
+				try {
+					generatePool(props);
+				} catch (LDAPException e1) {
+					throw new SQLException("Could not recreate pool",e1);
+				}
+				return this.ds.getConnection();
+				
+			} else {
+				throw e;
+			}
+		}
 		
 	}
 
