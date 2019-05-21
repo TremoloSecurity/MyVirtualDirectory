@@ -145,7 +145,7 @@ public class JdbcEntrySet implements EntrySet {
 			
 			ldapAttribs.add(new LDAPAttribute("objectClass",this.interceptor.objectClass));
 			
-			LDAPEntry tmpentry = new LDAPEntry(interceptor.rdn + "=" + rdnVal + "," + interceptor.base,ldapAttribs);
+			LDAPEntry tmpentry = new LDAPEntry(new StringBuilder(interceptor.rdn).append("=").append(rdnVal).append( ",").append(interceptor.base).toString(),ldapAttribs);
 			
 			boolean toReturn = false;
 			
