@@ -778,7 +778,13 @@ public class MyVDInterceptor extends BaseInterceptor {
 						last = c;
 					}
 					
-					chain.nextSearch(new DistinguishedName(newdn.toString()), new Int(search.getScope().getScope()), filter, attrs, new Bool(search.isTypesOnly()), res, new LDAPSearchConstraints());
+					LDAPSearchConstraints ldapsc = new LDAPSearchConstraints();
+					ldapsc.setMaxResults((int)search.getSizeLimit());
+					ldapsc.setTimeLimit(search.getTimeLimit());
+					
+					
+					
+					chain.nextSearch(new DistinguishedName(newdn.toString()), new Int(search.getScope().getScope()), filter, attrs, new Bool(search.isTypesOnly()), res, ldapsc);
 					res.start();
 				} catch (LDAPException e) {
 					throw this.generateException(e);
