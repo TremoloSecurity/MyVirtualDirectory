@@ -1,0 +1,8 @@
+version: 1
+
+dn: uid=localuser,ou=local,o=mycompany,c=us
+objectClass: inetOrgPerson
+uid: localuser
+cn: testrouting
+sn: localuser
+mail: localuser@local.domain.com
