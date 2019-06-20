@@ -1,0 +1,19 @@
+server.listener.port=50983
+server.globalChain=
+
+#Test global
+
+
+
+server.nameSpaces=openldap
+
+server.openldap.chain=LDAPBaseServer
+server.openldap.nameSpace=ou=local,dc=domain,dc=com
+server.openldap.weight=0
+server.openldap.LDAPBaseServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
+server.openldap.LDAPBaseServer.config.host=localhost
+server.openldap.LDAPBaseServer.config.port=10983
+server.openldap.LDAPBaseServer.config.remoteBase=ou=local,dc=domain,dc=com
+server.openldap.LDAPBaseServer.config.proxyDN=cn=admin,ou=local,dc=domain,dc=com
+server.openldap.LDAPBaseServer.config.proxyPass=manager
+
