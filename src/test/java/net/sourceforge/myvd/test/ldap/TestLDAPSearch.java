@@ -78,6 +78,7 @@ public class TestLDAPSearch  {
 		adServer.stopServer();
 	}
 
+	@Test
 	public void testPresence() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -150,6 +151,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testEquals() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -211,6 +213,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testDoubleQuotesRDNs() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -272,6 +275,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testDoubleQuotesCommass() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -334,6 +338,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testRDNCommass() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -397,6 +402,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testGreaterThen() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -457,6 +463,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testLessThen() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -517,6 +524,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testSubStrInitial() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -577,6 +585,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testSubStrFinal() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -636,6 +645,7 @@ public class TestLDAPSearch  {
 		con.disconnect();
 	}
 
+	@Test
 	public void testSubStrAny() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -696,6 +706,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testAnd() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -756,6 +767,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testOr() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -816,6 +828,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testNot() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -879,6 +892,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testAndNotOr() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -942,6 +956,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testGroupMemberComma() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -998,6 +1013,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testGroupMemberCommaQuotes() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
@@ -1051,6 +1067,7 @@ public class TestLDAPSearch  {
 
 	}
 
+	@Test
 	public void testGroupMemberParnethasis() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
