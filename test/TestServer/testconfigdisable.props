@@ -104,7 +104,7 @@ server.BrokenServer.LDAPInternalServer.config.proxyPass=manager
 
 
 
-server.ExternalServer.chain=TestChain,pwdChange,LDAPExternalServer
+server.ExternalServer.chain=TestChain,pwdChange,nol,LDAPExternalServer
 server.ExternalServer.nameSpace=ou=external,o=mycompany,c=us
 server.ExternalServer.weight=15
 server.ExternalServer.enabled=true
@@ -114,6 +114,9 @@ server.ExternalServer.TestChain.className=net.sourceforge.myvd.test.router.TestC
 server.ExternalServer.pwdChange.className=net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation
 server.ExternalServer.pwdChange.config.remoteBase=dc=domain,dc=com
 server.ExternalServer.pwdChange.config.localBase=o=mycompany,c=us
+
+server.ExternalServer.nol.className=net.sourceforge.myvd.inserts.mapping.DeleteAttribute
+server.ExternalServer.nol.config.attributes=l,telephonenumber
 
 server.ExternalServer.LDAPExternalServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
 server.ExternalServer.LDAPExternalServer.config.host=localhost

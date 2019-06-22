@@ -59,9 +59,12 @@ server.InternalServer.LDAPInternalServer.config.proxyDN=cn=admin,ou=internal,dc=
 server.InternalServer.LDAPInternalServer.config.proxyPass=manager
 
 
-server.ExternalServer.chain=LDAPExternalServer
+server.ExternalServer.chain=nol,LDAPExternalServer
 server.ExternalServer.nameSpace=ou=external,o=mycompany,c=us
 server.ExternalServer.weight=15
+
+server.ExternalServer.nol.className=net.sourceforge.myvd.inserts.mapping.DeleteAttribute
+server.ExternalServer.nol.config.attributes=l,telephonenumber
 
 server.ExternalServer.LDAPExternalServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
 server.ExternalServer.LDAPExternalServer.config.host=localhost

@@ -217,6 +217,7 @@ public class TestMultiRouteGlobalLDAP  {
 		attribs.add(new LDAPAttribute("uid","testCust"));
 		attribs.add(new LDAPAttribute("userPassword","secret"));
 		attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
+		attribs.add(new LDAPAttribute("l","shouldnotmatter"));
 		LDAPEntry entry1 = new LDAPEntry("cn=Test Cust,ou=external,o=mycompany,c=us",attribs);
 		
 		
@@ -510,6 +511,7 @@ public void testSearchOneLevelResults() throws LDAPException {
 		attribs.getAttribute("sn").addValue("Second Surname");
 		attribs.add(new LDAPAttribute("uid","testCust"));
 		attribs.add(new LDAPAttribute("userPassword","secret"));
+		attribs.add(new LDAPAttribute("l","shouldnotmatter"));
 		//attribs.add(new LDAPAttribute("sn","Second Surname"));
 		entry = new LDAPEntry("cn=Test Cust,ou=external,dc=domain,dc=com",attribs);
 		

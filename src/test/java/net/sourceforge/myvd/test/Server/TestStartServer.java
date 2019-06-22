@@ -549,6 +549,7 @@ public class TestStartServer {
 		attribs.getAttribute("sn").addValue("Second Surname");
 		attribs.add(new LDAPAttribute("uid", "testCust"));
 		attribs.add(new LDAPAttribute("userPassword", "mysecret"));
+		attribs.add(new LDAPAttribute("l","shouldnotmatter"));
 		// attribs.add(new LDAPAttribute("sn","Second Surname"));
 		entry = new LDAPEntry("cn=Test Cust,ou=external,dc=domain,dc=com", attribs);
 
