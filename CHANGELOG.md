@@ -1,3 +1,16 @@
+# 1.0.6
+
+**tasks:**
+ - 1.0.6 Release [\#56](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/56)
+
+**enhancements:**
+ - Create "delete attribute" insert [\#64](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/64)
+
+**bugs:**
+ - query result limited at 1000 entries [\#59](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/59)
+ - case insensitive search [\#60](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/60)
+ - dbs pools lost on reload [\#62](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/62)
+
 # 1.0.5
 
 **tasks:**
