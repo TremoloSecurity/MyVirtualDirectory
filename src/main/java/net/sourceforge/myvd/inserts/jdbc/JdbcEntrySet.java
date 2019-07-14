@@ -94,7 +94,7 @@ public class JdbcEntrySet implements EntrySet {
 				Iterator<String> it = interceptor.db2ldap.keySet().iterator();
 				ResultSetMetaData rsmd = rs.getMetaData();
 				for (int i=1,m=rsmd.getColumnCount();i<=m;i++) {
-					String dbField = rsmd.getColumnName(i);
+					String dbField = rsmd.getColumnLabel(i);
 					String ldapField = interceptor.db2ldap.get(dbField.toLowerCase());
 					
 					if (ldapField == null) {
