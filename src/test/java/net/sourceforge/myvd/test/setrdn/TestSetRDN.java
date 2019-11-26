@@ -34,7 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 
-public class SetRDN  {
+public class TestSetRDN  {
 
 	
 	private static StartOpenLDAP externalServer;

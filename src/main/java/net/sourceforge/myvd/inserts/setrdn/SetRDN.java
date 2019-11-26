@@ -576,7 +576,7 @@ public class SetRDN implements Insert {
 		
 		if (toadd == null) {
 			ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-			//attributes.add(new Attribute(this.internalRDN));
+			attributes.add(new Attribute(this.internalRDN));
 			//attributes.add(new Attribute(this.objectClass));
 			
 			StringBuffer b = new StringBuffer();

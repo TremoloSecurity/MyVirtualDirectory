@@ -42,7 +42,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 
-public class ADPosix {
+public class TestADPosix {
 
 	private static StartOpenLDAP simAd;
 	private static StartMyVD server;
