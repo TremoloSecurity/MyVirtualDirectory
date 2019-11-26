@@ -1,0 +1,37 @@
+version: 1
+
+dn: dc=test,dc=mydomain,dc=com
+objectClass: domain
+dc: test
+
+
+dn: cn=users2,dc=test,dc=mydomain,dc=com
+objectClass: container
+cn: users2
+
+dn: givenName=Test+sn=User+uid=testmultiuser,cn=users2,dc=test,dc=mydomain,dc=com
+objectClass: user
+givenName: Test
+sn: User
+cn: Test User
+samAccountName: testmultiuser
+
+dn: givenName=Testx+sn=Userx+uid=testmultiuserx,cn=users2,dc=test,dc=mydomain,dc=com
+objectClass: user
+givenName: Testx
+sn: Userx
+cn: Test Userx
+samAccountName: testmultiuserx
+
+
+
+dn: cn=UNIX Usersx,cn=users2,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: UNIX Usersx
+member: givenName=Testx+sn=Userx+uid=testmultiuserx,cn=users2,dc=test,dc=mydomain,dc=com
+member: givenName=Test+sn=User+uid=testmultiuser,cn=users2,dc=test,dc=mydomain,dc=com
+
+dn: cn=UNIX SUDO Usersx,cn=users2,dc=test,dc=mydomain,dc=com
+objectClass: group
+cn: UNIX SUDO Usersx
+member: givenName=Test+sn=User+uid=testmultiuser,cn=users2,dc=test,dc=mydomain,dc=com

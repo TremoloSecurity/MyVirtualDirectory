@@ -55,3 +55,7 @@ objectClass: group
 cn: Parenthasis (are) in my (cn)
 member: cn=(I) dont (understand) why,cn=users,dc=test,dc=mydomain,dc=com
 
+
+
+
+

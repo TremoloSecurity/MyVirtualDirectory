@@ -415,6 +415,10 @@ public class LDAPInterceptor implements Insert {
             if (remoteBase == null) {
                 remoteBase = "";
             }
+            
+            if (remoteBase.contains("\\+")) {
+            	remoteBase = remoteBase.replace("\\+", "+");
+            }
 
             if (this.usePaging) {
                 if (constraints != null) {

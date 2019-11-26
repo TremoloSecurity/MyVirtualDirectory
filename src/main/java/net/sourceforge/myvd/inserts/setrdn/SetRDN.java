@@ -16,6 +16,7 @@
 
 package net.sourceforge.myvd.inserts.setrdn;
 
+import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.directory.ldap.client.api.search.FilterBuilder;
 import org.apache.logging.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
@@ -275,9 +277,17 @@ public class SetRDN implements Insert {
 		
 		DN dn = new DN(entry.getEntry().getDN());
 		Vector<RDN> rdns = dn.getRDNs();
-		if (rdns.size() == 0 || ! rdns.get(0).getType().equalsIgnoreCase(this.internalRDN)) {
+		if (rdns.size() == 0) {
+			return;
+		} else if (this.internalRDN.contains("+")) {
+		
+			//for now do nothing
+			
+			
+		} else if (! rdns.get(0).getType().equalsIgnoreCase(this.internalRDN)) {
 			return;
 		}
+		
 		
 		String dnlower = entry.getEntry().getDN().toLowerCase();
 		String strdn = null;//this.in2out.get(dnlower);
@@ -373,7 +383,22 @@ public class SetRDN implements Insert {
 		attributes.add(new Attribute(this.objectClass));
 		
 		StringBuffer b = new StringBuffer();
-		b.append("(&(objectClass=").append(this.objectClass).append(")(").append(internalRDNName).append('=').append(internalRDNVal).append("))");
+		
+		if (this.internalRDN.contains("+")) {
+			StringTokenizer toker = new StringTokenizer(internalRDNName + "=" + internalRDNVal,"+");
+			FilterBuilder[] matchFilters = new FilterBuilder[toker.countTokens() + 1];
+			
+			for (int i=0;i<matchFilters.length-1;i++) {
+				String comp = toker.nextToken();
+				matchFilters[i] = FilterBuilder.equal(comp.substring(0,comp.indexOf('=')),comp.substring(comp.indexOf('=') + 1) );
+			}
+			
+			matchFilters[matchFilters.length - 1] = FilterBuilder.equal("objectClass", this.objectClass);
+			
+			b.append(FilterBuilder.and(matchFilters).toString());
+		} else {
+			b.append("(&(objectClass=").append(this.objectClass).append(")(").append(internalRDNName).append('=').append(internalRDNVal).append("))");
+		}
 		//b.append('(').append(this.externalRDN).append('=').append(externalRDNs.get(0).getValue()).append(')');
 		Filter filter = new Filter(b.toString());
 		
@@ -468,21 +493,51 @@ public class SetRDN implements Insert {
 			return externalDN;
 		}
 		
-		String val = entry.getEntry().getAttribute(this.internalRDN).getStringValue();
 		
-		DN newInternal = new DN();
-		b.setLength(0);
-		b.append(this.internalRDN).append('=').append(val);
-		RDN rdn = new RDN(b.toString());
+		RDN rdn;
 		
-		newInternal.addRDN(rdn);
-		
-		for (int i=1;i<rdns.size();i++) {
-			newInternal.addRDNToBack((RDN) rdns.get(i));
+		if (this.internalRDN.contains("+")) {
+			StringTokenizer toker = new StringTokenizer(this.internalRDN,"+",false);
+			String val = "";
+			while (toker.hasMoreTokens()) {
+				String comp = toker.nextToken();
+				val += comp + "=" + entry.getEntry().getAttribute(comp).getStringValue() + "+";
+				
+			}
+			val = val.substring(0,val.length()-1);
+			
+			DN newInternal = new DN();
+			
+			
+			//newInternal.addRDN(rdn);
+			
+			for (int i=1;i<rdns.size();i++) {
+				newInternal.addRDNToBack((RDN) rdns.get(i));
+			}
+			String finalDN = val + "," + newInternal.toString();
+			return finalDN;
+		} else {
+			String val = entry.getEntry().getAttribute(this.internalRDN).getStringValue();
+			
+			b.setLength(0);
+			b.append(this.internalRDN).append('=').append(val);
+			rdn = new RDN(b.toString());
+			
+			DN newInternal = new DN();
+			
+			
+			newInternal.addRDN(rdn);
+			
+			for (int i=1;i<rdns.size();i++) {
+				newInternal.addRDNToBack((RDN) rdns.get(i));
+			}
+			
+			this.out2in.put(externalDN.toLowerCase() , newInternal.toString().toLowerCase());
+			return newInternal.toString();
 		}
 		
-		this.out2in.put(externalDN.toLowerCase() , newInternal.toString().toLowerCase());
-		return newInternal.toString();
+		
+		
 		
 	}
 	
@@ -516,11 +571,13 @@ public class SetRDN implements Insert {
 		}
 		
 		String val = "";
+		DN internalDN = new DN();
+		RDN rdn = new RDN();
 		
 		if (toadd == null) {
 			ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-			attributes.add(new Attribute(this.internalRDN));
-			attributes.add(new Attribute(this.objectClass));
+			//attributes.add(new Attribute(this.internalRDN));
+			//attributes.add(new Attribute(this.objectClass));
 			
 			StringBuffer b = new StringBuffer();
 			b.append("(&(objectClass=").append(this.objectClass).append(")(").append(this.externalRDN).append('=').append(externalRDNs.get(0).getValue()).append("))");
@@ -543,15 +600,31 @@ public class SetRDN implements Insert {
 				return externalDN;
 			}
 			
-			val = entry.getEntry().getAttribute(this.internalRDN).getStringValue();
+			
+			if (this.internalRDN.contains("+")) {
+				StringTokenizer toker = new StringTokenizer(this.internalRDN,"+",false);
+				while (toker.hasMoreTokens()) {
+					String comp = toker.nextToken();
+					val += comp + "=" + entry.getEntry().getAttribute(comp).getStringValue() + "+";
+					
+				}
+				val = val.substring(0,val.length()-1);
+				rdn = new RDN(val);
+				
+			} else {
+				val = entry.getEntry().getAttribute(this.internalRDN).getStringValue();
+				rdn.add(this.internalRDN, val, val);
+			}
+			
+			
 
 		} else {
 			val = toadd.getAttribute(this.internalRDN).getStringValue();
+			rdn.add(this.internalRDN, val, val);
 		}
 		
-		DN internalDN = new DN();
-		RDN rdn = new RDN();
-		rdn.add(this.internalRDN, val, val);
+		
+		
 		internalDN.addRDN(rdn);
 		for (int i=1,m=externalRDNs.size();i<m;i++) {
 			internalDN.addRDNToBack(externalRDNs.get(i));

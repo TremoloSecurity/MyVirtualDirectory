@@ -31,7 +31,7 @@ server.ExternalServer.LDAPExternalServer.config.proxyDN=cn=admin,ou=external,dc=
 server.ExternalServer.LDAPExternalServer.config.proxyPass=manager
 
 
-server.AD.chain=dump,SetRDN,objmap,membertrans,mapdn,ldap
+server.AD.chain=SetRDN,dump,objmap,membertrans,mapdn,ldap
 server.AD.nameSpace=dc=ad,dc=com
 server.AD.wieght=15
 
@@ -55,6 +55,8 @@ server.AD.mapdn.config.localBase=dc=ad,dc=com
 
 server.AD.dump.className=net.sourceforge.myvd.inserts.DumpTransaction
 server.AD.dump.config.logLevel=info
+
+
 
 server.AD.ldap.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
 server.AD.ldap.config.host=localhost
