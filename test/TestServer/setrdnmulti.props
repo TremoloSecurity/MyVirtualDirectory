@@ -7,6 +7,7 @@ server.nameSpaces=AD
 
 
 server.AD.chain=dump,SetRDN,objmap,membertrans,mapdn,unescape,ldap
+#server.AD.chain=dump,SetRDN,unescape,ldap
 server.AD.nameSpace=dc=ad,dc=com
 server.AD.wieght=15
 

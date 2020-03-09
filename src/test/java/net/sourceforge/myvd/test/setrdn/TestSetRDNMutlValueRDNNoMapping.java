@@ -34,7 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 
-public class TestSetRDNMutlValueRDN {
+public class TestSetRDNMutlValueRDNNoMapping {
 
 	private static StartOpenLDAP externalServer;
 	private static StartMyVD server;
@@ -52,7 +52,7 @@ public class TestSetRDNMutlValueRDN {
 				"manager");
 
 		server = new StartMyVD();
-		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/setrdnmulti.props", 50983);
+		server.startServer(System.getenv("PROJ_DIR") + "/test/TestServer/setrdnmulti2.props", 50983);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class TestSetRDNMutlValueRDN {
 	}
 
 	@Test
-	public void testUidSearch() throws LDAPException {
+	public void testsamAccountNameSearch() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
@@ -70,16 +70,16 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(uid=testmultiuser)", new String[0], false);
+		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(samAccountName=testmultiuser)", new String[0], false);
 
 		int size = 0;
 
@@ -117,7 +117,7 @@ public class TestSetRDNMutlValueRDN {
 	}
 	
 	@Test
-	public void testUidSearchWithAttributes() throws LDAPException {
+	public void testsamAccountNameSearchWithAttributes() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
@@ -126,16 +126,16 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(&(objectclass=inetorgperson)(uid=testmultiuser))", new String[] {"uid","sn"}, false);
+		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(&(objectClass=inetOrgPerson)(samAccountName=testmultiuser))", new String[] {"samAccountName","sn"}, false);
 
 		int size = 0;
 
@@ -182,11 +182,11 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -211,7 +211,7 @@ public class TestSetRDNMutlValueRDN {
 	}
 
 	@Test
-	public void testUidSearchOnlyUID() throws LDAPException {
+	public void testsamAccountNameSearchOnlysamAccountName() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
 		attribs.add(new LDAPAttribute("objectClass", "inetOrgPerson"));
@@ -220,16 +220,16 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(uid=testmultiuser)", new String[] { "uid" }, false);
+		LDAPSearchResults res = con.search("cn=users2,dc=ad,dc=com", 2, "(samAccountName=testmultiuser)", new String[] { "samAccountName" }, false);
 
 		int size = 0;
 
@@ -278,11 +278,11 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
@@ -341,16 +341,16 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("sn", "User"));
 		attribs.add(new LDAPAttribute("givenName", "Test"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
-		attribs.add(new LDAPAttribute("uid", "testmultiuser"));
+		attribs.add(new LDAPAttribute("samAccountName", "testmultiuser"));
 		
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
-		LDAPEntry entry2 = new LDAPEntry("uid=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
+		LDAPEntry entry2 = new LDAPEntry("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", attribs);
 
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("uid=testmultiuser,cn=users2,dc=ad,dc=com", 0, "(objectClass=*)",
+		LDAPSearchResults res = con.search("samAccountName=testmultiuser,cn=users2,dc=ad,dc=com", 0, "(objectClass=*)",
 				new String[0], false);
 
 		/*
@@ -399,7 +399,7 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("objectClass", "groupOfUniqueNames"));
 		// attribs.getAttribute("objectClass").addValue("customPerson");
 		attribs.add(new LDAPAttribute("cn", "UNIX SUDO Usersx"));
-		attribs.add(new LDAPAttribute("uniqueMember", "uid=testmultiuser,cn=users2,dc=ad,dc=com"));
+		attribs.add(new LDAPAttribute("uniqueMember", "samAccountName=testmultiuser,cn=users2,dc=ad,dc=com"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
@@ -457,8 +457,8 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("objectClass", "groupOfUniqueNames"));
 		// attribs.getAttribute("objectClass").addValue("customPerson");
 		attribs.add(new LDAPAttribute("cn", "UNIX Usersx"));
-		LDAPAttribute attr = new LDAPAttribute("uniqueMember", "uid=testmultiuser,cn=users2,dc=ad,dc=com");
-		attr.addValue("uid=testmultiuserx,cn=users2,dc=ad,dc=com");
+		LDAPAttribute attr = new LDAPAttribute("uniqueMember", "samAccountName=testmultiuser,cn=users2,dc=ad,dc=com");
+		attr.addValue("samAccountName=testmultiuserx,cn=users2,dc=ad,dc=com");
 
 		attribs.add(attr);
 
@@ -471,7 +471,7 @@ public class TestSetRDNMutlValueRDN {
 		attribs.add(new LDAPAttribute("objectClass", "groupOfUniqueNames"));
 		// attribs.getAttribute("objectClass").addValue("customPerson");
 		attribs.add(new LDAPAttribute("cn", "UNIX SUDO Usersx"));
-		attribs.add(new LDAPAttribute("uniqueMember", "uid=testmultiuser,cn=users2,dc=ad,dc=com"));
+		attribs.add(new LDAPAttribute("uniqueMember", "samAccountName=testmultiuser,cn=users2,dc=ad,dc=com"));
 		// attribs.add(new LDAPAttribute("testAttrib", "testVal"));
 
 		// attribs.add(new LDAPAttribute("globalTestAttrib","globalTestVal"));
@@ -480,7 +480,7 @@ public class TestSetRDNMutlValueRDN {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("localhost", 50983);
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
-		LDAPSearchResults res = con.search("dc=ad,dc=com", 2, "(uniqueMember=uid=testmultiuser,cn=users2,dc=ad,dc=com)",
+		LDAPSearchResults res = con.search("dc=ad,dc=com", 2, "(uniqueMember=samAccountName=testmultiuser,cn=users2,dc=ad,dc=com)",
 				new String[0], false);
 
 		/*
