@@ -40,7 +40,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/betas</url>  
+			<url>s3://tremolosecurity-maven/repository/releases</url>  
 			<!-- <url>https://nexus.tremolo.io/repository/betas/</url>  -->
 		</repository>
 
@@ -146,13 +146,13 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.29</version>
+			<version>1.7.30</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.29</version>
+			<version>1.7.30</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j</artifactId>
@@ -164,17 +164,17 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.12.1</version>
+			<version>2.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.12.1</version>
+			<version>2.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-1.2-api</artifactId>
-			<version>2.12.1</version>
+			<version>2.13.1</version>
 		</dependency>
 
 
@@ -217,7 +217,7 @@
 		<dependency>
 			<groupId>com.mchange</groupId>
 			<artifactId>c3p0</artifactId>
-			<version>0.9.5.4</version>
+			<version>0.9.5.5</version>
 		</dependency>
 
 		<dependency>
@@ -240,7 +240,7 @@
 	  <dependency>
     <groupId>dnsjava</groupId>
     <artifactId>dnsjava</artifactId>
-    <version>2.1.9</version>
+    <version>3.0.1</version>
 </dependency>
 	</dependencies>
 
