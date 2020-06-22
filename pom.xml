@@ -35,9 +35,10 @@
 
 	<distributionManagement>
 		<repository>
+			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>s3://tremolosecurity-maven/repository/releases</url>  
 		</repository>
 
 	</distributionManagement>
@@ -241,6 +242,13 @@
 	</dependencies>
 
 	<build>
+		<extensions>
+        <extension>
+            <groupId>com.gkatzioura.maven.cloud</groupId>
+            <artifactId>s3-storage-wagon</artifactId>
+            <version>2.3</version>
+        </extension>
+    </extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
