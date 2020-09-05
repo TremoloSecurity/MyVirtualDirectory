@@ -4,7 +4,7 @@
 
 	<groupId>net.sourceforge.myvd</groupId>
 	<artifactId>myvd-server</artifactId>
-	<version>1.0.6</version>
+	<version>1.0.9</version>
 	<packaging>jar</packaging>
 
 	<name>server</name>
@@ -35,9 +35,10 @@
 
 	<distributionManagement>
 		<repository>
+			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>https://nexus.tremolo.io/repository/releases/</url>
+			<url>s3://tremolosecurity-maven/repository/releases</url>  
 		</repository>
 
 	</distributionManagement>
@@ -101,7 +102,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -117,12 +118,12 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.64</version>
+			<version>1.66</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-ext-jdk15on</artifactId>
-			<version>1.64</version>
+			<version>1.66</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ant</groupId>
@@ -160,24 +161,24 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.13.1</version>
+			<version>2.13.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.13.1</version>
+			<version>2.13.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-1.2-api</artifactId>
-			<version>2.13.1</version>
+			<version>2.13.3</version>
 		</dependency>
 
 
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.6</version>
+			<version>2.7</version>
 		</dependency>
 
 		<dependency>
@@ -207,7 +208,7 @@
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
-			<version>3.6</version>
+			<version>3.7</version>
 		</dependency>
 
 		<dependency>
@@ -231,16 +232,23 @@
 		<dependency>
   		<groupId>joda-time</groupId>
   		<artifactId>joda-time</artifactId>
-  		<version>2.10.5</version>
+  		<version>2.10.6</version>
   	</dependency>
 	  <dependency>
     <groupId>dnsjava</groupId>
     <artifactId>dnsjava</artifactId>
-    <version>3.0.1</version>
+    <version>3.2.2</version>
 </dependency>
 	</dependencies>
 
 	<build>
+		<extensions>
+        <extension>
+            <groupId>com.gkatzioura.maven.cloud</groupId>
+            <artifactId>s3-storage-wagon</artifactId>
+            <version>2.3</version>
+        </extension>
+    </extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

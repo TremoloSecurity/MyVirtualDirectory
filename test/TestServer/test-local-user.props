@@ -1,0 +1,21 @@
+server.listener.port=50983
+server.globalChain=
+
+
+#Test global
+
+
+#Password change extended operation
+
+
+server.nameSpaces=local
+
+server.local.chain=localUser
+server.local.nameSpace=ou=localuser,dc=domain,dc=com
+server.local.weight=0
+server.local.localUser.className=net.sourceforge.myvd.inserts.local.LocalUserInsert
+server.local.localUser.config.uid=localuser
+server.local.localUser.config.password=start123
+server.local.localUser.config.objectClass=inetOrgPerson
+
+
