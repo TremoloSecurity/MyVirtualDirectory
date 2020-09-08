@@ -235,6 +235,19 @@ public class TestJoinAD  {
 			fail("failed to bind: " + e.toString());
 		}
 		
+		try {
+			con.bind(3,DN, "posixsecret".getBytes());
+		} catch (LDAPException e) {
+			fail("failed to bind: " + e.toString());
+		}
+		
+		try {
+			con.bind(3,DN, "posixsecretx".getBytes());
+			fail("bind succeeded");
+		} catch (LDAPException e) {
+			assertEquals(e.getResultCode(),49);
+		}
+		
 		con.disconnect();
 		
 		if (! found) {

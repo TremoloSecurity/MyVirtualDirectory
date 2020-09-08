@@ -23,6 +23,7 @@ shadowExpire: -1
 shadowMin: 0
 gidNumber: 200
 gecos: Test User1
+userPassword: posixsecret
 
 dn: cn=UNIX Users,o=unix
 cn: UNIX Users

@@ -159,7 +159,7 @@ public class JdbcInsert implements Insert,JdbcPool {
 	boolean addBaseToFilter;
 	
 	
-	static HashMap<String,ComboPooledDataSource> poolCache = new HashMap<String,ComboPooledDataSource>();
+	static HashMap<String,JdbcPoolHolder> poolCache = new HashMap<String,JdbcPoolHolder>();
 
 	HashMap<String,String> ldap2db,db2ldap;
 	private String name;
@@ -173,8 +173,10 @@ public class JdbcInsert implements Insert,JdbcPool {
 	private String valQuery;
 
 	private Properties props;
+
+	private JdbcPoolHolder jdbcPoolHolder;
 	
-	public static HashMap<String,ComboPooledDataSource> getPoolCache() {
+	public static HashMap<String,JdbcPoolHolder> getPoolCache() {
 		return poolCache;
 	}
 
@@ -307,7 +309,9 @@ public class JdbcInsert implements Insert,JdbcPool {
 		synchronized(poolCache) {
 			if (poolCache.get(poolKey) != null ) {
 				logger.info(this.name + " - using existing connection pool");
-				this.ds = poolCache.get(poolKey);
+				this.jdbcPoolHolder = poolCache.get(poolKey);
+				jdbcPoolHolder.upCount();
+				this.ds = jdbcPoolHolder.getDs();
 			} else {
 				logger.info(this.name + " - creating connection pool");
 				ComboPooledDataSource cpds = new ComboPooledDataSource();
@@ -334,7 +338,10 @@ public class JdbcInsert implements Insert,JdbcPool {
 
 
 				this.ds = cpds;
-				poolCache.put(poolKey, cpds);
+				this.jdbcPoolHolder = new JdbcPoolHolder(poolKey);
+				jdbcPoolHolder.upCount();
+				jdbcPoolHolder.setDs(cpds);
+				poolCache.put(poolKey, jdbcPoolHolder);
 			}
 		
 		}
@@ -1034,11 +1041,9 @@ public class JdbcInsert implements Insert,JdbcPool {
 
 	public void shutdown() {
 		synchronized(poolCache) {
-			for (String poolkey : poolCache.keySet()) {
-				poolCache.get(poolkey).close();
+			if (this.jdbcPoolHolder.downCount()) {
+				poolCache.remove(this.jdbcPoolHolder.getKey());
 			}
-
-			poolCache.clear();
 		}
 		
 	}
