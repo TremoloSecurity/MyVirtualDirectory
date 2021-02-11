@@ -18,6 +18,14 @@ package net.sourceforge.myvd.inserts.ldap;
 import net.sourceforge.myvd.types.Entry;
 import net.sourceforge.myvd.types.EntrySet;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPControl;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
@@ -29,6 +37,8 @@ import com.novell.ldap.controls.LDAPPagedResultsResponse;
 import com.novell.ldap.util.DN;
 
 public class LDAPEntrySet implements EntrySet {
+	
+	static Logger logger = Logger.getLogger(LDAPEntrySet.class);
 
 	LDAPInterceptor interceptor;
 	ConnectionWrapper wrapper;
@@ -108,7 +118,85 @@ public class LDAPEntrySet implements EntrySet {
 
 				dn = dn.replaceAll("[\\\\][2][C]", "\\\\,");
 				
+				
+				List<LDAPAttribute> attributesToReplace = new ArrayList<LDAPAttribute>();
+				List<LDAPAttribute> attributesToAdd = new ArrayList<LDAPAttribute>();
+				
+				for (Object o : entry.getAttributeSet()) {
+					LDAPAttribute attr = (LDAPAttribute) o;
+					if (attr.getName().contains(";range=")) {
+						logger.info("attribute : " + attr.getName() + " is a range");
+						String attributeName = attr.getName().substring(0,attr.getName().indexOf(';'));
+						attributesToReplace.add(attr);
+						LDAPAttribute newAttr = new LDAPAttribute(attributeName);
+						
+						Enumeration enumer = attr.getByteValues();
+						while (enumer.hasMoreElements()) {
+							newAttr.addValue((byte[])enumer.nextElement());
+						}
+						attributesToAdd.add(newAttr);
+						
+						String range = attr.getName().substring(attr.getName().indexOf('=') + 1);
+						logger.info(range);
+						int start = Integer.parseInt(range.substring(0,range.indexOf('-')));
+						int end = Integer.parseInt(range.substring(range.indexOf('-') + 1));
+						int total = start+end+1;
+						logger.info("total : " + total);
+						
+						boolean done = false;
+						while (! done) {
+							String attrName = attributeName + ";range=" + (end + 1) + "-" + (end + total);
+							LDAPSearchResults lres = this.wrapper.getConnection().search(entry.getDN(), 0, "(objectClass=*)", new String[] {attrName}, false);
+							if (! lres.hasMore()) {
+								done = true;
+								logger.warn("Could not find " + entry.getDN() + " for range lookup");
+							} else {
+								LDAPEntry nentry = lres.next();
+								attr = nentry.getAttribute(attrName);
+								if (attr == null) {
+									attrName = attributeName + ";range=" + (end + 1) + "-*";
+									attr = nentry.getAttribute(attrName);
+									
+									if (attr == null ) {
+										logger.warn("no range attribute");
+										
+									}
+									
+									done = true;
+								}
+								
+								if (attr != null) {
+									enumer = attr.getByteValues();
+									while (enumer.hasMoreElements()) {
+										newAttr.addValue((byte[])enumer.nextElement());
+									}
+									
+									if (! done) {
+										range = attr.getName().substring(attr.getName().indexOf('=') + 1);
+										logger.info(range);
+										start = Integer.parseInt(range.substring(0,range.indexOf('-')));
+										end = Integer.parseInt(range.substring(range.indexOf('-') + 1));
+									}
+								}
+							}
+							
+						}
+					}
+				}
+				
+				for (LDAPAttribute attrToRemove : attributesToReplace) {
+					entry.getAttributeSet().remove(attrToRemove);
+				}
+				
+				for (LDAPAttribute attr : attributesToAdd) {
+					entry.getAttributeSet().remove(attr);
+					entry.getAttributeSet().add(attr);
+				}
+				
 				this.currEntry = new Entry(new LDAPEntry(interceptor.getLocalMappedDN(new DN(dn)).toString(),entry.getAttributeSet()),respControls);
+				
+				
+				
 				this.entryFetched = false;
 				return true;
 			} else {
