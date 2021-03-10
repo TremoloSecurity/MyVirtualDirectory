@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -48,14 +49,19 @@ import net.sourceforge.myvd.types.Results;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPConstraints;
+import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.DN;
+import com.novell.ldap.util.RDN;
 
 public class AttributeMapper implements Insert {
 
 	HashMap<String,String> remoteMap,localMap;
 	String name;
+	HashMap<String,String> in2out;
+	HashMap<String,String> out2in;
 	
 	public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
 		this.name = name;
@@ -74,6 +80,9 @@ public class AttributeMapper implements Insert {
 			remoteMap.put(remote.toLowerCase(),local);
 		}
 		
+		this.out2in = new HashMap<String,String>();
+		this.in2out = new HashMap<String,String>();
+		
 		
 	}
 
@@ -90,6 +99,13 @@ public class AttributeMapper implements Insert {
 	}
 
 	public void bind(BindInterceptorChain chain, DistinguishedName dn, Password pwd, LDAPConstraints constraints) throws LDAPException {
+		
+		String newDN = this.getDnFromIn2Out(dn.getDN().toString());
+		
+		if (newDN != null) {
+			dn = new DistinguishedName(newDN);
+		}
+		
 		chain.nextBind(dn,pwd,constraints);
 		
 	}
@@ -175,15 +191,89 @@ public class AttributeMapper implements Insert {
 		
 	}
 
+	private String getDnFromIn2Out(String dnin) {
+		String dnFromCache = this.out2in.get(dnin);
+		if (dnFromCache != null) {
+			return dnFromCache;
+		}
+		
+		DN dnInDN = new DN(dnin);
+		Vector rdns = dnInDN.getRDNs();
+		RDN rdn = (RDN) rdns.get(0);
+		String newRdnType = this.localMap.get(rdn.getType().toLowerCase());
+		if (newRdnType == null) {
+			return dnin;
+		}
+		
+		RDN newRDN = new RDN();
+		newRDN.add(newRdnType, rdn.getValue(), rdn.getValue());
+		
+		DN newDN = new DN();
+		newDN.addRDNToBack(newRDN);
+		
+		for (int i=1;i<rdns.size();i++) {
+			newDN.addRDNToBack((RDN) rdns.get(i));
+		}
+		
+		String newDNStr = newDN.toString();
+		
+		this.out2in.put(dnin, newDNStr);
+		this.in2out.put(newDNStr, dnin);
+		
+		return newDNStr;
+	
+	}
+	
 	public void postSearchEntry(PostSearchEntryInterceptorChain chain, Entry entry, DistinguishedName base, Int scope, Filter filter, ArrayList<Attribute> attributes, Bool typesOnly, LDAPSearchConstraints constraints) throws LDAPException {
 		
 		chain.nextPostSearchEntry(entry,base,scope,filter,attributes,typesOnly,constraints);
-		
+		StringBuilder sb = new StringBuilder();
 		Iterator<String> it = this.remoteMap.keySet().iterator();
+		String lowercasedn = entry.getEntry().getDN().toLowerCase();
+		boolean mapDN = false;
+		String mapDnTo = null;
 		while (it.hasNext()) {
 			String name = it.next();
 			entry.renameAttribute(name,this.remoteMap.get(name));
+			sb.setLength(0);
+			sb.append(name.toLowerCase()).append('=');
+			if (lowercasedn.startsWith(sb.toString())) {
+				mapDN = true; 
+				mapDnTo = this.remoteMap.get(name);
+			}
 		}
+		
+		if (mapDN) {
+			
+			String newDNFromCache = this.in2out.get(entry.getEntry().getDN());
+			DN newDN;
+			
+			if (newDNFromCache != null) {
+				newDN = new DN(newDNFromCache);
+			} else {
+				newDN = new DN(entry.getEntry().getDN());
+				Vector rdns = newDN.getRDNs();
+				RDN curRDN = (RDN) rdns.get(0);
+				RDN newRDN = new RDN();
+				newRDN.add(mapDnTo, curRDN.getValue(), curRDN.getValue());
+				rdns.remove(0);
+				rdns.insertElementAt(newRDN, 0);
+				
+				newDN = new DN();
+				for (int i = 0;i<rdns.size();i++) {
+					newDN.addRDNToBack((RDN) rdns.get(i));
+				}
+				this.out2in.put(newDN.toString(), entry.getEntry().getDN());
+				this.in2out.put(entry.getEntry().getDN(), newDN.toString());
+			}
+			
+			
+			
+			entry.setDN(newDN);
+			LDAPEntry newEntry = new LDAPEntry(newDN.toString(),entry.getEntry().getAttributeSet());
+			entry.setEntry(newEntry);
+		}
+		
 		
 		
 		
