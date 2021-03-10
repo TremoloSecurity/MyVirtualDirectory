@@ -114,11 +114,11 @@ public class InsertChain {
 	}
 	
 	public Insert getInsertConfig(String name,String prefix,InsertChain chain,int pos) throws InstantiationException, IllegalAccessException, ClassNotFoundException, LDAPException {
-		logger.debug("Insert : " + name + "; " + prefix);
+		logger.info("Insert : " + name + "; " + prefix);
 		
 		String className = props.getProperty(prefix + "className");
 		
-		logger.debug("Insert Class Name : " + className);
+		logger.info("Insert Class Name : " + className);
 		
 		String cfgPrefix = prefix + "config.";
 		Insert insert;
