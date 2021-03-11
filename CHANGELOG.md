@@ -1,3 +1,16 @@
+# 1.0.10
+
+**tasks:**
+ - 1.0.10 build [\#100](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/100)
+
+**enhancements:**
+ - insert to limit search filter attributes [\#102](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/102)
+ - Support Attribute Ranges with Active Directory [\#98](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/98)
+
+**bugs:**
+ - attributemapper doesn't rename rdn [\#101](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/101)
+
+
 # 1.0.6
 
 **tasks:**
