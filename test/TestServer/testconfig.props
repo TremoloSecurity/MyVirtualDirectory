@@ -8,7 +8,10 @@ server.numRootNameSpaces=1
 server.rootNameSpaces.0=o=mycompany
 server.rootNameSpacesStrict=false
 
-server.globalChain=testGlobalChain,passwordChange
+server.globalChain=accesslog,testGlobalChain,passwordChange
+
+
+server.globalChain.accesslog.className=net.sourceforge.myvd.inserts.AccessLog
 
 #Test global
 server.globalChain.testGlobalChain.className=net.sourceforge.myvd.test.router.TestglobalChain

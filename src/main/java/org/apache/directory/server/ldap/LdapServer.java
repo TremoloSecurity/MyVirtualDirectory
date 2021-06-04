@@ -69,6 +69,7 @@ import org.apache.directory.api.ldap.model.message.SearchResultReference;
 import org.apache.directory.api.ldap.model.message.UnbindRequest;
 import org.apache.directory.api.ldap.model.message.extended.NoticeOfDisconnect;
 import org.apache.directory.api.util.Strings;
+import org.apache.directory.server.core.LoggingFilter;
 import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.core.api.partition.PartitionNexus;
 import org.apache.directory.server.core.security.CoreKeyStoreSpi;
@@ -526,11 +527,19 @@ public class LdapServer extends DirectoryBackedService
             if (transport.isSSLEnabled() )
             {
                 chain = LdapsInitializer.init( this, ( TcpTransport ) transport );
+                
+                ( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new LoggingFilter(true));
             }
             else
             {
                 chain = new DefaultIoFilterChainBuilder();
+                ( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new LoggingFilter(false));
             }
+            
+            
+            
+            //( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new org.apache.mina.filter.logging.LoggingFilter());
+            
 
             // Inject the codec into the chain
             ( ( DefaultIoFilterChainBuilder ) chain ).addLast( "codec", new ProtocolCodecFilter( this

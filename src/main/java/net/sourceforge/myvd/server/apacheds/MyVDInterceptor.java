@@ -14,6 +14,7 @@ import net.sourceforge.myvd.chain.DeleteInterceptorChain;
 import net.sourceforge.myvd.chain.ModifyInterceptorChain;
 import net.sourceforge.myvd.chain.RenameInterceptorChain;
 import net.sourceforge.myvd.chain.SearchInterceptorChain;
+import net.sourceforge.myvd.core.ConnectionEventLogger;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.types.Bool;
@@ -59,6 +60,7 @@ import org.apache.directory.server.core.api.CoreSession;
 import org.apache.directory.server.core.api.LdapPrincipal;
 import org.apache.directory.server.core.api.filtering.EntryFilteringCursor;
 import org.apache.directory.server.core.api.interceptor.BaseInterceptor;
+import org.apache.directory.server.core.api.interceptor.context.AbstractOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.AddOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.BindOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.CompareOperationContext;
@@ -87,6 +89,8 @@ import com.novell.ldap.LDAPSearchConstraints;
 
 public class MyVDInterceptor extends BaseInterceptor {
 
+	public static final Object USER_SESSION = "MYVD_USER_SESSION";
+
 	static Logger logger = org.apache.logging.log4j.LogManager.getLogger(MyVDInterceptor.class.getName());
 	
 	InsertChain globalChain;
@@ -94,11 +98,56 @@ public class MyVDInterceptor extends BaseInterceptor {
 	SchemaManager schemaManager;
 	HashSet<String> binaryAttrs;
 	
+	ConnectionEventLogger conLogger;
+	
 	public MyVDInterceptor(InsertChain globalChain,Router router,SchemaManager schemaManager,HashSet<String> binaryAttrs) {
 		this.globalChain = globalChain;
 		this.router = router;
 		this.schemaManager = schemaManager;
 		this.binaryAttrs = binaryAttrs;
+		
+		
+		String className = System.getProperty("myvd.connectionLogger");
+		if (className != null) {
+			logger.info("Connection logger : '" + className + "'");
+			try {
+				this.conLogger = (ConnectionEventLogger) Class.forName(className).newInstance();
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				logger.warn("Could not load the event logger",e);
+			}
+		} else {
+			logger.info("No connection event logger");
+		}
+	}
+	
+	
+	private HashMap<Object,Object> getUserSession(AbstractOperationContext op) {
+		
+		if (op instanceof BindOperationContext) {
+			BindOperationContext bind = (BindOperationContext) op;
+			HashMap<Object,Object> userSession = (HashMap<Object, Object>) bind.getIoSession().getAttribute(MyVDInterceptor.USER_SESSION);
+			
+			if (userSession == null) {
+				userSession = new HashMap<Object,Object>();
+				bind.getIoSession().setAttribute(MyVDInterceptor.USER_SESSION, userSession);
+				userSession.put("LDAP_CONNECTION_NUMBER", bind.getIoSession().getId());
+			}
+			
+			return userSession;
+		} else {
+			HashMap<Object,Object> userSession = (HashMap<Object, Object>) op.getSession().getIoSession().getAttribute(MyVDInterceptor.USER_SESSION);
+			
+			if (userSession == null) {
+				userSession = new HashMap<Object,Object>();
+				op.getSession().getIoSession().setAttribute(MyVDInterceptor.USER_SESSION, userSession);
+				userSession.put("LDAP_CONNECTION_NUMBER", op.getSession().getIoSession().getId());
+			}
+			
+			return userSession;
+		}
+		
+		
+		
 	}
 	
 	@Override
@@ -106,9 +155,12 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = add.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(add);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
+			
+			
 		}
 		
 		
@@ -209,21 +261,24 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = null;
+		HashMap<Object,Object> userSession = this.getUserSession(bindContext);
 		
 		DistinguishedName bindDN;
 		byte[] password;
 		
 		if (bindContext.getSession() == null) {
-			userSession = new HashMap<Object,Object>();
-			bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
+			//userSession = new HashMap<Object,Object>();
+			//bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
 			
 			bindDN = new DistinguishedName("");
 			password = null;
 			
-		} else {
-			userSession = bindContext.getSession().getUserSession();
 			
+			
+		} else {
+			//userSession = bindContext.getSession().getUserSession();*/
+			
+		
 			if (bindContext.getSession().isAnonymous()) {
 				bindDN = new DistinguishedName("");
 				password = null;
@@ -313,9 +368,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = del.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(del);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,del.getSession());
@@ -380,9 +436,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = has.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(has);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		DistinguishedName bindDN;
@@ -437,9 +494,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = lookup.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(lookup);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,lookup.getSession());
@@ -506,9 +564,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = mod.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(mod);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,mod.getSession());
@@ -563,9 +622,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = move.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(move);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,move.getSession());
@@ -605,9 +665,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = move.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(move);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,move.getSession());
@@ -647,9 +708,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 		
 		//how to track?
-		HashMap<Object,Object> userSession = move.getSession().getUserSession();
+		HashMap<Object,Object> userSession = this.getUserSession(move);
 		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
 		}
 		
 		setTLSSessionParams(userSession,move.getSession());
@@ -697,9 +759,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 				HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
 				
 				//how to track?
-				HashMap<Object,Object> userSession = search.getSession().getUserSession();
+				HashMap<Object,Object> userSession = this.getUserSession(search);
 				if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
 					userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+					
 				}
 				
 				setTLSSessionParams(userSession,search.getSession());
@@ -796,7 +859,9 @@ public class MyVDInterceptor extends BaseInterceptor {
 	@Override
 	public void unbind(UnbindOperationContext unbindContext)
 			throws LdapException {
-		// TODO Auto-generated method stub
+		if (this.conLogger != null) {
+			conLogger.unbind(unbindContext.getSession().getIoSession());
+		}
 		super.unbind(unbindContext);
 	}
 	

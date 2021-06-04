@@ -169,6 +169,9 @@ public class TestStartServer {
 		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
 		LDAPSearchResults res = con.search("o=mycompany", 2, "(objectClass=inetOrgPerson)", new String[] { "1.1" },
 				false);
+		
+		res = con.search("o=mycompany", 2, "(objectClass=inetOrgPerson)", new String[] { "1.1" },
+				false);
 
 		int size = 0;
 

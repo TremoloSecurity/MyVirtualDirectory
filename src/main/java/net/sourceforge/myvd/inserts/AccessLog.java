@@ -68,7 +68,7 @@ public class AccessLog implements Insert {
 	Int con;
 	
 	private void getOpNum(HashMap<Object,Object> session,Int con,Int op) {
-		Integer conNum = (Integer) session.get(AccessLog.ACCESS_LOG_CONNUM + this.name);
+		Long conNum = (Long) session.get("LDAP_CONNECTION_NUMBER");
 		if (conNum == null) {
 			synchronized (this.con) {
 				this.con.setValue(this.con.getValue() + 1);
@@ -336,6 +336,11 @@ public class AccessLog implements Insert {
 			LDAPSearchConstraints constraints) throws LDAPException {
 		
 		Int nentries = (Int) chain.getRequest().get(AccessLog.ACCESS_LOG_SRCH_COUNT + this.name);
+		
+		if (nentries == null) {
+			nentries = new Int(0);
+			chain.getRequest().put(AccessLog.ACCESS_LOG_SRCH_COUNT + this.name,nentries);
+		}
 		
 		if (entry.isReturnEntry()) {
 			nentries.setValue(nentries.getValue() + 1);
