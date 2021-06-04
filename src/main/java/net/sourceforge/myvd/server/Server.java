@@ -16,6 +16,7 @@
 package net.sourceforge.myvd.server;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,6 +25,10 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,11 +69,12 @@ import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.ldap.handlers.request.ExtendedRequestHandler;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 public class Server {
 
-    static Logger logger;
+    static Logger logger = Logger.getLogger(Server.class);
 
 
 	public final static String VERSION = "1.0.11";
@@ -93,13 +99,109 @@ public class Server {
     public Router getRouter() {
         return router;
     }
+    
+    private void integrateIncludes(StringBuffer newConfig, String originalConfig) {
+    	
+        int begin,end;
+
+
+        begin = 0;
+        end = 0;
+
+        String finalCfg = null;
+
+        begin = originalConfig.indexOf("#[");
+        
+        while (begin >= 0) {
+            if (end == 0) {
+                newConfig.append(originalConfig.substring(0,begin));
+            } else {
+                newConfig.append(originalConfig.substring(end,begin));
+            }
+
+            end = originalConfig.indexOf(']',begin + 2);
+
+            String envVarName = originalConfig.substring(begin + 2,end);
+            
+            
+            
+            String defaultValue = "";
+            if (envVarName.contains(":")) {
+            	defaultValue = envVarName.substring(envVarName.indexOf(":") + 1);
+            	envVarName = envVarName.substring(0, envVarName.indexOf(":"));
+            }
+            
+            
+            String value = System.getenv(envVarName);
+            
+            
+
+            if (envVarName.equals("all")) {
+            	value = "#[all]";
+            } else if  (envVarName.equals("entry")) {
+            	value = "#[entry]";
+            } else if (value == null) {
+                value = System.getProperty(envVarName);
+            }
+
+            if (value == null) {
+            	
+                value = defaultValue;
+            }
+            
+            
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Environment Variable '" + envVarName + "'='" + value + "'");
+            }
+
+            newConfig.append(value);
+
+            begin = originalConfig.indexOf("#[",end + 1);
+            end++;
+
+        }
+
+        if (end != 0) {
+            newConfig.append(originalConfig.substring(end));
+        } else if (begin == -1 && end == 0) {
+        	//nothing found, return original value
+        	newConfig.append(originalConfig);
+        }
+
+        
+    }
 
     public Server(String configFile) throws FileNotFoundException, IOException {
         this.configFile = configFile;
 
+        String systemProps = System.getProperty("myvd.systemProps");
+        if (systemProps != null) {
+        	logger.info("Loading system properties from '" + systemProps + "'");
+        	Properties sysProps = new Properties();
+        	sysProps.load(new FileInputStream(systemProps));
+        	
+        	for (Object key : sysProps.keySet()) {
+        		logger.info("Adding system property '" + key + "'");
+        		System.setProperty((String)key, (String)sysProps.get(key));
+        	}
+        }
+        
+        
         this.props = new Properties();
-
-        props.load(new FileInputStream(this.configFile));
+        String rawConfig = null;
+        try {
+			rawConfig = Files.readString(Paths.get(new URI("file://" + this.configFile)));
+			StringBuffer newConfig = new StringBuffer();
+			integrateIncludes(newConfig,rawConfig);
+			rawConfig = newConfig.toString();
+		} catch (IOException | URISyntaxException e) {
+			logger.error("Couldn't load configuration",e);
+			System.exit(1);
+		}
+        
+        
+        props.load(new ByteArrayInputStream(rawConfig.getBytes("UTF-8")));
 
     }
 
@@ -171,10 +273,7 @@ public class Server {
     public void startServer() throws Exception {
         String portString;
 
-        //this is a hack for testing.
-        if (logger == null) {
-            getDefaultLog();
-        }
+
 
         String apachedsPath = this.configFile.substring(0, this.configFile.lastIndexOf(File.separator) + 1) + "apacheds-data";
 
@@ -436,9 +535,7 @@ public class Server {
 
     }
 
-    private static void getDefaultLog() {
-        logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
-    }
+
 
 	/*private void startLDAP(String portString,IoFilterChainBuilder chainBuilder) throws LdapNamingException, IOException {
 		if (! portString.equals("")) {
@@ -522,10 +619,7 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
 
-        if (System.getProperty("nolog", "0").equalsIgnoreCase("0")) {
-
-            Server.logger = org.apache.logging.log4j.LogManager.getLogger(Server.class.getName());
-        }
+        
 
         logger.info("MyVirtualDirectory Version : " + Server.VERSION);
         logger.info("Starting MyVirtualDirectory server...");
