@@ -43,6 +43,7 @@ import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
 import net.sourceforge.myvd.server.apacheds.MyVDInterceptor;
 import net.sourceforge.myvd.server.apacheds.MyVDReferalManager;
 
+
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
@@ -392,8 +393,14 @@ public class Server {
 
                 ldapServer.setTlsAllowedNames(allowedNames);
 
+                String keyAlias = props.getProperty("server.secure.alias");
+                if (keyAlias != null) {
+                    ldapServer.setTlsKeyAlias(keyAlias);
+                }
+                
                 ldapServer.setKeystoreFile(keyStorePath);
                 ldapServer.setCertificatePassword(keyStorePass);
+                
 
                 TcpTransport ldapsTransport = new TcpTransport(Integer.parseInt(portString));
                 ldapsTransport.enableSSL(true);
@@ -405,6 +412,8 @@ public class Server {
                 if (clientMode.equalsIgnoreCase("need")) {
                     ldapsTransport.setNeedClientAuth(true);
                 }
+                
+                
 
                 transports.add(ldapsTransport);
 

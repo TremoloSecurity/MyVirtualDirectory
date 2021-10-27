@@ -102,6 +102,7 @@ public class LdapsInitializer
         sslFilter.setNeedClientAuth( transport.isNeedClientAuth() );
         sslFilter.setWantClientAuth( transport.isWantClientAuth() );
         
+        
         chain.addLast( "sslFilter", sslFilter );
 
         return chain;

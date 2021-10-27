@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,10 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import net.sourceforge.myvd.server.ssl.AliasX509KeyManager;
 import net.sourceforge.myvd.server.ssl.MyVDTrustManager;
 
 import org.apache.directory.api.ldap.codec.api.LdapApiServiceFactory;
@@ -121,6 +124,7 @@ import org.apache.mina.filter.executor.UnorderedThreadPoolExecutor;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.AbstractSocketSessionConfig;
 import org.apache.mina.transport.socket.SocketAcceptor;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -280,6 +284,7 @@ public class LdapServer extends DirectoryBackedService
 
 	private ArrayList<String> tlsAllowedNames;
 
+    private String tlsKeyAlias;
 
     /**
      * Creates an LDAP protocol provider.
@@ -422,6 +427,25 @@ public class LdapServer extends DirectoryBackedService
             {
                 keyManagerFactory.init( keyStore, certificatePassword.toCharArray() );
             }
+
+            if (this.tlsKeyAlias != null) {
+                X509Certificate certForKey = (X509Certificate) keyStore.getCertificate(this.tlsKeyAlias);
+                if (certForKey == null) {
+                    throw new Exception("Key alias '" + tlsKeyAlias + "' does not exist");
+                }
+
+                DateTime now = new DateTime();
+                if (now.isBefore(certForKey.getNotBefore().getTime())) {
+                    throw new Exception("Key  '" + tlsKeyAlias + "' is not yet valid");
+                }
+
+                if (now.isAfter(certForKey.getNotAfter().getTime())) {
+                    throw new Exception("Key  '" + tlsKeyAlias + "' has expired and can not be used");
+                }
+            }
+
+
+
         }
     }
 
@@ -1817,16 +1841,29 @@ public class LdapServer extends DirectoryBackedService
 
 
 	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
-		SSLContext sslCtx;
-		// Initialize the SSLContext to work with our key managers.
-        sslCtx = SSLContext.getInstance( "TLS" );
-        
-        
-        
-        sslCtx.init( this.getKeyManagerFactory().getKeyManagers(), new TrustManager[]
-            { new MyVDTrustManager(this.keyStore,this.tlsAllowedNames) }, new SecureRandom() );
-        
-        return sslCtx;
+		
+        if (this.tlsKeyAlias == null) {
+            SSLContext sslCtx;
+            // Initialize the SSLContext to work with our key managers.
+            sslCtx = SSLContext.getInstance( "TLS" );
+            
+            
+            
+            sslCtx.init( this.getKeyManagerFactory().getKeyManagers(), new TrustManager[]
+                { new MyVDTrustManager(this.keyStore,this.tlsAllowedNames) }, new SecureRandom() );
+            
+            return sslCtx;
+        } else {
+            SSLContext sslc = SSLContext.getInstance("TLS");
+			
+			
+			KeyManager[] keyManagers = new KeyManager[1];
+			keyManagers[0] = new AliasX509KeyManager(this.tlsKeyAlias,(javax.net.ssl.X509ExtendedKeyManager)this.keyManagerFactory.getKeyManagers()[0],this.keyStore);
+			
+			sslc.init(keyManagers, null, null);
+			
+			return sslc;
+        }
 	}
 
 
@@ -1856,4 +1893,13 @@ public class LdapServer extends DirectoryBackedService
 		this.tlsAllowedNames = allowedNames;
 		
 	}
+
+
+    public void setTlsKeyAlias(String tlsKeyAlias) {
+        this.tlsKeyAlias = tlsKeyAlias;
+    }
+
+    public String getTlsKeyAlias() {
+        return tlsKeyAlias;
+    }
 }
