@@ -447,12 +447,12 @@ public class LDAPInterceptor implements Insert {
 
             String filterVal = filter.getValue();
             
-            filterVal = filterVal.replace("\\", "\\\\");
+            filterVal = filterVal.replace("\\", "\\5C");
             
-            if (filterVal.contains("\\,")) {
-                filterVal = filterVal.replaceAll("[\\\\][,]", "\\\\5C,");
+           /* if (filterVal.contains("\\")) {
+                filterVal = filterVal.replace("\\", "\\5C");
 
-            }
+            }*/
 
             if (this.maxOpMillis > 0) {
                 if (constraints == null) {

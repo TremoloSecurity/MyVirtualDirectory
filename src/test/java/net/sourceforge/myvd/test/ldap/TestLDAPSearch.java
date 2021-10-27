@@ -152,6 +152,23 @@ public class TestLDAPSearch  {
 	}
 
 	@Test
+	public void testSearchWithSlashInFilter() throws LDAPException {
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost", 50983);
+		// con.bind(3,"cn=admin,o=mycompany","manager".getBytes());
+		LDAPSearchResults res = con.search("o=mycompany,c=us", 2,
+				"(cn=Test\\\\User)", new String[0], false);
+
+		assertFalse(res.hasMore());
+
+		
+
+		con.disconnect();
+
+	}
+	
+	@Test
 	public void testEquals() throws LDAPException {
 
 		LDAPAttributeSet attribs = new LDAPAttributeSet();
