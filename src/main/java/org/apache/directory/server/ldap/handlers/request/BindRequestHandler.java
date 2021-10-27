@@ -27,7 +27,9 @@ import javax.security.sasl.SaslServer;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapAuthenticationException;
+
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
+import org.apache.directory.api.ldap.model.exception.LdapOperationException;
 import org.apache.directory.api.ldap.model.exception.LdapUnwillingToPerformException;
 import org.apache.directory.api.ldap.model.message.BindRequest;
 import org.apache.directory.api.ldap.model.message.BindResponse;
@@ -50,6 +52,8 @@ import org.apache.directory.server.ldap.handlers.sasl.MechanismHandler;
 import org.apache.directory.server.ldap.handlers.sasl.SaslConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.novell.ldap.LDAPException;
 
 /**
  * A single reply MessageReceived handler for {@link BindRequest}s.
@@ -206,16 +210,16 @@ public class BindRequestHandler extends LdapRequestHandler<BindRequest> {
             ResultCodeEnum code = null;
             LdapResult result = bindRequest.getResultResponse().getLdapResult();
 
-            if (e instanceof LdapUnwillingToPerformException) {
-                code = ResultCodeEnum.UNWILLING_TO_PERFORM;
-                result.setResultCode(code);
-            } else if (e instanceof LdapInvalidDnException) {
-                code = ResultCodeEnum.INVALID_DN_SYNTAX;
-                result.setResultCode(code);
+            if (e instanceof LdapOperationException ) {
+            	code = ((LdapOperationException)e).getResultCode();
+            	result.setResultCode(code);
             } else {
-                code = ResultCodeEnum.INVALID_CREDENTIALS;
-                result.setResultCode(code);
+            	code = ResultCodeEnum.OPERATIONS_ERROR;
+            	result.setResultCode(code);
             }
+            
+            
+            
 
             String msg = code.toString() + ": Bind failed: " + e.getLocalizedMessage();
 

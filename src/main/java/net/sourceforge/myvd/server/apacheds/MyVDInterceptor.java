@@ -262,6 +262,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		//how to track?
 		HashMap<Object,Object> userSession = this.getUserSession(bindContext);
+		bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
 		
 		DistinguishedName bindDN;
 		byte[] password;
@@ -764,6 +765,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 					userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
 					
 				}
+
+				Password currentSessionPassword = (Password) userSession.get("MYVD_BINDPASS");
 				
 				setTLSSessionParams(userSession,search.getSession());
 				
@@ -775,8 +778,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 					password = null;
 				} else {
 					bindDN = new DistinguishedName(search.getSession().getAuthenticatedPrincipal().getDn().getName());
-					if (search.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-						password = search.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+					if (currentSessionPassword != null) {
+						password = currentSessionPassword.getValue();
 					} else {
 						password = null;
 					}
@@ -850,7 +853,12 @@ public class MyVDInterceptor extends BaseInterceptor {
 					chain.nextSearch(new DistinguishedName(newdn.toString()), new Int(search.getScope().getScope()), filter, attrs, new Bool(search.isTypesOnly()), res, ldapsc);
 					res.start();
 				} catch (LDAPException e) {
+					logger.error("Error Searching",e);
+					
 					throw this.generateException(e);
+				} catch (Throwable t) {
+					logger.error("Throwable Searching",t);
+					throw new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(t.getMessage(), t);
 				}
 				
 				return new MyVDBaseCursor(new MyVDCursor(res,this.schemaManager),search,this.schemaManager);

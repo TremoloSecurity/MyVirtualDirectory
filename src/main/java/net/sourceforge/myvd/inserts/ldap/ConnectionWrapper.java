@@ -24,6 +24,8 @@ import org.xbill.DNS.Type;
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.Password;
 
+import java.util.UUID;
+
 import com.novell.ldap.DsmlConnection;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
@@ -43,14 +45,14 @@ public class ConnectionWrapper {
 	long lastAccessed;
 	
 	
-	
+	String uuid;
 	
 	public ConnectionWrapper(LDAPInterceptor interceptor) {
 		this.interceptor = interceptor;
 		this.locked = new Bool(false);
 		this.locked.setValue(false);
 		this.bindDN = null;
-		
+		this.uuid = UUID.randomUUID().toString();
 		
 	}
 	
@@ -240,6 +242,10 @@ public class ConnectionWrapper {
 	
 	public String toString() {
 		return Boolean.toString(this.locked.getValue());
+	}
+
+	public String getInfo() {
+		return new StringBuilder().append("uuid=").append(this.uuid).append("/").append("dn=").append(this.bindDN).toString();
 	}
 	
 }

@@ -139,6 +139,8 @@ public class Router {
     		dn.setDN(EMPTY_DN);
     		return;
     	}
+    	
+    	LDAPException lastException = null;
 
     	ArrayList<NameSpace> localBackends = getLocalLevels(chain, dn);
     	int num = 0;
@@ -151,16 +153,27 @@ public class Router {
     			localChain.nextBind(dn,pwd,constraints);
     		} catch (LDAPException e) {
     			if (e.getResultCode() == LDAPException.INVALID_CREDENTIALS || e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+    				if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
+    					lastException = e;
+    					logger.info("found no such object");
+    				}
     				num++;
     			} else {
     				throw e;
     			}
     		}
 
-    		if (num == localBackends.size()) {
-    			throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
-    		}
+    		
     	}
+    	
+    	//logger.info("Checking if failed auth " + localBackends.size() + " / " + lastException);
+    	if (num == localBackends.size()) {
+			if (lastException != null && localBackends.size() == 1) {
+				throw lastException;
+			} else {
+				throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
+			}
+		}
     }
 
 

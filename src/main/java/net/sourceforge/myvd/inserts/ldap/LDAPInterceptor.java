@@ -121,7 +121,9 @@ public class LDAPInterceptor implements Insert {
         this.proxyDN = (String) props.getProperty("proxyDN", "");
 
         this.proxyPass = props.getProperty("proxyPass", "").getBytes();
-
+        
+        
+        
         String type = props.getProperty("type", "LDAP");
 
         if (type.equalsIgnoreCase("LDAP")) {
@@ -237,7 +239,7 @@ public class LDAPInterceptor implements Insert {
             wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, new DN(entry.getEntry().getDN()), chain.getSession());
         }
 
-        LDAPConnection con = wrapper.getConnection();
+       LDAPConnection con = wrapper.getConnection();
 
         try {
             LDAPEntry remoteEntry = new LDAPEntry(this.getRemoteMappedDN(new DN(entry.getEntry().getDN())).toString(), entry.getEntry().getAttributeSet());
@@ -374,7 +376,6 @@ public class LDAPInterceptor implements Insert {
             wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
         LDAPConnection con = wrapper.getConnection();
-
         try {
             if (this.maxOpMillis > 0) {
                 if (constraints == null) {
@@ -445,6 +446,9 @@ public class LDAPInterceptor implements Insert {
             }
 
             String filterVal = filter.getValue();
+            
+            filterVal = filterVal.replace("\\", "\\\\");
+            
             if (filterVal.contains("\\,")) {
                 filterVal = filterVal.replaceAll("[\\\\][,]", "\\\\5C,");
 
