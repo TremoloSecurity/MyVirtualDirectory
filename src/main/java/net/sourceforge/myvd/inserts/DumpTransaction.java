@@ -238,7 +238,12 @@ public class DumpTransaction implements Insert {
 			Enumeration enumer = mod.getAttribute().getStringValues();
 			
 			while (enumer.hasMoreElements()) {
-				buf.append(mod.getAttribute().getName()).append(": ").append(enumer.nextElement().toString()).append('\n');
+				if (mod.getAttribute().getName().equalsIgnoreCase("userpassword")) {
+					enumer.nextElement();
+					buf.append(mod.getAttribute().getName()).append(": ").append("**********").append('\n');
+				} else {
+					buf.append(mod.getAttribute().getName()).append(": ").append(enumer.nextElement().toString()).append('\n');
+				}
 			}
 			
 			buf.append("-\n");
