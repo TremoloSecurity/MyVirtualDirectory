@@ -81,6 +81,25 @@ public class Entry {
 		
 		entry.getAttributeSet().add(newAttrib);
 	}
+	
+	public void copyAttribute(String oldAttribName,String newAttribName) {
+		LDAPAttribute attrib = entry.getAttribute(oldAttribName);
+		if (attrib == null) {
+			
+			
+			return;
+		}
+
+		
+		LDAPAttribute newAttrib = new LDAPAttribute(newAttribName);
+		
+		byte[][] vals = attrib.getByteValueArray();
+		for (int i=0,m=vals.length;i<m;i++) {
+			newAttrib.addValue(vals[i]);
+		}
+		
+		entry.getAttributeSet().add(newAttrib);
+	}
 
 	public void setEntry(LDAPEntry entry) {
 		this.entry = entry;

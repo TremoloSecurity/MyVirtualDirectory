@@ -159,7 +159,7 @@ public class CopyAttirbute implements Insert {
 		chain.nextPostSearchEntry(entry, base, scope, filter, attributes, typesOnly, constraints);
 		
 		if (entry.getEntry().getAttribute(this.targetAttribute) == null) {
-			entry.renameAttribute(sourceAttribute, targetAttribute);
+			entry.copyAttribute(sourceAttribute, targetAttribute);
 		}
 		
 
