@@ -128,7 +128,7 @@ public class AccessMgmt implements Insert {
 			LDAPConstraints constraints) throws LDAPException {
 		AccessControlItem aci = this.accessMgr.getApplicableACI(dn.getDN(),null,'d',chain);
 		this.checkPermisions(aci,aci == null ? false : aci.isDelete(),"Could not perform delete");
-
+		chain.nextDelete(dn, constraints);
 	}
 
 	public void extendedOperation(ExetendedOperationInterceptorChain chain,
