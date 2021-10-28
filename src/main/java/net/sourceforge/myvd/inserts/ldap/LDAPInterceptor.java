@@ -18,7 +18,9 @@ package net.sourceforge.myvd.inserts.ldap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -38,6 +40,8 @@ import net.sourceforge.myvd.types.DistinguishedName;
 import net.sourceforge.myvd.types.Entry;
 import net.sourceforge.myvd.types.ExtendedOperation;
 import net.sourceforge.myvd.types.Filter;
+import net.sourceforge.myvd.types.FilterNode;
+import net.sourceforge.myvd.types.FilterType;
 import net.sourceforge.myvd.types.Int;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
@@ -56,6 +60,7 @@ import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.controls.LDAPPagedResultsControl;
 import com.novell.ldap.util.DN;
 
+import org.apache.directory.ldap.client.api.search.FilterBuilder;
 import org.apache.logging.log4j.Logger;
 
 public class LDAPInterceptor implements Insert {
@@ -446,8 +451,13 @@ public class LDAPInterceptor implements Insert {
             }
 
             String filterVal = filter.getValue();
+            String convertedFilter = convertFilter(filter.getRoot()).toString();
             
-            filterVal = filterVal.replace("\\", "\\5C");
+            //filterVal = filterVal.replace("\\", "\\5C");
+            
+
+            
+            
             
            /* if (filterVal.contains("\\")) {
                 filterVal = filterVal.replace("\\", "\\5C");
@@ -461,13 +471,70 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            LDAPSearchResults res = con.search(remoteBase, scope.getValue(), filterVal, attribs, typesOnly.getValue(), constraints);
+            LDAPSearchResults res = con.search(remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
             chain.addResult(results, new LDAPEntrySet(this, wrapper, res, remoteBase, scope.getValue(), filter.getValue(), attribs, typesOnly.getValue(), constraints), base, scope, filter, attributes, typesOnly, constraints);
         } finally {
 
             this.returnLDAPConnection(wrapper);
         }
 
+    }
+    
+
+    FilterBuilder convertFilter(FilterNode root) {
+    	switch (root.getType()) {
+    		case EQUALS: return FilterBuilder.equal(root.getName(), root.getValue());
+    		case PRESENCE: return FilterBuilder.present(root.getName());
+    		case LESS_THEN: return FilterBuilder.lessThanOrEqual(root.getName(), root.getValue());
+    		case GREATER_THEN: return FilterBuilder.greaterThanOrEqual(root.getName(), root.getValue());
+    		case NOT: return FilterBuilder.not(convertFilter(root.getNot()));
+    		case AND:
+    			List<FilterBuilder> ands = new ArrayList<FilterBuilder>();
+    			
+    			
+    			for (FilterNode child : root.getChildren()) {
+    				ands.add(convertFilter(child));
+    			}
+    			
+    			return FilterBuilder.and( ands.toArray(new FilterBuilder[ands.size()]));
+    		case OR:
+    			List<FilterBuilder> ors = new ArrayList<FilterBuilder>();
+    			
+    			
+    			for (FilterNode child : root.getChildren()) {
+    				ors.add(convertFilter(child));
+    			}
+    			
+    			return FilterBuilder.or(ors.toArray(new FilterBuilder[ors.size()]));
+    		case SUBSTR:
+    			
+    			boolean startsWith = root.getValue().endsWith("*");
+    			boolean endsWith = root.getValue().startsWith("*");
+    			
+    			StringTokenizer toker = new StringTokenizer(root.getValue(),"*",false);
+    			List<String> parts = new ArrayList<String>();
+    			while (toker.hasMoreTokens()) {
+    				parts.add(toker.nextToken());
+    			}
+    			
+    			if (startsWith && ! endsWith) {
+    				return FilterBuilder.startsWith(root.getName(),parts.toArray(new String[parts.size()]));
+    			} else if (endsWith && ! startsWith) {
+    				return FilterBuilder.endsWith(root.getName(),parts.toArray(new String[parts.size()]));
+    			} else if (startsWith && endsWith) {
+    				return FilterBuilder.contains(root.getName(),parts.toArray(new String[parts.size()]));
+    			} else {
+    				return FilterBuilder.substring(root.getName(),parts.toArray(new String[parts.size()]));
+    			}
+    			
+    			
+    			
+    		case EXT:
+    			return FilterBuilder.extensible(root.getName(),root.getValue());
+    		default: return null;
+
+    	}
+    	
     }
 
     public String getHost() {
