@@ -227,7 +227,7 @@ public class FilterNode implements Cloneable {
 					   }
 					   
 					   enumer = attrib.getStringValues();
-					   String compval = this.value.replaceAll("\\*", ".*");
+					   String compval = this.value.replaceAll("\\*", ".*").replaceAll("\\+", ".+");
 					   while (enumer.hasMoreElements()) {
 						   if (enumer.nextElement().toString().matches(new StringBuilder().append("(?i:").append(compval).append(")").toString())) {
 							   return true;
