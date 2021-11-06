@@ -1,3 +1,21 @@
+# 1.0.11
+
+**bugs:**
+ - handle backslash in filters [\#115](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/115)
+ - ACLs: Delete not running after check [\#112](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/112)
+ - Copy Attribute is moving attributes [\#109](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/109)
+ - user session not persisting across connection [\#105](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/105)
+
+**tasks:**
+ - 1.0.11 release [\#114](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/114)
+
+**enhancements:**
+ - Pass better connection id information into the session [\#113](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/113)
+ - Mask userPassword attribute in DumpTransactions [\#111](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/111)
+ - Pin key for TLS listener [\#110](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/110)
+ - enabled parameters in configuration file [\#106](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/106)
+ - Add connection logging [\#104](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/104)
+
 # 1.0.10
 
 **tasks:**
