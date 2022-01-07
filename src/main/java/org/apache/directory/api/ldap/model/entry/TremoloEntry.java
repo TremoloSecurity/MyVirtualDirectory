@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -30,8 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
-
 import org.apache.directory.api.i18n.I18n;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -43,23 +41,24 @@ import org.apache.directory.api.ldap.model.ldif.LdifAttributesReader;
 import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.schema.AttributeType;
-import org.apache.directory.api.ldap.model.schema.MutableAttributeType;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.apache.directory.api.util.Base64;
 import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
+
 
 /**
  * A default implementation of a ServerEntry which should suite most
- * use cases.<br/>
- * <br/>
+ * use cases.<br>
+ * <br>
  * This class is final, it should not be extended.
  *
  * @author <a href="mailto:dev@directory.apache.org">Apache Directory Project</a>
  */
-public final class DefaultEntry implements Entry
+public final class TremoloEntry implements Entry
 {
     /** Used for serialization */
     private static final long serialVersionUID = 2L;
@@ -71,13 +70,13 @@ public final class DefaultEntry implements Entry
     private Dn dn;
 
     /** A map containing all the attributes for this entry */
-    private Map<String, Attribute> attributes = new HashMap<String, Attribute>();
+    private Map<String, Attribute> attributes = new HashMap<>();
 
     /** A speedup to get the ObjectClass attribute */
     private static AttributeType objectClassAttributeType;
 
     /** The SchemaManager */
-    private SchemaManager schemaManager;
+    private transient SchemaManager schemaManager;
 
     /** The computed hashcode. We don't want to compute it each time the hashcode() method is called */
     private volatile int h;
@@ -94,7 +93,7 @@ public final class DefaultEntry implements Entry
      * <p>
      * This entry <b>must</b> be initialized before being used !
      */
-    public DefaultEntry()
+    public TremoloEntry()
     {
         this( ( SchemaManager ) null );
     }
@@ -110,7 +109,7 @@ public final class DefaultEntry implements Entry
      *
      * @param schemaManager The reference to the schemaManager
      */
-    public DefaultEntry( SchemaManager schemaManager )
+    public TremoloEntry( SchemaManager schemaManager )
     {
         this.schemaManager = schemaManager;
         dn = Dn.EMPTY_DN;
@@ -129,7 +128,7 @@ public final class DefaultEntry implements Entry
      * @param dn The String Dn for this serverEntry. Can be null.
      * @throws LdapInvalidDnException If the Dn is invalid
      */
-    public DefaultEntry( String dn ) throws LdapInvalidDnException
+    public TremoloEntry( String dn ) throws LdapInvalidDnException
     {
         this.dn = new Dn( dn );
     }
@@ -140,7 +139,7 @@ public final class DefaultEntry implements Entry
      *
      * @param dn The Dn for this serverEntry. Can be null.
      */
-    public DefaultEntry( Dn dn )
+    public TremoloEntry( Dn dn )
     {
         this.dn = dn;
     }
@@ -158,7 +157,7 @@ public final class DefaultEntry implements Entry
      * @param dn The String Dn for this serverEntry. Can be null.
      * @throws LdapInvalidDnException If the Dn is invalid
      */
-    public DefaultEntry( SchemaManager schemaManager, String dn ) throws LdapInvalidDnException
+    public TremoloEntry( SchemaManager schemaManager, String dn ) throws LdapInvalidDnException
     {
         this.schemaManager = schemaManager;
 
@@ -168,8 +167,7 @@ public final class DefaultEntry implements Entry
         }
         else
         {
-            this.dn = new Dn( dn );
-            normalizeDN( this.dn );
+            this.dn = new Dn( schemaManager, dn );
         }
 
         // Initialize the ObjectClass object
@@ -188,7 +186,7 @@ public final class DefaultEntry implements Entry
      * @param schemaManager The reference to the schemaManager
      * @param dn The Dn for this serverEntry. Can be null.
      */
-    public DefaultEntry( SchemaManager schemaManager, Dn dn )
+    public TremoloEntry( SchemaManager schemaManager, Dn dn )
     {
         this.schemaManager = schemaManager;
 
@@ -198,8 +196,7 @@ public final class DefaultEntry implements Entry
         }
         else
         {
-            this.dn = dn;
-            normalizeDN( this.dn );
+            this.dn = normalizeDn( dn );
         }
 
         // Initialize the ObjectClass object
@@ -212,9 +209,11 @@ public final class DefaultEntry implements Entry
      * Dn and a list of IDs.
      *
      * @param dn The Dn for this serverEntry. Can be null.
-     * @param upIds The list of attributes to create.
+     * @param elements The list of elements to inject in the entry
+     * @throws LdapException If the elements are invalid
+     * @throws LdapException If the provided Dn or elements are invalid
      */
-    public DefaultEntry( String dn, Object... elements ) throws LdapException
+    public TremoloEntry( String dn, Object... elements ) throws LdapException
     {
         this( null, dn, elements );
     }
@@ -225,9 +224,10 @@ public final class DefaultEntry implements Entry
      * Dn and a list of IDs.
      *
      * @param dn The Dn for this serverEntry. Can be null.
-     * @param upIds The list of attributes to create.
+     * @param elements The list of attributes to create.
+     * @throws LdapException If the provided Dn or elements are invalid
      */
-    public DefaultEntry( Dn dn, Object... elements ) throws LdapException
+    public TremoloEntry( Dn dn, Object... elements ) throws LdapException
     {
         this( null, dn, elements );
     }
@@ -237,10 +237,12 @@ public final class DefaultEntry implements Entry
      * Creates a new instance of DefaultEntry, with a
      * Dn and a list of IDs.
      *
+     * @param schemaManager The SchemaManager
      * @param dn The Dn for this serverEntry. Can be null.
-     * @param upIds The list of attributes to create.
+     * @param elements The list of attributes to create.
+     * @throws LdapException If the provided Dn or elements are invalid
      */
-    public DefaultEntry( SchemaManager schemaManager, String dn, Object... elements ) throws LdapException
+    public TremoloEntry( SchemaManager schemaManager, String dn, Object... elements ) throws LdapException
     {
         this( schemaManager, new Dn( schemaManager, dn ), elements );
     }
@@ -250,20 +252,26 @@ public final class DefaultEntry implements Entry
      * Creates a new instance of DefaultEntry, with a
      * Dn and a list of IDs.
      *
+     * @param schemaManager The reference to the schemaManager
      * @param dn The Dn for this serverEntry. Can be null.
-     * @param upIds The list of attributes to create.
+     * @param elements The list of attributes to create.
+     * @throws LdapException If the provided Dn or Elements are invalid
      */
-    public DefaultEntry( SchemaManager schemaManager, Dn dn, Object... elements ) throws LdapException
+    public TremoloEntry( SchemaManager schemaManager, Dn dn, Object... elements ) throws LdapException
     {
         DefaultEntry entry = ( DefaultEntry ) createEntry( schemaManager, elements );
 
         this.dn = dn;
-        this.attributes = entry.attributes;
+        this.attributes = (Map<String, Attribute>) entry.getAttributes();
         this.schemaManager = schemaManager;
 
         if ( schemaManager != null )
         {
-            this.dn.apply( schemaManager );
+            if ( !dn.isSchemaAware() )
+            {
+                this.dn = new Dn( schemaManager, dn );
+            }
+
             initObjectClassAT();
         }
     }
@@ -280,13 +288,9 @@ public final class DefaultEntry implements Entry
      *
      * @param schemaManager The reference to the schemaManager
      * @param entry the entry to copy
+     * @throws LdapException If the provided entry is invalid
      */
-    /**
-     * @param schemaManager
-     * @param entry
-     * @throws LdapException
-     */
-    public DefaultEntry( SchemaManager schemaManager, Entry entry ) throws LdapException
+    public TremoloEntry( SchemaManager schemaManager, Entry entry ) throws LdapException
     {
         this.schemaManager = schemaManager;
 
@@ -296,8 +300,7 @@ public final class DefaultEntry implements Entry
         // We will clone the existing entry, because it may be normalized
         if ( entry.getDn() != null )
         {
-            dn = entry.getDn();
-            normalizeDN( dn );
+            dn = normalizeDn( entry.getDn() );
         }
         else
         {
@@ -305,7 +308,7 @@ public final class DefaultEntry implements Entry
         }
 
         // Init the attributes map
-        attributes = new HashMap<String, Attribute>( entry.size() );
+        attributes = new HashMap<>( entry.size() );
 
         // and copy all the attributes
         for ( Attribute attribute : entry )
@@ -318,9 +321,9 @@ public final class DefaultEntry implements Entry
                 if ( attributeType == null )
                 {
                     try {
-                    	attributeType = schemaManager.lookupAttributeTypeRegistry( attribute.getId() );
+                        attributeType = schemaManager.lookupAttributeTypeRegistry( attribute.getId() );
                     } catch (LdapNoSuchAttributeException e) {
-                    	attributeType = ApacheDSUtil.addAttributeToSchema(attribute, schemaManager);
+                        attributeType = ApacheDSUtil.addAttributeToSchema(attribute, schemaManager);
                     }
                 }
 
@@ -330,10 +333,14 @@ public final class DefaultEntry implements Entry
                 // And store it
                 add( serverAttribute );
             }
-            catch ( LdapException ne )
+            catch ( Exception ne )
             {
                 // Just log a warning
-                LOG.warn( "The attribute '" + attribute.getId() + "' cannot be stored" );
+                if ( LOG.isWarnEnabled() )
+                {
+                    LOG.warn( I18n.msg( I18n.MSG_13200_CANT_STORE_ATTRIBUTE, attribute.getId() ) );
+                }
+
                 throw ne;
             }
         }
@@ -343,10 +350,6 @@ public final class DefaultEntry implements Entry
     //-------------------------------------------------------------------------
     // Helper methods
     //-------------------------------------------------------------------------
-    
-
-    
-    
     private Entry createEntry( SchemaManager schemaManager, Object... elements )
         throws LdapInvalidAttributeValueException, LdapLdifException
     {
@@ -361,7 +364,7 @@ public final class DefaultEntry implements Entry
                 if ( !( element instanceof String ) )
                 {
                     throw new LdapInvalidAttributeValueException( ResultCodeEnum.INVALID_ATTRIBUTE_SYNTAX, I18n.err(
-                        I18n.ERR_12085, ( pos + 1 ) ) );
+                        I18n.ERR_13233_ATTRIBUTE_ID_MUST_BE_A_STRING, pos + 1 ) );
                 }
 
                 String attribute = ( String ) element;
@@ -391,7 +394,7 @@ public final class DefaultEntry implements Entry
                 else
                 {
                     throw new LdapInvalidAttributeValueException( ResultCodeEnum.INVALID_ATTRIBUTE_SYNTAX, I18n.err(
-                        I18n.ERR_12086, ( pos + 1 ) ) );
+                        I18n.ERR_13234_ATTRIBUTE_VAL_STRING_OR_BYTE, pos + 1 ) );
                 }
 
                 valueExpected = false;
@@ -401,43 +404,34 @@ public final class DefaultEntry implements Entry
         if ( valueExpected )
         {
             throw new LdapInvalidAttributeValueException( ResultCodeEnum.INVALID_ATTRIBUTE_SYNTAX, I18n
-                .err( I18n.ERR_12087 ) );
+                .err( I18n.ERR_13250_VALUE_MISSING_AT_THE_END ) );
         }
 
-        LdifAttributesReader reader = null;
-        
-        try
-        { 
-            reader = new LdifAttributesReader();
-            Entry entry = reader.parseEntry( schemaManager, sb.toString() );
-    
-            return entry;
-        }
-        finally
+        try ( LdifAttributesReader reader = new LdifAttributesReader() )
         {
-            try
-            {
-                reader.close();
-            }
-            catch ( IOException e )
-            {
-                e.printStackTrace();
-            }
+            return reader.parseEntry( schemaManager, sb.toString() );
+        }
+        catch ( IOException e )
+        {
+            throw new LdapLdifException( I18n.err( I18n.ERR_13248_CANNOT_READ_ENTRY ), e );
         }
     }
 
 
     /**
      * Get the trimmed and lower cased entry ID
+     *
+     * @param upId The ID
+     * @return The retrieved ID
      */
     private String getId( String upId )
     {
-        String id = Strings.trim( Strings.toLowerCase( upId ) );
+        String id = Strings.trim( Strings.toLowerCaseAscii( upId ) );
 
         // If empty, throw an error
         if ( Strings.isEmpty( id ) )
         {
-            String message = I18n.err( I18n.ERR_04133 );
+            String message = I18n.err( I18n.ERR_13216_AT_ID_NULL );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -448,18 +442,20 @@ public final class DefaultEntry implements Entry
 
     /**
      * Get the UpId if it is null.
-     * 
+     *
      * @param upId The ID
+     * @param attributeType The AttributeType to retrieve
+     * @return the retrieved ID
      */
     private String getUpId( String upId, AttributeType attributeType )
     {
         String normUpId = Strings.trim( upId );
 
-        if ( ( attributeType == null ) )
+        if ( attributeType == null )
         {
             if ( Strings.isEmpty( normUpId ) )
             {
-                String message = I18n.err( I18n.ERR_04458 );
+                String message = I18n.err( I18n.ERR_13226_CANNOT_ADD_ATTRIBUTE_NO_ID );
                 LOG.error( message );
                 throw new IllegalArgumentException( message );
             }
@@ -521,23 +517,33 @@ public final class DefaultEntry implements Entry
 
 
     /**
-     * normalizes the given Dn if it was not already normalized
+     * Normalizes the given Dn if it was not already normalized
      *
      * @param dn the Dn to be normalized
+     * @return The normalized Dn
      */
-    private void normalizeDN( Dn dn )
+    private Dn normalizeDn( Dn dn )
     {
         if ( !dn.isSchemaAware() )
         {
             try
             {
                 // The dn must be normalized
-                dn.apply( schemaManager );
+                return new Dn( schemaManager, dn );
             }
             catch ( LdapException ne )
             {
-                LOG.warn( "The Dn '{}' cannot be normalized", dn );
+                if ( LOG.isWarnEnabled() )
+                {
+                    LOG.warn( I18n.msg( I18n.MSG_13201_DN_CANT_BE_NORMALIZED, dn ) );
+                }
+
+                return dn;
             }
+        }
+        else
+        {
+            return dn;
         }
     }
 
@@ -547,8 +553,8 @@ public final class DefaultEntry implements Entry
      */
     private void rehash()
     {
-        h = 37;
-        h = h * 17 + dn.hashCode();
+        int hTmp = 37;
+        h = hTmp * 17 + dn.hashCode();
     }
 
 
@@ -557,6 +563,11 @@ public final class DefaultEntry implements Entry
      * default to the AttributeType name.
      *
      * Updates the AttributeMap.
+     *
+     * @param upId The user provided ID for the attribute to create
+     * @param attributeType The AttributeType to use
+     * @param values The values to add to this attribute
+     * @throws LdapInvalidAttributeValueException If one of the value is incorrect
      */
     protected void createAttribute( String upId, AttributeType attributeType, byte[]... values )
         throws LdapInvalidAttributeValueException
@@ -572,6 +583,11 @@ public final class DefaultEntry implements Entry
      * default to the AttributeType name.
      *
      * Updates the AttributeMap.
+     *
+     * @param upId The user provided ID for the attribute to create
+     * @param attributeType The AttributeType to use
+     * @param values The values to add to this attribute
+     * @throws LdapInvalidAttributeValueException If one of the value is incorrect
      */
     protected void createAttribute( String upId, AttributeType attributeType, String... values )
         throws LdapInvalidAttributeValueException
@@ -587,8 +603,13 @@ public final class DefaultEntry implements Entry
      * default to the AttributeType name.
      *
      * Updates the AttributeMap.
+     *
+     * @param upId The user provided ID for the attribute to create
+     * @param attributeType The AttributeType to use
+     * @param values The values to add to this attribute
+     * @throws LdapInvalidAttributeValueException If one of the value is incorrect
      */
-    protected void createAttribute( String upId, AttributeType attributeType, Value<?>... values )
+    protected void createAttribute( String upId, AttributeType attributeType, Value... values )
         throws LdapInvalidAttributeValueException
     {
         Attribute attribute = new DefaultAttribute( attributeType, values );
@@ -599,12 +620,16 @@ public final class DefaultEntry implements Entry
 
     /**
      * Returns the attributeType from an Attribute ID.
+     *
+     * @param upId The ID we are looking for
+     * @return The found attributeType
+     * @throws LdapException If the lookup failed
      */
     protected AttributeType getAttributeType( String upId ) throws LdapException
     {
         if ( Strings.isEmpty( Strings.trim( upId ) ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -619,18 +644,19 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( AttributeType attributeType, byte[]... values ) throws LdapException
     {
         if ( attributeType == null )
         {
-            String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
 
         if ( ( values == null ) || ( values.length == 0 ) )
         {
-            String message = I18n.err( I18n.ERR_04478_NO_VALUE_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13232_NO_VALUE_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -638,7 +664,7 @@ public final class DefaultEntry implements Entry
         // ObjectClass with binary values are not allowed
         if ( attributeType.equals( objectClassAttributeType ) )
         {
-            String message = I18n.err( I18n.ERR_04461 );
+            String message = I18n.err( I18n.ERR_13227_NON_STRING_VALUE_NOT_ALLOWED );
             LOG.error( message );
             throw new UnsupportedOperationException( message );
         }
@@ -658,7 +684,7 @@ public final class DefaultEntry implements Entry
             // createAttribute method
             createAttribute( null, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -666,11 +692,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( AttributeType attributeType, String... values ) throws LdapException
     {
         if ( attributeType == null )
         {
-            String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -690,7 +717,7 @@ public final class DefaultEntry implements Entry
             // createAttribute method
             createAttribute( null, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -698,11 +725,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Entry add( AttributeType attributeType, Value<?>... values ) throws LdapException
+    @Override
+    public Entry add( AttributeType attributeType, Value... values ) throws LdapException
     {
         if ( attributeType == null )
         {
-            String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -722,7 +750,7 @@ public final class DefaultEntry implements Entry
             // createAttribute method
             createAttribute( null, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -730,12 +758,13 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( String upId, AttributeType attributeType, byte[]... values ) throws LdapException
     {
         // ObjectClass with binary values are not allowed
         if ( attributeType.equals( objectClassAttributeType ) )
         {
-            String message = I18n.err( I18n.ERR_04461 );
+            String message = I18n.err( I18n.ERR_13227_NON_STRING_VALUE_NOT_ALLOWED );
             LOG.error( message );
             throw new UnsupportedOperationException( message );
         }
@@ -757,7 +786,7 @@ public final class DefaultEntry implements Entry
             // and the upId
             createAttribute( id, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -765,11 +794,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Entry add( String upId, AttributeType attributeType, Value<?>... values ) throws LdapException
+    @Override
+    public Entry add( String upId, AttributeType attributeType, Value... values ) throws LdapException
     {
         if ( attributeType == null )
         {
-            String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -789,7 +819,7 @@ public final class DefaultEntry implements Entry
         {
             createAttribute( id, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -797,11 +827,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( String upId, AttributeType attributeType, String... values ) throws LdapException
     {
         if ( attributeType == null )
         {
-            String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+            String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -823,7 +854,7 @@ public final class DefaultEntry implements Entry
             // and the upId
             createAttribute( id, attributeType, values );
         }
-        
+
         return this;
     }
 
@@ -831,6 +862,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( Attribute... attributes ) throws LdapException
     {
         // Loop on all the added attributes
@@ -848,7 +880,7 @@ public final class DefaultEntry implements Entry
                     // Just add the new values into it.
                     Attribute existingAttribute = this.attributes.get( oid );
 
-                    for ( Value<?> value : attribute )
+                    for ( Value value : attribute )
                     {
                         existingAttribute.add( value );
                     }
@@ -870,7 +902,7 @@ public final class DefaultEntry implements Entry
                     Attribute existingAttribute = get( attribute.getId() );
 
                     // Loop on all the values, and add them to the existing attribute
-                    for ( Value<?> value : attribute )
+                    for ( Value value : attribute )
                     {
                         existingAttribute.add( value );
                     }
@@ -882,7 +914,7 @@ public final class DefaultEntry implements Entry
                 }
             }
         }
-        
+
         return this;
     }
 
@@ -890,11 +922,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( String upId, byte[]... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -926,7 +959,7 @@ public final class DefaultEntry implements Entry
                 attributes.put( id, new DefaultAttribute( upId, values ) );
             }
         }
-        
+
         return this;
     }
 
@@ -934,11 +967,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Entry add( String upId, String... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -970,7 +1004,7 @@ public final class DefaultEntry implements Entry
                 attributes.put( id, new DefaultAttribute( upId, values ) );
             }
         }
-        
+
         return this;
     }
 
@@ -978,11 +1012,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Entry add( String upId, Value<?>... values ) throws LdapException
+    @Override
+    public Entry add( String upId, Value... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -1014,7 +1049,7 @@ public final class DefaultEntry implements Entry
                 attributes.put( id, new DefaultAttribute( upId, values ) );
             }
         }
-        
+
         return this;
     }
 
@@ -1024,11 +1059,11 @@ public final class DefaultEntry implements Entry
      * the original object won't affect the cloned object, as a modification
      * on the cloned object has no impact on the original object
      */
-    @SuppressWarnings("unchecked")
+    @Override
     public Entry clone()
     {
         // First, clone the structure
-        DefaultEntry clone = ( DefaultEntry ) shallowClone();
+        TremoloEntry clone = ( TremoloEntry ) shallowClone();
 
         // now clone all the attributes
         clone.attributes.clear();
@@ -1052,6 +1087,42 @@ public final class DefaultEntry implements Entry
 
         // We are done !
         return clone;
+
+        /*
+        // First, clone the structure
+        //DefaultEntry clone = ( DefaultEntry ) shallowClone();
+        try
+        {
+            DefaultEntry clone = ( DefaultEntry ) super.clone();
+            clone.attributes = new HashMap<>( attributes.size() );
+
+            // now clone all the attributes
+            //clone.attributes.clear();
+
+            if ( schemaManager != null )
+            {
+                for ( Attribute attribute : attributes.values() )
+                {
+                    String oid = attribute.getAttributeType().getOid();
+                    clone.attributes.put( oid, attribute.clone() );
+                }
+            }
+            else
+            {
+                for ( Attribute attribute : attributes.values() )
+                {
+                    clone.attributes.put( attribute.getId(), attribute.clone() );
+                }
+            }
+
+            // We are done !
+            return clone;
+        }
+        catch ( CloneNotSupportedException cnse )
+        {
+            return this;
+        }
+        */
     }
 
 
@@ -1059,21 +1130,17 @@ public final class DefaultEntry implements Entry
      * Shallow clone an entry. We don't clone the Attributes
      */
     @SuppressWarnings("unchecked")
+    @Override
     public Entry shallowClone()
     {
         try
         {
             // First, clone the structure
-            DefaultEntry clone = ( DefaultEntry ) super.clone();
-
-            // Just in case ... Should *never* happen
-            if ( clone == null )
-            {
-                return null;
-            }
+            TremoloEntry clone = ( TremoloEntry ) super.clone();
 
             // An Entry has a Dn and many attributes.
-            clone.dn = dn; // note that Dn is immutable now
+            // note that Dn is immutable now
+            clone.dn = dn;
 
             // then clone the ClientAttribute Map.
             clone.attributes = ( Map<String, Attribute> ) ( ( ( HashMap<String, Attribute> ) attributes )
@@ -1092,6 +1159,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean contains( Attribute... attributes )
     {
         if ( schemaManager == null )
@@ -1134,6 +1202,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean containsAttribute( String... attributes )
     {
         if ( schemaManager == null )
@@ -1175,6 +1244,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean containsAttribute( AttributeType attributeType )
     {
         if ( attributeType == null )
@@ -1189,6 +1259,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean contains( AttributeType attributeType, byte[]... values )
     {
         if ( attributeType == null )
@@ -1212,6 +1283,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean contains( AttributeType attributeType, String... values )
     {
         if ( attributeType == null )
@@ -1235,7 +1307,8 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public boolean contains( AttributeType attributeType, Value<?>... values )
+    @Override
+    public boolean contains( AttributeType attributeType, Value... values )
     {
         if ( attributeType == null )
         {
@@ -1258,6 +1331,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean contains( String upId, byte[]... values )
     {
         if ( Strings.isEmpty( upId ) )
@@ -1293,6 +1367,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean contains( String upId, String... values )
     {
         if ( Strings.isEmpty( upId ) )
@@ -1328,7 +1403,8 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public boolean contains( String upId, Value<?>... values )
+    @Override
+    public boolean contains( String upId, Value... values )
     {
         if ( Strings.isEmpty( upId ) )
         {
@@ -1363,6 +1439,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute get( String alias )
     {
         try
@@ -1391,7 +1468,7 @@ public final class DefaultEntry implements Entry
         }
         catch ( IllegalArgumentException iea )
         {
-            LOG.error( I18n.err( I18n.ERR_04134, alias ) );
+            LOG.error( I18n.err( I18n.ERR_13217_FAILED_LOOKUP_AT, alias ) );
             return null;
         }
     }
@@ -1400,6 +1477,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute get( AttributeType attributeType )
     {
         if ( attributeType != null )
@@ -1416,6 +1494,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<Attribute> getAttributes()
     {
         return Collections.unmodifiableMap( attributes ).values();
@@ -1425,11 +1504,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( String upId, byte[]... values )
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -1453,9 +1533,9 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                String message = I18n.err( I18n.ERR_04464, upId, ne.getLocalizedMessage() );
+                String message = I18n.err( I18n.ERR_13212_ERROR_ADDING_VALUE, upId, ne.getLocalizedMessage() );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, ne );
             }
         }
     }
@@ -1464,11 +1544,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( String upId, String... values )
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -1492,9 +1573,9 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                String message = I18n.err( I18n.ERR_04464, upId, ne.getLocalizedMessage() );
+                String message = I18n.err( I18n.ERR_13212_ERROR_ADDING_VALUE, upId, ne.getLocalizedMessage() );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, ne );
             }
         }
     }
@@ -1503,11 +1584,12 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Attribute put( String upId, Value<?>... values )
+    @Override
+    public Attribute put( String upId, Value... values )
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
+            String message = I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID );
             LOG.error( message );
             throw new IllegalArgumentException( message );
         }
@@ -1531,47 +1613,10 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                String message = I18n.err( I18n.ERR_04464, upId, ne.getLocalizedMessage() );
+                String message = I18n.err( I18n.ERR_13212_ERROR_ADDING_VALUE, upId, ne.getLocalizedMessage() );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, ne );
             }
-        }
-    }
-
-
-    /**
-     * {@inheritDoc}
-     **
-    public List<Attribute> set( AttributeType... attributeTypes )
-    {
-        List<Attribute> removed = new ArrayList<Attribute>();
-
-        // Now, loop on all the attributeType to add
-        for ( AttributeType attributeType : attributeTypes )
-        {
-            if ( attributeType == null )
-            {
-                String message = I18n.err( I18n.ERR_04467 );
-                LOG.error( message );
-                continue;
-            }
-
-            Attribute attribute = attributes.put( attributeType.getOid(),
-                new DefaultAttribute( attributeType ) );
-
-            if ( attribute != null )
-            {
-                removed.add( attribute );
-            }
-        }
-
-        if ( removed.size() == 0 )
-        {
-            return null;
-        }
-        else
-        {
-            return removed;
         }
     }
 
@@ -1579,10 +1624,11 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<Attribute> put( Attribute... attributes ) throws LdapException
     {
         // First, get the existing attributes
-        List<Attribute> previous = new ArrayList<Attribute>();
+        List<Attribute> previous = new ArrayList<>();
 
         if ( schemaManager == null )
         {
@@ -1607,7 +1653,7 @@ public final class DefaultEntry implements Entry
             {
                 if ( attribute == null )
                 {
-                    String message = I18n.err( I18n.ERR_04462 );
+                    String message = I18n.err( I18n.ERR_13228_AT_LIST_NULL_ELEMENTS );
                     LOG.error( message );
                     throw new IllegalArgumentException( message );
                 }
@@ -1635,6 +1681,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( AttributeType attributeType, byte[]... values ) throws LdapException
     {
         return put( null, attributeType, values );
@@ -1644,6 +1691,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( AttributeType attributeType, String... values ) throws LdapException
     {
         return put( null, attributeType, values );
@@ -1653,7 +1701,8 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Attribute put( AttributeType attributeType, Value<?>... values ) throws LdapException
+    @Override
+    public Attribute put( AttributeType attributeType, Value... values ) throws LdapException
     {
         return put( null, attributeType, values );
     }
@@ -1662,6 +1711,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( String upId, AttributeType attributeType, byte[]... values ) throws LdapException
     {
         if ( attributeType == null )
@@ -1672,9 +1722,9 @@ public final class DefaultEntry implements Entry
             }
             catch ( Exception e )
             {
-                String message = I18n.err( I18n.ERR_04477_NO_VALID_AT_FOR_THIS_ID );
+                String message = I18n.err( I18n.ERR_13231_NO_VALID_AT_FOR_THIS_ID );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, e );
             }
         }
         else
@@ -1685,7 +1735,7 @@ public final class DefaultEntry implements Entry
 
                 if ( !tempAT.equals( attributeType ) )
                 {
-                    String message = I18n.err( I18n.ERR_04463, upId, attributeType );
+                    String message = I18n.err( I18n.ERR_13229_ID_INCOMPATIBLE_WITH_AT, upId, attributeType );
                     LOG.error( message );
                     throw new IllegalArgumentException( message );
                 }
@@ -1698,7 +1748,7 @@ public final class DefaultEntry implements Entry
 
         if ( attributeType.equals( objectClassAttributeType ) )
         {
-            String message = I18n.err( I18n.ERR_04461 );
+            String message = I18n.err( I18n.ERR_13227_NON_STRING_VALUE_NOT_ALLOWED );
             LOG.error( message );
             throw new UnsupportedOperationException( message );
         }
@@ -1712,6 +1762,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public Attribute put( String upId, AttributeType attributeType, String... values ) throws LdapException
     {
         if ( attributeType == null )
@@ -1722,9 +1773,9 @@ public final class DefaultEntry implements Entry
             }
             catch ( Exception e )
             {
-                String message = I18n.err( I18n.ERR_04477_NO_VALID_AT_FOR_THIS_ID );
+                String message = I18n.err( I18n.ERR_13231_NO_VALID_AT_FOR_THIS_ID );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, e );
             }
         }
         else
@@ -1735,7 +1786,7 @@ public final class DefaultEntry implements Entry
 
                 if ( !tempAT.equals( attributeType ) )
                 {
-                    String message = I18n.err( I18n.ERR_04463, upId, attributeType );
+                    String message = I18n.err( I18n.ERR_13229_ID_INCOMPATIBLE_WITH_AT, upId, attributeType );
                     LOG.error( message );
                     throw new IllegalArgumentException( message );
                 }
@@ -1755,7 +1806,8 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public Attribute put( String upId, AttributeType attributeType, Value<?>... values ) throws LdapException
+    @Override
+    public Attribute put( String upId, AttributeType attributeType, Value... values ) throws LdapException
     {
         if ( attributeType == null )
         {
@@ -1765,9 +1817,9 @@ public final class DefaultEntry implements Entry
             }
             catch ( Exception e )
             {
-                String message = I18n.err( I18n.ERR_04477_NO_VALID_AT_FOR_THIS_ID );
+                String message = I18n.err( I18n.ERR_13231_NO_VALID_AT_FOR_THIS_ID );
                 LOG.error( message );
-                throw new IllegalArgumentException( message );
+                throw new IllegalArgumentException( message, e );
             }
         }
         else
@@ -1778,7 +1830,7 @@ public final class DefaultEntry implements Entry
 
                 if ( !tempAT.equals( attributeType ) )
                 {
-                    String message = I18n.err( I18n.ERR_04463, upId, attributeType );
+                    String message = I18n.err( I18n.ERR_13229_ID_INCOMPATIBLE_WITH_AT, upId, attributeType );
                     LOG.error( message );
                     throw new IllegalArgumentException( message );
                 }
@@ -1798,9 +1850,10 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<Attribute> remove( Attribute... attributes ) throws LdapException
     {
-        List<Attribute> removedAttributes = new ArrayList<Attribute>();
+        List<Attribute> removedAttributes = new ArrayList<>();
 
         if ( schemaManager == null )
         {
@@ -1821,7 +1874,7 @@ public final class DefaultEntry implements Entry
 
                 if ( attributeType == null )
                 {
-                    String message = I18n.err( I18n.ERR_04460_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
+                    String message = I18n.err( I18n.ERR_13203_ATTRIBUTE_TYPE_NULL_NOT_ALLOWED );
                     LOG.error( message );
                     throw new IllegalArgumentException( message );
                 }
@@ -1841,6 +1894,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean remove( AttributeType attributeType, byte[]... values ) throws LdapException
     {
         if ( attributeType == null )
@@ -1875,7 +1929,7 @@ public final class DefaultEntry implements Entry
         }
         catch ( IllegalArgumentException iae )
         {
-            LOG.error( I18n.err( I18n.ERR_04465, attributeType ) );
+            LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, attributeType ) );
             return false;
         }
     }
@@ -1884,6 +1938,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean remove( AttributeType attributeType, String... values ) throws LdapException
     {
         if ( attributeType == null )
@@ -1918,7 +1973,7 @@ public final class DefaultEntry implements Entry
         }
         catch ( IllegalArgumentException iae )
         {
-            LOG.error( I18n.err( I18n.ERR_04465, attributeType ) );
+            LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, attributeType ) );
             return false;
         }
     }
@@ -1927,7 +1982,8 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
-    public boolean remove( AttributeType attributeType, Value<?>... values ) throws LdapException
+    @Override
+    public boolean remove( AttributeType attributeType, Value... values ) throws LdapException
     {
         if ( attributeType == null )
         {
@@ -1961,7 +2017,7 @@ public final class DefaultEntry implements Entry
         }
         catch ( IllegalArgumentException iae )
         {
-            LOG.error( I18n.err( I18n.ERR_04465, attributeType ) );
+            LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, attributeType ) );
             return false;
         }
     }
@@ -1980,8 +2036,8 @@ public final class DefaultEntry implements Entry
      * </p>
      *
      * @param attributes the AttributeTypes to be removed
-     * @return the removed attributes, if any, as a list; otherwise <code>null</code>
      */
+    @Override
     public void removeAttributes( AttributeType... attributes )
     {
         if ( ( attributes == null ) || ( attributes.length == 0 ) || ( schemaManager == null ) )
@@ -2004,6 +2060,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public void removeAttributes( String... attributes )
     {
         if ( attributes.length == 0 )
@@ -2023,9 +2080,10 @@ public final class DefaultEntry implements Entry
                 }
                 else
                 {
-                    String message = I18n.err( I18n.ERR_04137, attribute );
-                    LOG.warn( message );
-                    continue;
+                    if ( LOG.isWarnEnabled() )
+                    {
+                        LOG.warn( I18n.err( I18n.ERR_13218_AT_DOES_NOT_EXIST, attribute ) );
+                    }
                 }
             }
         }
@@ -2041,8 +2099,11 @@ public final class DefaultEntry implements Entry
                 }
                 catch ( LdapException ne )
                 {
-                    String message = "The attribute '" + attribute + "' does not exist in the entry";
-                    LOG.warn( message );
+                    if ( LOG.isWarnEnabled() )
+                    {
+                        LOG.warn( I18n.msg( I18n.MSG_13203_MISSING_ATTRIBUTE_IN_ENTRY, attribute ) );
+                    }
+
                     continue;
                 }
 
@@ -2073,12 +2134,16 @@ public final class DefaultEntry implements Entry
      * @return <code>true</code> if at least a value is removed, <code>false</code>
      * if not all the values have been removed or if the attribute does not exist.
      */
+    @Override
     public boolean remove( String upId, byte[]... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
-            LOG.info( message );
+            if ( LOG.isInfoEnabled() )
+            {
+                LOG.info( I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID ) );
+            }
+
             return false;
         }
 
@@ -2119,12 +2184,12 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                LOG.error( I18n.err( I18n.ERR_04465, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, upId ) );
                 return false;
             }
             catch ( IllegalArgumentException iae )
             {
-                LOG.error( I18n.err( I18n.ERR_04466, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13206_CANNOT_REMOVE_VAL_BAD_ATTR, upId ) );
                 return false;
             }
         }
@@ -2153,12 +2218,16 @@ public final class DefaultEntry implements Entry
      * @return <code>true</code> if at least a value is removed, <code>false</code>
      * if not all the values have been removed or if the attribute does not exist.
      */
+    @Override
     public boolean remove( String upId, String... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
-            LOG.info( message );
+            if ( LOG.isInfoEnabled() )
+            {
+                LOG.info( I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID ) );
+            }
+
             return false;
         }
 
@@ -2199,12 +2268,12 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                LOG.error( I18n.err( I18n.ERR_04465, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, upId ) );
                 return false;
             }
             catch ( IllegalArgumentException iae )
             {
-                LOG.error( I18n.err( I18n.ERR_04466, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13206_CANNOT_REMOVE_VAL_BAD_ATTR, upId ) );
                 return false;
             }
         }
@@ -2232,12 +2301,16 @@ public final class DefaultEntry implements Entry
      * @return <code>true</code> if at least a value is removed, <code>false</code>
      * if not all the values have been removed or if the attribute does not exist.
      */
-    public boolean remove( String upId, Value<?>... values ) throws LdapException
+    @Override
+    public boolean remove( String upId, Value... values ) throws LdapException
     {
         if ( Strings.isEmpty( upId ) )
         {
-            String message = I18n.err( I18n.ERR_04457_NULL_ATTRIBUTE_ID );
-            LOG.info( message );
+            if ( LOG.isInfoEnabled() )
+            {
+                LOG.info( I18n.err( I18n.ERR_13204_NULL_ATTRIBUTE_ID ) );
+            }
+
             return false;
         }
 
@@ -2278,12 +2351,12 @@ public final class DefaultEntry implements Entry
             }
             catch ( LdapException ne )
             {
-                LOG.error( I18n.err( I18n.ERR_04465, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13205_CANNOT_REMOVE_VAL_MISSING_ATTR, upId ) );
                 return false;
             }
             catch ( IllegalArgumentException iae )
             {
-                LOG.error( I18n.err( I18n.ERR_04466, upId ) );
+                LOG.error( I18n.err( I18n.ERR_13206_CANNOT_REMOVE_VAL_BAD_ATTR, upId ) );
                 return false;
             }
         }
@@ -2295,6 +2368,7 @@ public final class DefaultEntry implements Entry
      *
      * @return The entry's Dn
      */
+    @Override
     public Dn getDn()
     {
         return dn;
@@ -2304,6 +2378,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setDn( Dn dn )
     {
         this.dn = dn;
@@ -2316,6 +2391,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setDn( String dn ) throws LdapInvalidDnException
     {
         setDn( new Dn( dn ) );
@@ -2325,6 +2401,7 @@ public final class DefaultEntry implements Entry
     /**
      * Remove all the attributes for this entry. The Dn is not reset
      */
+    @Override
     public void clear()
     {
         attributes.clear();
@@ -2338,9 +2415,10 @@ public final class DefaultEntry implements Entry
      *
      * @return an enumeration of all contained attributes
      */
+    @Override
     public Iterator<Attribute> iterator()
     {
-        return Collections.unmodifiableMap( attributes ).values().iterator();
+        return attributes.values().iterator();
     }
 
 
@@ -2349,6 +2427,7 @@ public final class DefaultEntry implements Entry
      *
      * @return the number of attributes
      */
+    @Override
     public int size()
     {
         return attributes.size();
@@ -2358,7 +2437,7 @@ public final class DefaultEntry implements Entry
     /**
      * This is the place where we serialize entries, and all theirs
      * elements.
-     * <br/>
+     * <br>
      * The structure used to store the entry is the following :
      * <ul>
      *   <li>
@@ -2371,9 +2450,10 @@ public final class DefaultEntry implements Entry
      *     <b>[attribute]*</b> : each attribute, if we have some
      *   </li>
      * </ul>
-     * 
+     *
      * {@inheritDoc}
      */
+    @Override
     public void writeExternal( ObjectOutput out ) throws IOException
     {
         // First, the Dn
@@ -2406,6 +2486,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public void readExternal( ObjectInput in ) throws IOException, ClassNotFoundException
     {
         // Read the Dn
@@ -2435,7 +2516,7 @@ public final class DefaultEntry implements Entry
                 {
                     String message = le.getLocalizedMessage();
                     LOG.error( message );
-                    throw new IOException( message );
+                    throw new IOException( message, le );
                 }
             }
             else
@@ -2453,6 +2534,7 @@ public final class DefaultEntry implements Entry
      * @see java.lang.Object#hashCode()
      * @return the instance's hash code
      */
+    @Override
     public int hashCode()
     {
         if ( h == 0 )
@@ -2467,6 +2549,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasObjectClass( String... objectClasses )
     {
         if ( ( objectClasses == null ) || ( objectClasses.length == 0 ) || ( objectClasses[0] == null ) )
@@ -2499,6 +2582,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean hasObjectClass( Attribute... objectClasses )
     {
         if ( ( objectClasses == null ) || ( objectClasses.length == 0 ) || ( objectClasses[0] == null ) )
@@ -2522,7 +2606,7 @@ public final class DefaultEntry implements Entry
                 return false;
             }
 
-            for ( Value<?> value : objectClass )
+            for ( Value value : objectClass )
             {
                 // Loop on all the values, and check if they are present
                 if ( !attribute.contains( value.getString() ) )
@@ -2539,6 +2623,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isSchemaAware()
     {
         return schemaManager != null;
@@ -2548,6 +2633,7 @@ public final class DefaultEntry implements Entry
     /**
      * @see Object#equals(Object)
      */
+    @Override
     public boolean equals( Object o )
     {
         // Short circuit
@@ -2601,6 +2687,7 @@ public final class DefaultEntry implements Entry
     /**
      * @see Object#toString()
      */
+    @Override
     public String toString()
     {
         return toString( "" );
@@ -2610,6 +2697,7 @@ public final class DefaultEntry implements Entry
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString( String tabs )
     {
         StringBuilder sb = new StringBuilder();
@@ -2639,16 +2727,16 @@ public final class DefaultEntry implements Entry
         }
         else
         {
-            if ( containsAttribute( "objectClass" ) )
-            {
-                Attribute objectClass = get( "objectclass" );
+            Attribute objectClass = get( "objectclass" );
 
+            if ( objectClass != null )
+            {
                 sb.append( objectClass.toString( tabs + "    " ) );
             }
         }
 
         sb.append( '\n' );
-        
+
         if ( attributes.size() != 0 )
         {
             for ( Attribute attribute : attributes.values() )
@@ -2661,13 +2749,12 @@ public final class DefaultEntry implements Entry
 
                     if ( attributeType == null )
                     {
-                        sb.append( tabs + "id: " + id );
+                        sb.append( tabs ).append( "id: " ).append( id );
                     }
                     else if ( !attributeType.equals( objectClassAttributeType ) )
                     {
                         sb.append( attribute.toString( tabs + "    " ) );
                         sb.append( '\n' );
-                        continue;
                     }
                 }
                 else
@@ -2677,7 +2764,6 @@ public final class DefaultEntry implements Entry
                     {
                         sb.append( attribute.toString( tabs + "    " ) );
                         sb.append( '\n' );
-                        continue;
                     }
                 }
             }

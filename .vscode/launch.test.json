@@ -7,7 +7,9 @@
                 "projectName": "myvd-server",
                 "workingDirectory": "/Users/mlb/git/MyVirtualDirectory",
                 "args": [],
-                "vmargs": [],
+                "vmargs": [
+                    ""
+                ],
                 "env": {},
                 "preLaunchTask": ""
             }

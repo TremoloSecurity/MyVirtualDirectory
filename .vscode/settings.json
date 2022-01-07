@@ -1,0 +1,17 @@
+{
+    "java.test.config" :{
+        "name":"test-myvd-pfizer",
+        "workingDirectory":"${workplaceFolder}",
+        
+        "vmArgs": [
+            "-Dlog4j.configurationFile=/Users/marcboorshtein/git/OpenUnison/unison/open-unison-webapp/src/main/webapp/WEB-INF/classes/log4j2.xml"
+        ],
+        "env" : {
+            "PROJ_DIR": "/Users/marcboorshtein/git/MyVirtualDirectory",
+            "SCHEMA_DIR" : "/etc/ldap",
+            "SLAPD_PATH":"/Users/marcboorshtein/bin",
+            "TMP_DIR":"/tmp/ldap",
+        }
+    },
+    "java.configuration.updateBuildConfiguration": "automatic"
+}

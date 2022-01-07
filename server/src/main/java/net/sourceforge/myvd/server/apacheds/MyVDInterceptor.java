@@ -294,7 +294,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		/*SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			chain.nextSearch(new DistinguishedName(del.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
 			res.next();
@@ -359,7 +359,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			ArrayList<net.sourceforge.myvd.types.Attribute> attrs = new ArrayList<net.sourceforge.myvd.types.Attribute>();
 			net.sourceforge.myvd.types.Attribute none = new net.sourceforge.myvd.types.Attribute("1.1");
@@ -416,7 +416,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			chain.nextSearch(new DistinguishedName(lookup.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
 			res.start();

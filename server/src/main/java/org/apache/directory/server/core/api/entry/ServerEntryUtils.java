@@ -218,7 +218,7 @@ public class ServerEntryUtils
         {
             try
             {
-                Entry entry = new DefaultEntry( schemaManager, dn );
+                Entry entry = new TremoloEntry( schemaManager, dn );
 
                 for ( NamingEnumeration<? extends javax.naming.directory.Attribute> attrs = attributes.getAll(); attrs
                     .hasMoreElements(); )

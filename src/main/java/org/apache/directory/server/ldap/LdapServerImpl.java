@@ -6,16 +6,16 @@
  *  to you under the Apache License, Version 2.0 (the
  *  "License"); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
- *  
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
- *  under the License. 
- *  
+ *  under the License.
+ *
  */
 package org.apache.directory.server.ldap;
 
@@ -41,14 +41,13 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-
-import net.sourceforge.myvd.server.ssl.AliasX509KeyManager;
-import net.sourceforge.myvd.server.ssl.MyVDTrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.directory.api.ldap.codec.api.LdapApiServiceFactory;
 import org.apache.directory.api.ldap.model.constants.Loggers;
 import org.apache.directory.api.ldap.model.constants.SaslQoP;
 import org.apache.directory.api.ldap.model.exception.LdapConfigurationException;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.AbandonRequest;
 import org.apache.directory.api.ldap.model.message.AddRequest;
 import org.apache.directory.api.ldap.model.message.AddResponse;
@@ -75,6 +74,7 @@ import org.apache.directory.api.util.Strings;
 import org.apache.directory.server.core.LoggingFilter;
 import org.apache.directory.server.core.api.DirectoryService;
 import org.apache.directory.server.core.api.partition.PartitionNexus;
+import org.apache.directory.server.core.security.CertificateUtil;
 import org.apache.directory.server.core.security.CoreKeyStoreSpi;
 import org.apache.directory.server.i18n.I18n;
 import org.apache.directory.server.ldap.handlers.LdapRequestHandler;
@@ -129,6 +129,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import net.sourceforge.myvd.server.ssl.AliasX509KeyManager;
+import net.sourceforge.myvd.server.ssl.MyVDTrustManager;
+
 
 /**
  * An LDAP protocol provider implementation which dynamically associates
@@ -136,24 +139,13 @@ import org.slf4j.MDC;
  *
  * @author <a href="mailto:dev@directory.apache.org">Apache Directory Project</a>
  */
-public class LdapServer extends DirectoryBackedService
+public class LdapServerImpl extends DirectoryBackedService implements LdapServer
 {
-    private static final long serialVersionUID = 3757127143811666817L;
-
     /** logger for this class */
-    private static final Logger LOG = LoggerFactory.getLogger( LdapServer.class );
+    private static final Logger LOG = LoggerFactory.getLogger( LdapServerImpl.class );
 
     /** Logger for the replication consumer */
     private static final Logger CONSUMER_LOG = LoggerFactory.getLogger( Loggers.CONSUMER_LOG.getName() );
-
-    /** Value (0) for configuration where size limit is unlimited. */
-    public static final long NO_SIZE_LIMIT = 0;
-
-    /** Value (0) for configuration where time limit is unlimited. */
-    public static final int NO_TIME_LIMIT = 0;
-
-    /** the constant service name of this ldap protocol provider **/
-    public static final String SERVICE_NAME = "ldap";
 
     /** The default maximum size limit. */
     private static final long MAX_SIZE_LIMIT_DEFAULT = 100;
@@ -173,15 +165,15 @@ public class LdapServer extends DirectoryBackedService
     /** a set of supported controls */
     private Set<String> supportedControls;
 
-    /** 
-     * The maximum size limit. 
-     * @see {@link LdapServer#MAX_SIZE_LIMIT_DEFAULT }
+    /**
+     * The maximum size limit.
+     * @see {@link LdapServerImpl#MAX_SIZE_LIMIT_DEFAULT }
      */
     private long maxSizeLimit = MAX_SIZE_LIMIT_DEFAULT;
 
-    /** 
+    /**
      * The maximum time limit.
-     * @see {@link LdapServer#MAX_TIME_LIMIT_DEFAULT }
+     * @see {@link LdapServerImpl#MAX_TIME_LIMIT_DEFAULT }
      */
     private int maxTimeLimit = MAX_TIME_LIMIT_DEFAULT;
 
@@ -196,10 +188,10 @@ public class LdapServer extends DirectoryBackedService
 
     /** The extended operation handlers. */
     private final Collection<ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>> extendedOperationHandlers =
-        new ArrayList<ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>>();
+        new ArrayList<>();
 
     /** The supported authentication mechanisms. */
-    private Map<String, MechanismHandler> saslMechanismHandlers = new HashMap<String, MechanismHandler>();
+    private Map<String, MechanismHandler> saslMechanismHandlers = new HashMap<>();
 
     /** The name of this host, validated during SASL negotiation. */
     private String saslHost = "ldap.example.com";
@@ -252,16 +244,16 @@ public class LdapServer extends DirectoryBackedService
     /** tracks start state of the server */
     private boolean started;
 
-    /** 
-     * Whether or not confidentiality (TLS secured connection) is required: 
-     * disabled by default. 
+    /**
+     * Whether or not confidentiality (TLS secured connection) is required:
+     * disabled by default.
      */
     private boolean confidentialityRequired;
 
     /** The used Keystore */
     private KeyStore keyStore = null;
 
-    private List<IoFilterChainBuilder> chainBuilders = new ArrayList<IoFilterChainBuilder>();
+    private List<IoFilterChainBuilder> chainBuilders = new ArrayList<>();
 
     /** The handler responsible for the replication */
     private ReplicationRequestHandler replicationReqHandler;
@@ -270,15 +262,20 @@ public class LdapServer extends DirectoryBackedService
     private List<ReplicationConsumer> replConsumers;
 
     private KeyManagerFactory keyManagerFactory;
+    private TrustManager[] trustManagers;
 
     /** the time interval between subsequent pings to each replication provider */
     private int pingerSleepTime;
 
-    /** the list of cipher suites to be used in LDAPS and StartTLS */
+    /**
+     * the list of cipher suites to be used in LDAPS and StartTLS
+     * @deprecated See the {@link TcpTransport} class that contains this list
+     **/
     @Deprecated
-    private List<String> enabledCipherSuites = new ArrayList<String>();
+    private List<String> enabledCipherSuites = new ArrayList<>();
 
-	private boolean tlsWantClientAuth;
+
+    private boolean tlsWantClientAuth;
 
 	private boolean tlsNeedClientAuth;
 
@@ -289,23 +286,23 @@ public class LdapServer extends DirectoryBackedService
     /**
      * Creates an LDAP protocol provider.
      */
-    public LdapServer()
+    public LdapServerImpl()
     {
         super.setEnabled( true );
         super.setServiceId( SERVICE_PID_DEFAULT );
         super.setServiceName( SERVICE_NAME_DEFAULT );
 
-        saslQop = new HashSet<String>();
+        saslQop = new HashSet<>();
         saslQop.add( SaslQoP.AUTH.getValue() );
         saslQop.add( SaslQoP.AUTH_INT.getValue() );
         saslQop.add( SaslQoP.AUTH_CONF.getValue() );
         saslQopString = SaslQoP.AUTH.getValue() + ',' + SaslQoP.AUTH_INT.getValue() + ','
             + SaslQoP.AUTH_CONF.getValue();
 
-        saslRealms = new ArrayList<String>();
+        saslRealms = new ArrayList<>();
         saslRealms.add( "example.com" );
 
-        this.supportedControls = new HashSet<String>();
+        this.supportedControls = new HashSet<>();
     }
 
 
@@ -376,11 +373,11 @@ public class LdapServer extends DirectoryBackedService
         }
     }
 
-
-    /**
+/**
      * loads the digital certificate either from a keystore file or from the admin entry in DIT
      */
-    public void loadKeyStore() throws Exception
+    @Override
+	public void loadKeyStore() throws Exception
     {
         if ( Strings.isEmpty( keystoreFile ) )
         {
@@ -448,15 +445,15 @@ public class LdapServer extends DirectoryBackedService
 
         }
     }
-
-
     /**
      * reloads the SSL context by replacing the existing SslFilter
      * with a new SslFilter after reloading the keystore.
-     * 
+     *
      * Note: should be called to reload the keystore after changing the digital certificate.
+     * @throws Exception If the SSLContext can't be reloaded
      */
-    public void reloadSslContext() throws Exception
+    @Override
+	public void reloadSslContext() throws Exception
     {
         if ( !started )
         {
@@ -465,7 +462,7 @@ public class LdapServer extends DirectoryBackedService
 
         LOG.info( "reloading SSL context..." );
 
-        loadKeyStore();
+        keyManagerFactory = CertificateUtil.loadKeyStore( keystoreFile, certificatePassword );
 
         String sslFilterName = "sslFilter";
 
@@ -495,6 +492,7 @@ public class LdapServer extends DirectoryBackedService
         }
 
         StartTlsHandler handler = ( StartTlsHandler ) getExtendedOperationHandler( StartTlsHandler.EXTENSION_OID );
+
         if ( handler != null )
         {
             handler.setLdapServer( this );
@@ -508,6 +506,7 @@ public class LdapServer extends DirectoryBackedService
      * @throws IOException if we cannot bind to the specified port
      * @throws Exception if the LDAP server cannot be started
      */
+    @Override
     public void start() throws Exception
     {
         if ( !isEnabled() )
@@ -515,11 +514,18 @@ public class LdapServer extends DirectoryBackedService
             return;
         }
 
-        loadKeyStore();
+        keyManagerFactory = CertificateUtil.loadKeyStore( keystoreFile, certificatePassword );
+
+        if ( trustManagers == null )
+        {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance( TrustManagerFactory.getDefaultAlgorithm() );
+            trustManagerFactory.init( ( KeyStore ) null );
+            trustManagers = trustManagerFactory.getTrustManagers();
+        }
 
         /*
          * The server is now initialized, we can
-         * install the default requests handlers, which need 
+         * install the default requests handlers, which need
          * access to the DirectoryServer instance.
          */
         installDefaultHandlers();
@@ -528,7 +534,7 @@ public class LdapServer extends DirectoryBackedService
 
         for ( ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse> h : extendedOperationHandlers )
         {
-            LOG.info( "Added Extended Request Handler: " + h.getOid() );
+            LOG.info( "Added Extended Request Handler: {}", h.getOid() );
             h.setLdapServer( this );
             nexus.registerSupportedExtensions( h.getExtensionOids() );
         }
@@ -548,10 +554,9 @@ public class LdapServer extends DirectoryBackedService
 
             IoFilterChainBuilder chain;
 
-            if (transport.isSSLEnabled() )
+            if ( transport.isSSLEnabled() )
             {
                 chain = LdapsInitializer.init( this, ( TcpTransport ) transport );
-                
                 ( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new LoggingFilter(true));
             }
             else
@@ -559,11 +564,6 @@ public class LdapServer extends DirectoryBackedService
                 chain = new DefaultIoFilterChainBuilder();
                 ( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new LoggingFilter(false));
             }
-            
-            
-            
-            //( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new org.apache.mina.filter.logging.LoggingFilter());
-            
 
             // Inject the codec into the chain
             ( ( DefaultIoFilterChainBuilder ) chain ).addLast( "codec", new ProtocolCodecFilter( this
@@ -579,14 +579,14 @@ public class LdapServer extends DirectoryBackedService
             // Trace all the incoming and outgoing message to the console
             ( ( DefaultIoFilterChainBuilder ) chain ).addLast( "logger", new IoFilterAdapter()
                 {
-                    public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception 
+                    public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception
                     {
                         System.out.println( ">>> Message received : " + message );
                         nextFilter.messageReceived(session, message);
                     }
 
                     public void filterWrite(NextFilter nextFilter, IoSession session,
-                            WriteRequest writeRequest) throws Exception 
+                            WriteRequest writeRequest) throws Exception
                     {
                         System.out.println( "<<< Message sent : " + writeRequest.getMessage() );
                         nextFilter.filterWrite(session, writeRequest);
@@ -610,7 +610,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * Install the replication handler if we have one
      */
-    public void startReplicationProducer()
+    @Override
+	public void startReplicationProducer()
     {
         if ( replicationReqHandler != null )
         {
@@ -623,6 +624,7 @@ public class LdapServer extends DirectoryBackedService
     /**
      * {@inheritDoc}
      */
+    @Override
     public void stop()
     {
         try
@@ -636,7 +638,7 @@ public class LdapServer extends DirectoryBackedService
 
                 // we should unbind the service before we begin sending the notice
                 // of disconnect so new connections are not formed while we process
-                List<WriteFuture> writeFutures = new ArrayList<WriteFuture>();
+                List<WriteFuture> writeFutures = new ArrayList<>();
 
                 // If the socket has already been unbound as with a successful
                 // GracefulShutdownRequest then this will complain that the service
@@ -646,11 +648,11 @@ public class LdapServer extends DirectoryBackedService
 
                 try
                 {
-                    sessions = new ArrayList<IoSession>( getSocketAcceptor( transport ).getManagedSessions().values() );
+                    sessions = new ArrayList<>( getSocketAcceptor( transport ).getManagedSessions().values() );
                 }
                 catch ( IllegalArgumentException e )
                 {
-                    LOG.warn( "Seems like the LDAP service (" + getPort() + ") has already been unbound." );
+                    LOG.warn( "Seems like the LDAP service ({}) has already been unbound.", getPort() );
                     return;
                 }
 
@@ -658,7 +660,7 @@ public class LdapServer extends DirectoryBackedService
 
                 if ( LOG.isInfoEnabled() )
                 {
-                    LOG.info( "Unbind of an LDAP service (" + getPort() + ") is complete." );
+                    LOG.info( "Unbind of an LDAP service ({}) is complete.", getPort() );
                     LOG.info( "Sending notice of disconnect to existing clients sessions." );
                 }
 
@@ -677,7 +679,7 @@ public class LdapServer extends DirectoryBackedService
                 for ( WriteFuture future : writeFutures )
                 {
                     future.await( 1000L );
-                    sessionIt.next().close( true );
+                    sessionIt.next().closeNow();
                 }
 
                 if ( replicationReqHandler != null )
@@ -736,7 +738,7 @@ public class LdapServer extends DirectoryBackedService
 
             if ( LOG.isInfoEnabled() )
             {
-                LOG.info( "Successful bind of an LDAP Service (" + transport.getPort() + ") is completed." );
+                LOG.info( "Successful bind of an LDAP Service ({}) is completed.", transport.getPort() );
             }
         }
         catch ( IOException e )
@@ -751,11 +753,14 @@ public class LdapServer extends DirectoryBackedService
 
 
     /**
-     * starts the replication consumers
+     * Starts the replication consumers
+     *
+     * @throws LdapException If the consumer can't be started
      */
-    public void startReplicationConsumers() throws Exception
+    @Override
+	public void startReplicationConsumers() throws Exception
     {
-        if ( ( replConsumers != null ) && ( replConsumers.size() > 0 ) )
+        if ( ( replConsumers != null ) && !replConsumers.isEmpty() )
         {
             final PingerThread pingerThread = new PingerThread( pingerSleepTime );
             pingerThread.start();
@@ -766,6 +771,7 @@ public class LdapServer extends DirectoryBackedService
 
                 Runnable consumerTask = new Runnable()
                 {
+                    @Override
                     public void run()
                     {
                         try
@@ -835,25 +841,29 @@ public class LdapServer extends DirectoryBackedService
     }
 
 
-    public String getName()
+    @Override
+	public String getName()
     {
         return SERVICE_NAME;
     }
 
 
-    public IoHandler getHandler()
+    @Override
+	public IoHandler getHandler()
     {
         return handler;
     }
 
 
-    public LdapSessionManager getLdapSessionManager()
+    @Override
+	public LdapSessionManager getLdapSessionManager()
     {
         return ldapSessionManager;
     }
 
 
-    public ProtocolCodecFactory getProtocolCodecFactory()
+    @Override
+	public ProtocolCodecFactory getProtocolCodecFactory()
     {
         return codecFactory;
     }
@@ -870,9 +880,9 @@ public class LdapServer extends DirectoryBackedService
      * @param eoh an extended operation handler
      * @throws Exception on failure to add the handler
      */
-    public void addExtendedOperationHandler(
-        ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse> eoh )
-        throws Exception
+    @Override
+	public void addExtendedOperationHandler( ExtendedOperationHandler<? extends ExtendedRequest,
+            ? extends ExtendedResponse> eoh ) throws LdapException
     {
         if ( started )
         {
@@ -888,13 +898,14 @@ public class LdapServer extends DirectoryBackedService
 
 
     /**
-     * Deregisteres an {@link ExtendedOperationHandler} with the specified <tt>oid</tt>
+     * Deregister an {@link ExtendedOperationHandler} with the specified <tt>oid</tt>
      * from this protocol provider.
      *
      * @param oid the numeric identifier for the extended operation associated with
      * the handler to remove
      */
-    public void removeExtendedOperationHandler( String oid )
+    @Override
+	public void removeExtendedOperationHandler( String oid )
     {
         // need to do something like this to make this work right
         //            DefaultPartitionNexus nexus = getDirectoryService().getPartitionNexus();
@@ -923,10 +934,12 @@ public class LdapServer extends DirectoryBackedService
      * request handler
      * @return the exnteded operation handler
      */
-    public ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse> getExtendedOperationHandler(
+    @Override
+	public ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse> getExtendedOperationHandler(
         String oid )
     {
-        for ( ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse> extendedOperationHandler : extendedOperationHandlers )
+        for ( ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>
+                extendedOperationHandler : extendedOperationHandlers )
         {
             if ( extendedOperationHandler.getOid().equals( oid ) )
             {
@@ -942,22 +955,24 @@ public class LdapServer extends DirectoryBackedService
      * Sets the mode for this LdapServer to accept requests with or without a
      * TLS secured connection via either StartTLS extended operations or using
      * LDAPS.
-     * 
+     *
      * @param confidentialityRequired true to require confidentiality
      */
-    public void setConfidentialityRequired( boolean confidentialityRequired )
+    @Override
+	public void setConfidentialityRequired( boolean confidentialityRequired )
     {
         this.confidentialityRequired = confidentialityRequired;
     }
 
 
     /**
-     * Gets whether or not TLS secured connections are required to perform 
+     * Gets whether or not TLS secured connections are required to perform
      * operations on this LdapServer.
-     * 
+     *
      * @return true if TLS secured connections are required, false otherwise
      */
-    public boolean isConfidentialityRequired()
+    @Override
+	public boolean isConfidentialityRequired()
     {
         return confidentialityRequired;
     }
@@ -966,9 +981,11 @@ public class LdapServer extends DirectoryBackedService
     /**
      * Returns <tt>true</tt> if LDAPS is enabled.
      *
-     * @return True if LDAPS is enabled.
+     * @param transport The LDAP transport
+     * @return <tt>true</tt> if LDAPS is enabled.
      */
-    public boolean isEnableLdaps( Transport transport )
+    @Override
+	public boolean isEnableLdaps( Transport transport )
     {
         return transport.isSSLEnabled();
     }
@@ -979,7 +996,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @param maxSizeLimit the maximum number of entries to return for search
      */
-    public void setMaxSizeLimit( long maxSizeLimit )
+    @Override
+	public void setMaxSizeLimit( long maxSizeLimit )
     {
         this.maxSizeLimit = maxSizeLimit;
     }
@@ -990,7 +1008,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The maximum size limit.
      */
-    public long getMaxSizeLimit()
+    @Override
+	public long getMaxSizeLimit()
     {
         return maxSizeLimit;
     }
@@ -1001,9 +1020,10 @@ public class LdapServer extends DirectoryBackedService
      *
      * @param maxTimeLimit the maximum length of time in milliseconds for search
      */
-    public void setMaxTimeLimit( int maxTimeLimit )
+    @Override
+	public void setMaxTimeLimit( int maxTimeLimit )
     {
-        this.maxTimeLimit = maxTimeLimit; //TODO review the time parameters used all over the server and convert to seconds 
+        this.maxTimeLimit = maxTimeLimit; //TODO review the time parameters used all over the server and convert to seconds
     }
 
 
@@ -1012,7 +1032,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The maximum time limit in milliseconds for search
      */
-    public int getMaxTimeLimit()
+    @Override
+	public int getMaxTimeLimit()
     {
         return maxTimeLimit;
     }
@@ -1023,9 +1044,10 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return A collection of {@link ExtendedOperationHandler}s.
      */
-    public Collection<ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>> getExtendedOperationHandlers()
+    @Override
+	public Collection<ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>> getExtendedOperationHandlers()
     {
-        return new ArrayList<ExtendedOperationHandler<? extends ExtendedRequest, ? extends ExtendedResponse>>(
+        return new ArrayList<>(
             extendedOperationHandlers );
     }
 
@@ -1035,7 +1057,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @param handlers A collection of {@link ExtendedOperationHandler}s.
      */
-    public void setExtendedOperationHandlers(
+    @Override
+	public void setExtendedOperationHandlers(
         Collection<ExtendedOperationHandler<ExtendedRequest, ExtendedResponse>> handlers )
     {
         this.extendedOperationHandlers.clear();
@@ -1048,7 +1071,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The FQDN of this SASL host, validated during SASL negotiation.
      */
-    public String getSaslHost()
+    @Override
+	public String getSaslHost()
     {
         return saslHost;
     }
@@ -1059,7 +1083,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @param saslHost The FQDN of this SASL host, validated during SASL negotiation.
      */
-    public void setSaslHost( String saslHost )
+    @Override
+	public void setSaslHost( String saslHost )
     {
         this.saslHost = saslHost;
     }
@@ -1070,7 +1095,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The Kerberos principal name for this LDAP service, used by GSSAPI.
      */
-    public String getSaslPrincipal()
+    @Override
+	public String getSaslPrincipal()
     {
         return saslPrincipal;
     }
@@ -1081,17 +1107,20 @@ public class LdapServer extends DirectoryBackedService
      *
      * @param saslPrincipal The Kerberos principal name for this LDAP service, used by GSSAPI.
      */
-    public void setSaslPrincipal( String saslPrincipal )
+    @Override
+	public void setSaslPrincipal( String saslPrincipal )
     {
         this.saslPrincipal = saslPrincipal;
     }
+
 
     /**
      * Returns the quality-of-protection, used by DIGEST-MD5 and GSSAPI.
      *
      * @return The quality-of-protection, used by DIGEST-MD5 and GSSAPI.
      */
-    public String getSaslQopString()
+    @Override
+	public String getSaslQopString()
     {
         return saslQopString;
     }
@@ -1102,7 +1131,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The quality-of-protection, used by DIGEST-MD5 and GSSAPI.
      */
-    public Set<String> getSaslQop()
+    @Override
+	public Set<String> getSaslQop()
     {
         return saslQop;
     }
@@ -1113,7 +1143,8 @@ public class LdapServer extends DirectoryBackedService
      *
      * @return The realms serviced by this SASL host, used by DIGEST-MD5 and GSSAPI.
      */
-    public List<String> getSaslRealms()
+    @Override
+	public List<String> getSaslRealms()
     {
         return saslRealms;
     }
@@ -1124,61 +1155,80 @@ public class LdapServer extends DirectoryBackedService
      *
     * @param saslRealms The realms serviced by this SASL host, used by DIGEST-MD5 and GSSAPI.
      */
-    public void setSaslRealms( List<String> saslRealms )
+    @Override
+	public void setSaslRealms( List<String> saslRealms )
     {
         this.saslRealms = saslRealms;
     }
 
-    public boolean isAuthRequired() {
+    @Override
+	public boolean isAuthRequired() {
         return authRequired;
     }
 
-    public void setAuthRequired(boolean authRequired) {
+    @Override
+	public void setAuthRequired(boolean authRequired) {
         this.authRequired = authRequired;
     }
 
     /**
+     * @return the supported SASL mechanisms
      */
-    public Map<String, MechanismHandler> getSaslMechanismHandlers()
+    @Override
+	public Map<String, MechanismHandler> getSaslMechanismHandlers()
     {
         return saslMechanismHandlers;
     }
 
 
-    public void setSaslMechanismHandlers( Map<String, MechanismHandler> saslMechanismHandlers )
+    @Override
+	public void setSaslMechanismHandlers( Map<String, MechanismHandler> saslMechanismHandlers )
     {
         this.saslMechanismHandlers = saslMechanismHandlers;
     }
 
 
-    public MechanismHandler addSaslMechanismHandler( String mechanism, MechanismHandler handler )
+    @Override
+	public MechanismHandler addSaslMechanismHandler( String mechanism, MechanismHandler handler )
     {
         return this.saslMechanismHandlers.put( mechanism, handler );
     }
 
 
-    public MechanismHandler removeSaslMechanismHandler( String mechanism )
+    @Override
+	public MechanismHandler removeSaslMechanismHandler( String mechanism )
     {
         return this.saslMechanismHandlers.remove( mechanism );
     }
 
 
-    public MechanismHandler getMechanismHandler( String mechanism )
+    @Override
+	public MechanismHandler getMechanismHandler( String mechanism )
     {
         return this.saslMechanismHandlers.get( mechanism );
     }
 
 
-    public Set<String> getSupportedMechanisms()
+    @Override
+	public Set<String> getSupportedMechanisms()
     {
         return saslMechanismHandlers.keySet();
     }
 
 
+    @Override
     public void setDirectoryService( DirectoryService directoryService )
     {
         super.setDirectoryService( directoryService );
-        Iterator<String> itr = directoryService.getLdapCodecService().registeredControls();
+        Iterator<String> itr = directoryService.getLdapCodecService().registeredRequestControls();
+
+        while ( itr.hasNext() )
+        {
+            supportedControls.add( itr.next() );
+        }
+
+        itr = directoryService.getLdapCodecService().registeredResponseControls();
+
         while ( itr.hasNext() )
         {
             supportedControls.add( itr.next() );
@@ -1186,7 +1236,8 @@ public class LdapServer extends DirectoryBackedService
     }
 
 
-    public Set<String> getSupportedControls()
+    @Override
+	public Set<String> getSupportedControls()
     {
         return supportedControls;
     }
@@ -1195,7 +1246,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the AbandonRequest
      */
-    public MessageHandler<AbandonRequest> getAbandonRequestHandler()
+    @Override
+	public MessageHandler<AbandonRequest> getAbandonRequestHandler()
     {
         return abandonRequestHandler;
     }
@@ -1203,10 +1255,11 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived handler into the IoHandler
-     * 
+     *
      * @param abandonRequestdHandler The AbandonRequest message received handler
      */
-    public void setAbandonHandler( LdapRequestHandler<AbandonRequest> abandonRequestdHandler )
+    @Override
+	public void setAbandonHandler( LdapRequestHandler<AbandonRequest> abandonRequestdHandler )
     {
         this.handler.removeReceivedMessageHandler( AbandonRequest.class );
         this.abandonRequestHandler = abandonRequestdHandler;
@@ -1218,7 +1271,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the AddRequest
      */
-    public LdapRequestHandler<AddRequest> getAddRequestHandler()
+    @Override
+	public LdapRequestHandler<AddRequest> getAddRequestHandler()
     {
         return addRequestHandler;
     }
@@ -1227,7 +1281,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the AddResponse
      */
-    public LdapResponseHandler<AddResponse> getAddResponseHandler()
+    @Override
+	public LdapResponseHandler<AddResponse> getAddResponseHandler()
     {
         return addResponseHandler;
     }
@@ -1235,11 +1290,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param addRequestHandler The AddRequest message received handler
      * @param addResponseHandler The AddResponse message sent handler
      */
-    public void setAddHandlers( LdapRequestHandler<AddRequest> addRequestHandler,
+    @Override
+	public void setAddHandlers( LdapRequestHandler<AddRequest> addRequestHandler,
         LdapResponseHandler<AddResponse> addResponseHandler )
     {
         this.handler.removeReceivedMessageHandler( AddRequest.class );
@@ -1257,7 +1313,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the BindRequest
      */
-    public LdapRequestHandler<BindRequest> getBindRequestHandler()
+    @Override
+	public LdapRequestHandler<BindRequest> getBindRequestHandler()
     {
         return bindRequestHandler;
     }
@@ -1266,7 +1323,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the BindResponse
      */
-    public LdapResponseHandler<BindResponse> getBindResponseHandler()
+    @Override
+	public LdapResponseHandler<BindResponse> getBindResponseHandler()
     {
         return bindResponseHandler;
     }
@@ -1274,11 +1332,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param bindRequestHandler The BindRequest message received handler
      * @param bindResponseHandler The BindResponse message sent handler
      */
-    public void setBindHandlers( LdapRequestHandler<BindRequest> bindRequestHandler,
+    @Override
+	public void setBindHandlers( LdapRequestHandler<BindRequest> bindRequestHandler,
         LdapResponseHandler<BindResponse> bindResponseHandler )
     {
         handler.removeReceivedMessageHandler( BindRequest.class );
@@ -1296,7 +1355,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the CompareRequest
      */
-    public LdapRequestHandler<CompareRequest> getCompareRequestHandler()
+    @Override
+	public LdapRequestHandler<CompareRequest> getCompareRequestHandler()
     {
         return compareRequestHandler;
     }
@@ -1305,7 +1365,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the CompareResponse
      */
-    public LdapResponseHandler<CompareResponse> getCompareResponseHandler()
+    @Override
+	public LdapResponseHandler<CompareResponse> getCompareResponseHandler()
     {
         return compareResponseHandler;
     }
@@ -1313,11 +1374,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param compareRequestHandler The CompareRequest message received handler
      * @param compareResponseHandler The CompareResponse message sent handler
      */
-    public void setCompareHandlers( LdapRequestHandler<CompareRequest> compareRequestHandler,
+    @Override
+	public void setCompareHandlers( LdapRequestHandler<CompareRequest> compareRequestHandler,
         LdapResponseHandler<CompareResponse> compareResponseHandler )
     {
         handler.removeReceivedMessageHandler( CompareRequest.class );
@@ -1335,7 +1397,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the DeleteRequest
      */
-    public LdapRequestHandler<DeleteRequest> getDeleteRequestHandler()
+    @Override
+	public LdapRequestHandler<DeleteRequest> getDeleteRequestHandler()
     {
         return deleteRequestHandler;
     }
@@ -1344,7 +1407,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the DeleteResponse
      */
-    public LdapResponseHandler<DeleteResponse> getDeleteResponseHandler()
+    @Override
+	public LdapResponseHandler<DeleteResponse> getDeleteResponseHandler()
     {
         return deleteResponseHandler;
     }
@@ -1352,11 +1416,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param deleteRequestHandler The DeleteRequest message received handler
      * @param deleteResponseHandler The DeleteResponse message sent handler
      */
-    public void setDeleteHandlers( LdapRequestHandler<DeleteRequest> deleteRequestHandler,
+    @Override
+	public void setDeleteHandlers( LdapRequestHandler<DeleteRequest> deleteRequestHandler,
         LdapResponseHandler<DeleteResponse> deleteResponseHandler )
     {
         handler.removeReceivedMessageHandler( DeleteRequest.class );
@@ -1374,7 +1439,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the ExtendedRequest
      */
-    public LdapRequestHandler<ExtendedRequest> getExtendedRequestHandler()
+    @Override
+	public LdapRequestHandler<ExtendedRequest> getExtendedRequestHandler()
     {
         return extendedRequestHandler;
     }
@@ -1383,7 +1449,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the ExtendedResponse
      */
-    public LdapResponseHandler<ExtendedResponse> getExtendedResponseHandler()
+    @Override
+	public LdapResponseHandler<ExtendedResponse> getExtendedResponseHandler()
     {
         return extendedResponseHandler;
     }
@@ -1391,11 +1458,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param extendedRequestHandler The ExtendedRequest message received handler
      * @param extendedResponseHandler The ExtendedResponse message sent handler
      */
-    @SuppressWarnings(
+    @Override
+	@SuppressWarnings(
         { "unchecked", "rawtypes" })
     public void setExtendedHandlers( ExtendedRequestHandler extendedRequestHandler,
         ExtendedResponseHandler extendedResponseHandler )
@@ -1404,7 +1472,7 @@ public class LdapServer extends DirectoryBackedService
         this.extendedRequestHandler = extendedRequestHandler;
         this.extendedRequestHandler.setLdapServer( this );
         this.handler.addReceivedMessageHandler( ExtendedRequest.class,
-            ( LdapRequestHandler ) this.extendedRequestHandler );
+            this.extendedRequestHandler );
 
         handler.removeSentMessageHandler( ExtendedResponse.class );
         this.extendedResponseHandler = extendedResponseHandler;
@@ -1416,7 +1484,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the IntermediateResponse
      */
-    public LdapResponseHandler<IntermediateResponse> getIntermediateResponseHandler()
+    @Override
+	public LdapResponseHandler<IntermediateResponse> getIntermediateResponseHandler()
     {
         return intermediateResponseHandler;
     }
@@ -1424,10 +1493,11 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param intermediateResponseHandler The IntermediateResponse message sent handler
      */
-    public void setIntermediateHandler( LdapResponseHandler<IntermediateResponse> intermediateResponseHandler )
+    @Override
+	public void setIntermediateHandler( LdapResponseHandler<IntermediateResponse> intermediateResponseHandler )
     {
         handler.removeSentMessageHandler( IntermediateResponse.class );
         this.intermediateResponseHandler = intermediateResponseHandler;
@@ -1439,7 +1509,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the ModifyRequest
      */
-    public LdapRequestHandler<ModifyRequest> getModifyRequestHandler()
+    @Override
+	public LdapRequestHandler<ModifyRequest> getModifyRequestHandler()
     {
         return modifyRequestHandler;
     }
@@ -1448,7 +1519,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the ModifyResponse
      */
-    public LdapResponseHandler<ModifyResponse> getModifyResponseHandler()
+    @Override
+	public LdapResponseHandler<ModifyResponse> getModifyResponseHandler()
     {
         return modifyResponseHandler;
     }
@@ -1456,11 +1528,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param modifyRequestHandler The ModifyRequest message received handler
      * @param modifyResponseHandler The ModifyResponse message sent handler
      */
-    public void setModifyHandlers( LdapRequestHandler<ModifyRequest> modifyRequestHandler,
+    @Override
+	public void setModifyHandlers( LdapRequestHandler<ModifyRequest> modifyRequestHandler,
         LdapResponseHandler<ModifyResponse> modifyResponseHandler )
     {
         handler.removeReceivedMessageHandler( ModifyRequest.class );
@@ -1478,7 +1551,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the ModifyDnRequest
      */
-    public LdapRequestHandler<ModifyDnRequest> getModifyDnRequestHandler()
+    @Override
+	public LdapRequestHandler<ModifyDnRequest> getModifyDnRequestHandler()
     {
         return modifyDnRequestHandler;
     }
@@ -1487,7 +1561,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the ModifyDnResponse
      */
-    public LdapResponseHandler<ModifyDnResponse> getModifyDnResponseHandler()
+    @Override
+	public LdapResponseHandler<ModifyDnResponse> getModifyDnResponseHandler()
     {
         return modifyDnResponseHandler;
     }
@@ -1495,11 +1570,12 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param modifyDnRequestHandler The ModifyDnRequest message received handler
      * @param modifyDnResponseHandler The ModifyDnResponse message sent handler
      */
-    public void setModifyDnHandlers( LdapRequestHandler<ModifyDnRequest> modifyDnRequestHandler,
+    @Override
+	public void setModifyDnHandlers( LdapRequestHandler<ModifyDnRequest> modifyDnRequestHandler,
         LdapResponseHandler<ModifyDnResponse> modifyDnResponseHandler )
     {
         handler.removeReceivedMessageHandler( ModifyDnRequest.class );
@@ -1517,7 +1593,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the SearchRequest
      */
-    public LdapRequestHandler<SearchRequest> getSearchRequestHandler()
+    @Override
+	public LdapRequestHandler<SearchRequest> getSearchRequestHandler()
     {
         return searchRequestHandler;
     }
@@ -1526,7 +1603,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the SearchResultEntry
      */
-    public LdapResponseHandler<SearchResultEntry> getSearchResultEntryHandler()
+    @Override
+	public LdapResponseHandler<SearchResultEntry> getSearchResultEntryHandler()
     {
         return searchResultEntryHandler;
     }
@@ -1535,7 +1613,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the SearchResultReference
      */
-    public LdapResponseHandler<SearchResultReference> getSearchResultReferenceHandler()
+    @Override
+	public LdapResponseHandler<SearchResultReference> getSearchResultReferenceHandler()
     {
         return searchResultReferenceHandler;
     }
@@ -1544,7 +1623,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageSent handler for the SearchResultDone
      */
-    public LdapResponseHandler<SearchResultDone> getSearchResultDoneHandler()
+    @Override
+	public LdapResponseHandler<SearchResultDone> getSearchResultDoneHandler()
     {
         return searchResultDoneHandler;
     }
@@ -1552,13 +1632,14 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived and MessageSent handler into the IoHandler
-     * 
+     *
      * @param searchRequestHandler The SearchRequest message received handler
      * @param searchResultEntryHandler The SearchResultEntry message sent handler
      * @param searchResultReferenceHandler The SearchResultReference message sent handler
      * @param searchResultDoneHandler The SearchResultDone message sent handler
      */
-    public void setSearchHandlers( LdapRequestHandler<SearchRequest> searchRequestHandler,
+    @Override
+	public void setSearchHandlers( LdapRequestHandler<SearchRequest> searchRequestHandler,
         LdapResponseHandler<SearchResultEntry> searchResultEntryHandler,
         LdapResponseHandler<SearchResultReference> searchResultReferenceHandler,
         LdapResponseHandler<SearchResultDone> searchResultDoneHandler
@@ -1589,7 +1670,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The MessageReceived handler for the UnbindRequest
      */
-    public LdapRequestHandler<UnbindRequest> getUnbindRequestHandler()
+    @Override
+	public LdapRequestHandler<UnbindRequest> getUnbindRequestHandler()
     {
         return unbindRequestHandler;
     }
@@ -1597,10 +1679,11 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * Inject the MessageReceived handler into the IoHandler
-     * 
+     *
      * @param unbindRequestHandler The UnbindRequest message received handler
      */
-    public void setUnbindHandler( LdapRequestHandler<UnbindRequest> unbindRequestHandler )
+    @Override
+	public void setUnbindHandler( LdapRequestHandler<UnbindRequest> unbindRequestHandler )
     {
         this.handler.removeReceivedMessageHandler( UnbindRequest.class );
         this.unbindRequestHandler = unbindRequestHandler;
@@ -1610,10 +1693,11 @@ public class LdapServer extends DirectoryBackedService
 
 
     /**
-     * @return The underlying TCP transport port, or -1 if no transport has been 
+     * @return The underlying TCP transport port, or -1 if no transport has been
      * initialized
      */
-    public int getPort()
+    @Override
+	public int getPort()
     {
         if ( transports == null )
         {
@@ -1638,10 +1722,11 @@ public class LdapServer extends DirectoryBackedService
 
 
     /**
-     * @return The underlying SSL enabled TCP transport port, or -1 if no transport has been 
+     * @return The underlying SSL enabled TCP transport port, or -1 if no transport has been
      * initialized
      */
-    public int getPortSSL()
+    @Override
+	public int getPortSSL()
     {
         if ( transports == null )
         {
@@ -1665,6 +1750,7 @@ public class LdapServer extends DirectoryBackedService
     }
 
 
+    @Override
     public boolean isStarted()
     {
         return started;
@@ -1673,6 +1759,7 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      */
+    @Override
     public void setStarted( boolean started )
     {
         this.started = started;
@@ -1682,7 +1769,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return The keystore path
      */
-    public String getKeystoreFile()
+    @Override
+	public String getKeystoreFile()
     {
         return keystoreFile;
     }
@@ -1692,44 +1780,50 @@ public class LdapServer extends DirectoryBackedService
      * Set the external keystore path
      * @param keystoreFile The external keystore path
      */
-    public void setKeystoreFile( String keystoreFile )
+    @Override
+	public void setKeystoreFile( String keystoreFile )
     {
         this.keystoreFile = keystoreFile;
     }
 
 
     /**
-     * @return The certificate passord
+     * @return The certificate password
      */
-    public String getCertificatePassword()
+    @Override
+	public String getCertificatePassword()
     {
         return certificatePassword;
     }
 
 
     /**
-     * Set the certificate passord.
-     * @param certificatePassword the certificate passord
+     * Set the certificate password.
+     * @param certificatePassword the certificate password
      */
-    public void setCertificatePassword( String certificatePassword )
+    @Override
+	public void setCertificatePassword( String certificatePassword )
     {
         this.certificatePassword = certificatePassword;
     }
 
 
-    public void setReplicationReqHandler( ReplicationRequestHandler replicationProvider )
+    @Override
+	public void setReplicationReqHandler( ReplicationRequestHandler replicationProvider )
     {
         this.replicationReqHandler = replicationProvider;
     }
 
 
-    public ReplicationRequestHandler getReplicationReqHandler()
+    @Override
+	public ReplicationRequestHandler getReplicationReqHandler()
     {
         return replicationReqHandler;
     }
 
 
-    public void setReplConsumers( List<ReplicationConsumer> replConsumers )
+    @Override
+	public void setReplConsumers( List<ReplicationConsumer> replConsumers )
     {
         this.replConsumers = replConsumers;
     }
@@ -1738,16 +1832,32 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return the key manager factory of the server keystore
      */
-    public KeyManagerFactory getKeyManagerFactory()
+    @Override
+	public KeyManagerFactory getKeyManagerFactory()
     {
         return keyManagerFactory;
     }
 
+    /**
+     * @return the trust managers of the server
+     */
+    @Override
+	public TrustManager[] getTrustManagers()
+    {
+        return trustManagers;
+    }
+
+    @Override
+	public void setTrustManagers( TrustManager[] trustManagers )
+    {
+        this.trustManagers = trustManagers;
+    }
 
     /**
      * @return The maximum allowed size for an incoming PDU
      */
-    public int getMaxPDUSize()
+    @Override
+	public int getMaxPDUSize()
     {
         return maxPDUSize;
     }
@@ -1758,7 +1868,8 @@ public class LdapServer extends DirectoryBackedService
      * @param maxPDUSize A positive number of bytes for the PDU. A negative or
      * null value will be transformed to {@link Integer#MAX_VALUE}
      */
-    public void setMaxPDUSize( int maxPDUSize )
+    @Override
+	public void setMaxPDUSize( int maxPDUSize )
     {
         if ( maxPDUSize <= 0 )
         {
@@ -1772,7 +1883,8 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @return the number of seconds pinger thread sleeps between subsequent pings
      */
-    public int getReplPingerSleepTime()
+    @Override
+	public int getReplPingerSleepTime()
     {
         return pingerSleepTime;
     }
@@ -1780,10 +1892,11 @@ public class LdapServer extends DirectoryBackedService
 
     /**
      * The number of seconds pinger thread should sleep before pinging the providers
-     *  
-     * @param pingerSleepTime
+     *
+     * @param pingerSleepTime The delay between 2 pings
      */
-    public void setReplPingerSleepTime( int pingerSleepTime )
+    @Override
+	public void setReplPingerSleepTime( int pingerSleepTime )
     {
         this.pingerSleepTime = pingerSleepTime;
     }
@@ -1793,11 +1906,13 @@ public class LdapServer extends DirectoryBackedService
      * Gives the list of enabled cipher suites
      * <br>
      * This method has been deprecated, please set this list in the TcpTransport class
-     * </br>
-     * 
+     * <br>
+     *
      * @return The list of ciphers that can be used
+     * @deprecated Set this list in the {@link TcpTransport} class
      */
-    @Deprecated
+    @Override
+	@Deprecated
     public List<String> getEnabledCipherSuites()
     {
         return enabledCipherSuites;
@@ -1808,11 +1923,13 @@ public class LdapServer extends DirectoryBackedService
      * Sets the list of cipher suites to be used in LDAPS and StartTLS
      * <br>
      * This method has been deprecated, please set this list in the TcpTransport class
-     * </br>
-     * 
+     * <br>
+     *
      * @param enabledCipherSuites if null the default cipher suites will be used
+     * @deprecated Get this list from the {@link TcpTransport} class
      */
-    @Deprecated
+    @Override
+	@Deprecated
     public void setEnabledCipherSuites( List<String> enabledCipherSuites )
     {
         this.enabledCipherSuites = enabledCipherSuites;
@@ -1822,6 +1939,7 @@ public class LdapServer extends DirectoryBackedService
     /**
      * @see Object#toString()
      */
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
@@ -1839,7 +1957,7 @@ public class LdapServer extends DirectoryBackedService
         return sb.toString();
     }
 
-
+    @Override
 	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
 		
         if (this.tlsKeyAlias == null) {
@@ -1867,39 +1985,46 @@ public class LdapServer extends DirectoryBackedService
 	}
 
 
+	@Override
 	public void setTlsWantClientAuth(boolean b) {
 		this.tlsWantClientAuth = b;
 		
 	}
 
 
+	@Override
 	public void setTlsNeedClientAuth(boolean b) {
 		this.tlsNeedClientAuth = b;
 		
 	}
 
 
+	@Override
 	public boolean isTlsWantClientAuth() {
 		return tlsWantClientAuth;
 	}
 
 
+	@Override
 	public boolean isTlsNeedClientAuth() {
 		return tlsNeedClientAuth;
 	}
 
 
+	@Override
 	public void setTlsAllowedNames(ArrayList<String> allowedNames) {
 		this.tlsAllowedNames = allowedNames;
 		
 	}
 
 
-    public void setTlsKeyAlias(String tlsKeyAlias) {
+    @Override
+	public void setTlsKeyAlias(String tlsKeyAlias) {
         this.tlsKeyAlias = tlsKeyAlias;
     }
 
-    public String getTlsKeyAlias() {
+    @Override
+	public String getTlsKeyAlias() {
         return tlsKeyAlias;
     }
 }

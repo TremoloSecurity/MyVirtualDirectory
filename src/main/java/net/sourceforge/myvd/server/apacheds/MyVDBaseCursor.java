@@ -1,5 +1,6 @@
 package net.sourceforge.myvd.server.apacheds;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,9 @@ import org.slf4j.LoggerFactory;
  */
 public class MyVDBaseCursor extends AbstractCursor<Entry> implements EntryFilteringCursor
 {
+
+    
+
     /** the logger used by this class */
     private static final Logger log = LoggerFactory.getLogger( MyVDBaseCursor.class );
 
@@ -253,7 +257,11 @@ public class MyVDBaseCursor extends AbstractCursor<Entry> implements EntryFilter
             LOG_CURSOR.debug( "Closing BaseEntryFilteringCursor {}", this );
         }
 
-        wrapped.close();
+        try {
+            wrapped.close();
+        } catch (IOException e) {
+            log.warn("Could not close", e);
+        }
         prefetched = null;
     }
 
@@ -268,7 +276,11 @@ public class MyVDBaseCursor extends AbstractCursor<Entry> implements EntryFilter
             LOG_CURSOR.debug( "Closing BaseEntryFilteringCursor {}", this );
         }
 
-        wrapped.close( reason );
+        try {
+            wrapped.close( reason );
+        } catch (IOException e) {
+            log.warn("Could not close", e);
+        }
         prefetched = null;
     }
 

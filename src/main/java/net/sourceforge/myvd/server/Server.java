@@ -66,7 +66,7 @@ import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
 import org.apache.directory.server.core.partition.ldif.LdifPartition;
 import org.apache.directory.server.core.shared.DefaultDnFactory;
 import org.apache.directory.server.i18n.I18n;
-import org.apache.directory.server.ldap.LdapServer;
+import org.apache.directory.server.ldap.LdapServerImpl;
 import org.apache.directory.server.ldap.handlers.request.ExtendedRequestHandler;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
@@ -89,7 +89,7 @@ public class Server {
 
     private DefaultDirectoryService directoryService;
 
-    private LdapServer ldapServer;
+    private LdapServerImpl ldapServer;
 
     private DnFactory dnFactory;
 
@@ -241,7 +241,7 @@ public class Server {
         directoryService.setSchemaManager(schemaManager);
 
         if (this.dnFactory == null) {
-            this.dnFactory = new DefaultDnFactory(schemaManager, new net.sf.ehcache.Cache(new CacheConfiguration("myvd-apacheds-dns", 10000)));
+            this.dnFactory = new DefaultDnFactory(schemaManager,  10000);
         }
 
         // Init the LdifPartition with schema
@@ -317,6 +317,14 @@ public class Server {
         // mandatory to call this method to set the system partition
         // Note: this system partition might be removed from trunk
         directoryService.setSystemPartition(systemPartition);
+        
+        // create a catch-all partition
+        JdbmPartition catchAll = new JdbmPartition(directoryService.getSchemaManager(), this.dnFactory);
+        catchAll.setId("all");
+        catchAll.setPartitionPath(new File(directoryService.getInstanceLayout().getPartitionsDirectory(), catchAll.getId()).toURI());
+        catchAll.setSuffixDn(new Dn("cn=doesnotmatter"));
+        catchAll.setSchemaManager(directoryService.getSchemaManager());
+        directoryService.addPartition(catchAll);
 
         // Disable the ChangeLog system
         directoryService.getChangeLog().setEnabled(false);
@@ -339,7 +347,7 @@ public class Server {
 
         directoryService.startup();
 
-        this.ldapServer = new LdapServer();
+        this.ldapServer = new LdapServerImpl();
         ldapServer.setDirectoryService(directoryService);
 
         String authRequiredString = props.getProperty("server.listener.authRequired", "false").trim();

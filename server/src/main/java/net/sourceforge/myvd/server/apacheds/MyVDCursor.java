@@ -8,6 +8,7 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.DefaultAttribute;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.TremoloEntry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException;
@@ -101,7 +102,7 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 				nentry = res.next().getEntry();
 			}
 			
-			Entry entry = new DefaultEntry();
+			Entry entry = new TremoloEntry();
 			
 			entry.setDn(nentry.getDN());
 			LDAPAttributeSet attrs = nentry.getAttributeSet();

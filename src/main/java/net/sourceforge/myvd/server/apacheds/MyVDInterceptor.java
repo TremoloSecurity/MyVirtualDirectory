@@ -27,14 +27,12 @@ import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.Results;
 import net.sourceforge.myvd.types.SessionVariables;
 import net.sourceforge.myvd.types.TlsParameters;
-
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.entry.Attribute;
-import org.apache.directory.api.ldap.model.entry.BinaryValue;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Modification;
-import org.apache.directory.api.ldap.model.entry.StringValue;
+import org.apache.directory.api.ldap.model.entry.TremoloEntry;
 import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidSearchFilterException;
@@ -74,10 +72,11 @@ import org.apache.directory.server.core.api.interceptor.context.MoveOperationCon
 import org.apache.directory.server.core.api.interceptor.context.RenameOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.SearchOperationContext;
 import org.apache.directory.server.core.api.interceptor.context.UnbindOperationContext;
-import org.apache.directory.server.core.shared.DefaultCoreSession;
+import org.apache.directory.server.core.shared.DefaultCoreSessionImpl;
 import org.apache.logging.log4j.Logger;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
+import org.apache.directory.server.core.shared.DefaultCoreSession;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -135,12 +134,12 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 			return userSession;
 		} else {
-			HashMap<Object,Object> userSession = (HashMap<Object, Object>) op.getSession().getIoSession().getAttribute(MyVDInterceptor.USER_SESSION);
+			HashMap<Object,Object> userSession = (HashMap<Object, Object>) ((DefaultCoreSession)op.getSession()).getIoSession().getAttribute(MyVDInterceptor.USER_SESSION);
 			
 			if (userSession == null) {
 				userSession = new HashMap<Object,Object>();
-				op.getSession().getIoSession().setAttribute(MyVDInterceptor.USER_SESSION, userSession);
-				userSession.put("LDAP_CONNECTION_NUMBER", op.getSession().getIoSession().getId());
+				((DefaultCoreSession)op.getSession()).getIoSession().setAttribute(MyVDInterceptor.USER_SESSION, userSession);
+				userSession.put("LDAP_CONNECTION_NUMBER", ((DefaultCoreSession)op.getSession()).getIoSession().getId());
 			}
 			
 			return userSession;
@@ -198,11 +197,11 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 			
 			if (attr.isHumanReadable()) {
-				for (Value<?> v : attr) {
+				for (Value v : attr) {
 					lattr.addValue(v.getString());
 				}
 			} else {
-				for (Value<?> v : attr) {
+				for (Value v : attr) {
 					lattr.addValue(v.getBytes());
 				}
 			}
@@ -225,7 +224,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 
 	private void setTLSSessionParams(HashMap<Object, Object> userSession,
 			CoreSession session) {
-		this.setTLSSessionParams(userSession, session.getIoSession());
+		this.setTLSSessionParams(userSession, ((DefaultCoreSession)session).getIoSession());
 		
 	}
 
@@ -349,10 +348,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 
         // remove creds so there is no security risk
         bindContext.setCredentials( null );
-        clonedPrincipal.setUserPassword( StringConstants.EMPTY_BYTES );
+        clonedPrincipal.setUserPassword( new byte[0] );
 
         // authentication was successful
-        CoreSession csession = new DefaultCoreSession( clonedPrincipal, directoryService );
+        CoreSession csession = new DefaultCoreSessionImpl( clonedPrincipal, directoryService );
         bindContext.setSession( csession );
 	}
 
@@ -397,7 +396,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		/*SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			chain.nextSearch(new DistinguishedName(del.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
 			res.next();
@@ -463,7 +462,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			ArrayList<net.sourceforge.myvd.types.Attribute> attrs = new ArrayList<net.sourceforge.myvd.types.Attribute>();
 			net.sourceforge.myvd.types.Attribute none = new net.sourceforge.myvd.types.Attribute("1.1");
@@ -523,7 +522,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
 		Results res = new Results(this.globalChain);
-		Entry entry = new DefaultEntry();
+		Entry entry = new TremoloEntry();
 		try {
 			chain.nextSearch(new DistinguishedName(lookup.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
 			res.start();
@@ -596,11 +595,11 @@ public class MyVDInterceptor extends BaseInterceptor {
 			LDAPModification ldapMod = new LDAPModification(modification.getOperation().getValue(),new LDAPAttribute(modification.getAttribute().getAttributeType().getName()));
 			
 			if (modification.getAttribute().isHumanReadable()) {
-				for (Value<?> s : modification.getAttribute()) {
+				for (Value s : modification.getAttribute()) {
 					ldapMod.getAttribute().addValue(s.getString());
 				}
 			} else {
-				for (Value<?> s : modification.getAttribute()) {
+				for (Value s : modification.getAttribute()) {
 					ldapMod.getAttribute().addValue(s.getBytes());
 				}
 			}
@@ -795,9 +794,9 @@ public class MyVDInterceptor extends BaseInterceptor {
 				
 				if (! search.isNoAttributes()) {
 				
-					if (search.getOriginalAttributes() != null) {
-						for (String attrName : search.getOriginalAttributes()) {
-							attrs.add(new net.sourceforge.myvd.types.Attribute(attrName));
+					if (search.getReturningAttributes() != null) {
+						for (AttributeTypeOptions attrType : search.getReturningAttributes()) {
+							attrs.add(new net.sourceforge.myvd.types.Attribute(attrType.getAttributeType().getName()));
 						}
 					}
 				} else {
@@ -868,7 +867,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 	public void unbind(UnbindOperationContext unbindContext)
 			throws LdapException {
 		if (this.conLogger != null) {
-			conLogger.unbind(unbindContext.getSession().getIoSession());
+			conLogger.unbind(((DefaultCoreSession)unbindContext.getSession()).getIoSession());
 		}
 		super.unbind(unbindContext);
 	}
@@ -971,7 +970,7 @@ private Filter generateMyVDFilter(ExprNode root) {
 
         if ( null != node.getInitial() )
         {
-            buf.append( escapeFilterValue( new StringValue( node.getInitial() ) ) ).append( '*' );
+            buf.append( escapeFilterValue( new Value( node.getInitial() ) ) ).append( '*' );
         }
         else
         {
@@ -982,14 +981,14 @@ private Filter generateMyVDFilter(ExprNode root) {
         {
             for ( String any : node.getAny() )
             {
-                buf.append( escapeFilterValue( new StringValue( any ) ) );
+                buf.append( escapeFilterValue( new Value( any ) ) );
                 buf.append( '*' );
             }
         }
 
         if ( null != node.getFinal() )
         {
-            buf.append( escapeFilterValue( new StringValue( node.getFinal() ) ) );
+            buf.append( escapeFilterValue( new Value( node.getFinal() ) ) );
         }
 
         
@@ -1007,7 +1006,7 @@ private Filter generateMyVDFilter(ExprNode root) {
      * @param value Right hand side of "attrId=value" assertion occurring in an LDAP search filter.
      * @return Escaped version of <code>value</code>
      */
-    protected Value<?> escapeFilterValue( Value<?> value )
+    protected Value escapeFilterValue( Value value )
     {
         if ( value.isNull() )
         {
@@ -1019,9 +1018,9 @@ private Filter generateMyVDFilter(ExprNode root) {
 
         if ( !value.isHumanReadable() )
         {
-            sb = new StringBuilder( ( ( BinaryValue ) value ).getReference().length * 3 );
+            sb = new StringBuilder( value.getBytes().length * 3 );
 
-            for ( byte b : ( ( BinaryValue ) value ).getReference() )
+            for ( byte b : value.getBytes() )
             {
                 if ( ( b < 0x7F ) && ( b >= 0 ) )
                 {
@@ -1065,10 +1064,10 @@ private Filter generateMyVDFilter(ExprNode root) {
                 }
             }
 
-            return new StringValue( sb.toString() );
+            return new Value( sb.toString() );
         }
 
-        val = ( ( StringValue ) value ).getString();
+        val = ( ( Value ) value ).getString();
         String encodedVal = FilterEncoder.encodeFilterValue( val );
         if ( val.equals( encodedVal ) )
         {
@@ -1076,7 +1075,7 @@ private Filter generateMyVDFilter(ExprNode root) {
         }
         else
         {
-            return new StringValue( encodedVal );
+            return new Value( encodedVal );
         }
     }
     

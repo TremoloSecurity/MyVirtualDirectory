@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>net.sourceforge.myvd</groupId>
@@ -38,7 +37,7 @@
 			<!--  <id>nexus.tremolo.io</id>  -->
 			<id>nexus.tremolo.io</id>
 			<name>tremolo.io-releases</name>
-			<url>s3://tremolosecurity-maven/repository/releases</url>  
+			<url>s3://tremolosecurity-maven/repository/releases</url>
 		</repository>
 
 	</distributionManagement>
@@ -122,6 +121,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>1.70</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-ext-jdk15on</artifactId>
 			<version>1.70</version>
 		</dependency>
@@ -131,7 +135,6 @@
 			<version>1.10.9</version>
 			<scope>test</scope>
 		</dependency>
-
 
 
 		<dependency>
@@ -146,11 +149,11 @@
 			<version>1.7.32</version>
 		</dependency>
 
-		 <dependency>
-	        <groupId>org.apache.logging.log4j</groupId>
-	        <artifactId>log4j-slf4j-impl</artifactId>
-	        <version>2.17.0</version>
-	    </dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.17.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -161,7 +164,7 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-				
+
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -173,7 +176,7 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-				
+
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -185,7 +188,7 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-				
+
 			</exclusions>
 		</dependency>
 
@@ -232,38 +235,125 @@
 			<version>0.9.5.5</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.tremolosecurity.myvd</groupId>
-			<artifactId>apacheds-service</artifactId>
-			<version>2.0.0-M20</version>
-		</dependency>
 
 		<dependency>
 			<groupId>antlr</groupId>
 			<artifactId>antlr</artifactId>
 			<version>2.7.7</version>
 		</dependency>
+
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.10.13</version>
+		</dependency>
+		<dependency>
+			<groupId>dnsjava</groupId>
+			<artifactId>dnsjava</artifactId>
+			<version>3.4.3</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-i18n</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-jdbm-partition</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-mavibot-partition</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-xdbm-partition</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-core-shared</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+			
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-core-api</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-core-constants</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-core-avl</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-ldif-partition</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-protocol-shared</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-protocol-ldap</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-codec-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tremolosecurity.apache.directory.server</groupId>
+			<artifactId>apacheds-interceptors-schema</artifactId>
+			<version>2.0.0.AM27-SNAPSHOT</version>
+		</dependency>
 		
 		<dependency>
-  		<groupId>joda-time</groupId>
-  		<artifactId>joda-time</artifactId>
-  		<version>2.10.13</version>
-  	</dependency>
-	  <dependency>
-    <groupId>dnsjava</groupId>
-    <artifactId>dnsjava</artifactId>
-    <version>3.4.3</version>
-</dependency>
+		  <groupId>org.apache.directory.api</groupId>
+		  <artifactId>api-ldap-codec-standalone</artifactId>
+		  <version>2.1.0</version>
+		</dependency>
+		
+
 	</dependencies>
 
 	<build>
 		<extensions>
-        <extension>
-            <groupId>com.gkatzioura.maven.cloud</groupId>
-            <artifactId>s3-storage-wagon</artifactId>
-            <version>2.3</version>
-        </extension>
-    </extensions>
+			<extension>
+				<groupId>com.gkatzioura.maven.cloud</groupId>
+				<artifactId>s3-storage-wagon</artifactId>
+				<version>2.3</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -289,7 +379,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		 <plugin>
+			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.7</version>
 				<executions>
@@ -309,7 +399,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin> 
+			</plugin>
 			<plugin>
 
 				<artifactId>maven-assembly-plugin</artifactId>

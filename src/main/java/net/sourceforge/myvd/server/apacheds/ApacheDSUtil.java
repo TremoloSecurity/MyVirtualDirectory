@@ -4,7 +4,7 @@ import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.schema.AttributeType;
-import org.apache.directory.api.ldap.model.schema.MutableAttributeType;
+
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class ApacheDSUtil {
     
     public static AttributeType addAttributeToSchema(Attribute attribute,SchemaManager schemaManager) throws LdapException {
     	String newOID = generateRandomOID(schemaManager);
-    	MutableAttributeType at = new MutableAttributeType(newOID);
+    	AttributeType at = new AttributeType(newOID);
     	
     	// base new attributes on uid
     	AttributeType uidAT = schemaManager.getAttributeType("0.9.2342.19200300.100.1.1");
@@ -51,7 +51,7 @@ public class ApacheDSUtil {
     
     public static AttributeType addBinaryAttributeToSchema(Attribute attribute,SchemaManager schemaManager) throws LdapException {
     	String newOID = generateRandomOID(schemaManager);
-    	MutableAttributeType at = new MutableAttributeType(newOID);
+    	AttributeType at = new AttributeType(newOID);
     	
     	// base new attributes on javaSerializedData
     	AttributeType uidAT = schemaManager.getAttributeType("1.3.6.1.4.1.42.2.27.4.1.8");

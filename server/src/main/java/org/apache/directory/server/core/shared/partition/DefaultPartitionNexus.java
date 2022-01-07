@@ -188,7 +188,7 @@ public class DefaultPartitionNexus extends AbstractPartition implements Partitio
     /* (non-Javadoc)
      * @see org.apache.directory.server.core.partition.PartitionNexus#initialize()
      */
-    protected void doInit() throws Exception
+    protected void doInit()
     {
         // NOTE: We ignore ContextPartitionConfiguration parameter here.
         if ( !initialized )
@@ -308,7 +308,7 @@ public class DefaultPartitionNexus extends AbstractPartition implements Partitio
     /* (non-Javadoc)
      * @see org.apache.directory.server.core.partition.PartitionNexus#sync()
      */
-    public void sync() throws Exception
+    public void sync()
     {
         MultiException error = null;
 
@@ -633,7 +633,7 @@ public class DefaultPartitionNexus extends AbstractPartition implements Partitio
         // return nothing
         if ( noAttribute )
         {
-            Entry serverEntry = new DefaultEntry( schemaManager, Dn.ROOT_DSE );
+            Entry serverEntry = new TremoloEntry( schemaManager, Dn.ROOT_DSE );
             return new BaseEntryFilteringCursor( new SingletonCursor<Entry>( serverEntry ), searchContext,
                 directoryService.getSchemaManager() );
         }
@@ -646,7 +646,7 @@ public class DefaultPartitionNexus extends AbstractPartition implements Partitio
                 directoryService.getSchemaManager() );
         }
 
-        Entry serverEntry = new DefaultEntry( schemaManager, Dn.ROOT_DSE );
+        Entry serverEntry = new TremoloEntry( schemaManager, Dn.ROOT_DSE );
 
         Entry rootDse = getRootDse( new GetRootDseOperationContext( searchContext.getSession() ) );
 
