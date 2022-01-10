@@ -19,6 +19,7 @@ package net.sourceforge.myvd.inserts.mapping;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -29,10 +30,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
-
-
-
-
+import com.novell.ldap.util.ByteArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,14 +161,21 @@ public class AttributeValueMapper implements Insert {
 			HashMap<String,String> newvals = this.localMap.get(mod.getAttribute().getBaseName().toLowerCase());
 			if (newvals != null) {
 				
-				String[] vals = mod.getAttribute().getStringValueArray();
-				for (int i=0,m=vals.length;i<m;i++) {
-					String newVal = newvals.get(vals[i].toLowerCase());
+				
+				LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
+				LinkedList<ByteArray> newVals = new LinkedList<ByteArray>();
+				for (ByteArray b : vals) {
+					String sval = b.toString();
+					String newVal = newvals.get(sval.toLowerCase());
 					if (newVal != null) {
-						mod.getAttribute().removeValue(vals[i]);
-						mod.getAttribute().addValue(newVal);
+						newVals.add(new ByteArray(newVal));
+						
+					} else {
+						newVals.add(b);
 					}
 				}
+
+				mod.getAttribute().setAllValues(newVals);
 			}
 		}
 		

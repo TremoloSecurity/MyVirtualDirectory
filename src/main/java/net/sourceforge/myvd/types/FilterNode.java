@@ -18,12 +18,13 @@ package net.sourceforge.myvd.types;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
-
+import java.util.LinkedList;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.util.ByteArray;
 
 public class FilterNode implements Cloneable {
 	FilterType type;
@@ -226,10 +227,10 @@ public class FilterNode implements Cloneable {
 						   return false;
 					   }
 					   
-					   enumer = attrib.getStringValues();
+					   LinkedList<ByteArray> vals = attrib.getAllValues();
 					   String compval = this.value.replaceAll("\\*", ".*");
-					   while (enumer.hasMoreElements()) {
-						   if (enumer.nextElement().toString().matches(new StringBuilder().append("(?i:").append(compval).append(")").toString())) {
+					   for (ByteArray b : vals) {
+						   if (b.toString().matches(new StringBuilder().append("(?i:").append(compval).append(")").toString())) {
 							   return true;
 						   }
 					   }
@@ -243,9 +244,10 @@ public class FilterNode implements Cloneable {
 							   return false;
 						   }
 						   
-						   enumer = attrib.getStringValues();
-						   while (enumer.hasMoreElements()) {
-							   if (enumer.nextElement().toString().equalsIgnoreCase(this.value)) {
+						   
+						   LinkedList<ByteArray> attrvals = attrib.getAllValues();
+						   for (ByteArray b : attrvals) {
+							   if (b.toString().equalsIgnoreCase(this.value)) {
 								   return true;
 							   }
 						   }
@@ -258,9 +260,9 @@ public class FilterNode implements Cloneable {
 									   return false;
 								   }
 								   
-								   enumer = attrib.getStringValues();
-								   while (enumer.hasMoreElements()) {
-									   if (enumer.nextElement().toString().compareToIgnoreCase(this.value) > 0) {
+								   LinkedList<ByteArray> attrvalsx = attrib.getAllValues();
+								   for (ByteArray b : attrvalsx) {
+									   if (b.toString().compareToIgnoreCase(this.value) > 0) {
 										   return true;
 									   }
 								   }
@@ -273,9 +275,10 @@ public class FilterNode implements Cloneable {
 								   return false;
 							   }
 							   
-							   enumer = attrib.getStringValues();
-							   while (enumer.hasMoreElements()) {
-								   if (enumer.nextElement().toString().compareToIgnoreCase(this.value) < 0) {
+							   
+							   LinkedList<ByteArray> attrvalsy = attrib.getAllValues();
+							   for (ByteArray b : attrvalsy) {
+								   if (b.toString().compareToIgnoreCase(this.value) < 0) {
 									   return true;
 								   }
 							   }

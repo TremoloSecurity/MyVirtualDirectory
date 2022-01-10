@@ -4,6 +4,7 @@ import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import org.apache.logging.log4j.Logger;
@@ -14,7 +15,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
-
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -149,9 +150,9 @@ public class Dn2Attribute implements Insert {
 		LDAPAttribute attr = entry.getEntry().getAttribute(this.sourceAttribute);
 		if (attr != null) {
 			LDAPAttribute nattr = new LDAPAttribute(this.sourceAttribute);
-			String[] dns = attr.getStringValueArray();
-			for (String dn : dns) {
-				nattr.addValue(this.dn2attr(dn, chain));
+			LinkedList<ByteArray> dns = nattr.getAllValues();
+			for (ByteArray dn : dns) {
+				nattr.addValue(this.dn2attr(dn.toString(), chain));
 			}
 			entry.getEntry().getAttributeSet().remove(this.sourceAttribute);
 			entry.getEntry().getAttributeSet().add(nattr);

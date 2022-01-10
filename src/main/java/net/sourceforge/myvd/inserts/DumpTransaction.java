@@ -16,6 +16,7 @@
 package net.sourceforge.myvd.inserts;
 
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -26,8 +27,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
-
-
+import com.novell.ldap.util.ByteArray;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -113,8 +113,12 @@ public class DumpTransaction implements Insert {
 		Iterator it = entry.getEntry().getAttributeSet().iterator();
 		while (it.hasNext()) {
 			LDAPAttribute attrib = (LDAPAttribute) it.next();
-			for (int i=0,m=attrib.size();i<m;i++) {
-				ldif.append(attrib.getBaseName()).append(" : ").append(attrib.getStringValueArray()[i]).append('\n');
+			for (ByteArray b : attrib.getAllValues()) {
+				try {
+					ldif.append(attrib.getBaseName()).append(" : ").append(new String(b.getValue(),"UTF-8")).append('\n');
+				} catch (UnsupportedEncodingException e) {
+					// can't happen
+				}
 			}
 		}
 		
@@ -235,14 +239,16 @@ public class DumpTransaction implements Insert {
 				case LDAPModification.DELETE : buf.append("delete: ").append(mod.getAttribute().getName()).append("\n"); break;
 			}
 			
-			Enumeration enumer = mod.getAttribute().getStringValues();
 			
-			while (enumer.hasMoreElements()) {
+			
+			Iterator<ByteArray> vals = mod.getAttribute().getAllValues().iterator();
+
+			while (vals.hasNext()) {
 				if (mod.getAttribute().getName().equalsIgnoreCase("userpassword")) {
-					enumer.nextElement();
+					vals.next();
 					buf.append(mod.getAttribute().getName()).append(": ").append("**********").append('\n');
 				} else {
-					buf.append(mod.getAttribute().getName()).append(": ").append(enumer.nextElement().toString()).append('\n');
+					buf.append(mod.getAttribute().getName()).append(": ").append(vals.next().toString()).append('\n');
 				}
 			}
 			
@@ -345,8 +351,13 @@ public class DumpTransaction implements Insert {
 		Iterator it = entry.getEntry().getAttributeSet().iterator();
 		while (it.hasNext()) {
 			LDAPAttribute attrib = (LDAPAttribute) it.next();
-			for (int i=0,m=attrib.size();i<m;i++) {
-				ldif.append(attrib.getBaseName()).append(" : ").append(attrib.getStringValueArray()[i]).append('\n');
+			for (ByteArray b : attrib.getAllValues()) {
+				try {
+					ldif.append(attrib.getBaseName()).append(" : ").append(new String(b.getValue(),"UTF-8")).append('\n');
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		ldif.append("myVdReturnEntry: " + entry.isReturnEntry());
@@ -369,8 +380,12 @@ public class DumpTransaction implements Insert {
 			it = entry.getEntry().getAttributeSet().iterator();
 			while (it.hasNext()) {
 				LDAPAttribute attrib = (LDAPAttribute) it.next();
-				for (int i=0,m=attrib.size();i<m;i++) {
-					ldif.append(attrib.getBaseName()).append(" : ").append(attrib.getStringValueArray()[i]).append('\n');
+				for (ByteArray b : attrib.getAllValues()) {
+					try {
+						ldif.append(attrib.getBaseName()).append(" : ").append(new String(b.getValue(),"UTF-8")).append('\n');
+					} catch (UnsupportedEncodingException e) {
+						//can't happen
+					}
 				}
 			}
 			ldif.append("myVdReturnEntry: " + entry.isReturnEntry());

@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Stack;
 
@@ -30,6 +31,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPUrl;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -244,9 +246,10 @@ public class DynamicGroups implements Insert {
 		boolean found = false;
 		
 		if (urls != null) {
-			Enumeration enumer = urls.getStringValues();
-			while (enumer.hasMoreElements()) {
-				String url = (String) enumer.nextElement();
+			
+			LinkedList<ByteArray> vals = urls.getAllValues();
+			for (ByteArray b : vals) {
+				String url = b.toString();
 				LDAPUrl ldapurl = null;
 				
 				try {
@@ -315,13 +318,14 @@ public class DynamicGroups implements Insert {
 		
 		LDAPAttribute ocs = entry.getEntry().getAttribute("objectClass");
 		if (ocs != null) {
-			String[] vals = ocs.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				if (vals[i].equalsIgnoreCase(dynOC)) {
+			LinkedList<ByteArray> vals = ocs.getAllValues();
+			for (ByteArray b : vals) {
+				String sval = b.toString();
+				if (sval.equalsIgnoreCase(dynOC)) {
 					isDynGroup = true;
 					nocs.addValue(staticOC);
 				} else {
-					nocs.addValue(vals[i]);
+					nocs.addValue(sval);
 				}
 			}
 			
@@ -338,9 +342,10 @@ public class DynamicGroups implements Insert {
 			return;
 		}
 		
-		Enumeration enumer = urls.getStringValues();
-		while (enumer.hasMoreElements()) {
-			String url = (String) enumer.nextElement();
+		
+		LinkedList<ByteArray> vals = urls.getAllValues();
+		for (ByteArray b : vals) {
+			String url = b.toString();
 			LDAPUrl ldapurl = null;
 			
 			try {

@@ -14,10 +14,13 @@ import org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeExceptio
 import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 
+import java.util.LinkedList;
+
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.util.ByteArray;
 
 public class MyVDCursor extends AbstractCursor<Entry> {
 
@@ -121,9 +124,14 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 				
 				
 				
-				byte[][] vals = a.getByteValueArray();
+				
 				DefaultAttribute attr = new DefaultAttribute(a.getName());
-				attr.add(vals);
+				LinkedList<ByteArray> vals = a.getAllValues();
+				for (ByteArray b : vals) {
+					attr.add(b.getValue());
+				}
+				
+				
 				entry.add(attr);
 				
 			}

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -32,6 +33,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.RDN;
 
@@ -259,8 +261,9 @@ public class SetRDN implements Insert {
 		
 		boolean ocFound = false;
 		if (entry.getEntry().getAttribute("OBJECTCLASS") != null) {
-			for (String oc : entry.getEntry().getAttribute("OBJECTCLASS").getStringValueArray()) {
-				if (oc.equalsIgnoreCase(this.objectClass)) {
+			LinkedList<ByteArray> ocs = entry.getEntry().getAttribute("OBJECTCLASS").getAllValues();
+			for (ByteArray oc : ocs) {
+				if (oc.toString().equalsIgnoreCase(this.objectClass)) {
 					ocFound = true;
 					break;
 				}
@@ -316,22 +319,16 @@ public class SetRDN implements Insert {
 			
 			
 			if (attr != null) {
-				ArrayList<String> vals = new ArrayList<String>();
-				ArrayList<String> origVals = new ArrayList<String>();
-				
-				for (String val : attr.getStringValueArray()) {
+				LinkedList<ByteArray> attrvals = attr.getAllValues();
+				LinkedList<ByteArray> nattrvals = new LinkedList<ByteArray>();
+
+				for (ByteArray b : attrvals) {
+					String val = b.toString();
 					String nval = this.getExternalAttrDN(val, chain);
-					vals.add(nval);
-					origVals.add(val);
+					nattrvals.add(new ByteArray(nval));
 				}
 				
-				for (String val : origVals) {
-					attr.removeValue(val);
-				}
-				
-				for (String val : vals) {
-					attr.addValue(val);
-				}
+				attr.setAllValues(nattrvals);
 				
 			}
 		}

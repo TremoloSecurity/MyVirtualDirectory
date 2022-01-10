@@ -4,7 +4,7 @@
 
 	<groupId>net.sourceforge.myvd</groupId>
 	<artifactId>myvd-server</artifactId>
-	<version>1.0.11</version>
+	<version>1.0.11.1</version>
 	<packaging>jar</packaging>
 
 	<name>server</name>
@@ -106,14 +106,14 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.tremolosecurity.myvd</groupId>
+			<groupId>com.tremolosecurity</groupId>
 			<artifactId>jldap</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.tremolosecurity.myvd</groupId>
-			<artifactId>jdbcLdap</artifactId>
-			<version>1.0.0</version>
+			<groupId>com.tremolosecurity</groupId>
+			<artifactId>jdbc-ldap</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>

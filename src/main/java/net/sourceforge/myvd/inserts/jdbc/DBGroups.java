@@ -17,6 +17,7 @@ package net.sourceforge.myvd.inserts.jdbc;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -47,6 +48,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 public class DBGroups implements Insert {
@@ -193,9 +195,13 @@ public class DBGroups implements Insert {
 			entry.getEntry().getAttributeSet().remove(member);
 			LDAPAttribute newMembers = new LDAPAttribute(this.attribName);
 			
-			String[] vals = member.getStringValueArray();
-			for (int i=0,m=vals.length;i<m;i++) {
-				newMembers.addValue(this.rdnAttrib + "=" + vals[i] + "," + this.suffix);
+			
+			StringBuilder sb = new StringBuilder();
+			LinkedList<ByteArray> vals = member.getAllValues();
+			for (ByteArray b : vals) {
+				sb.setLength(0);
+				sb.append(this.rdnAttrib).append('=').append(b.toString()).append(',').append(this.suffix);
+				newMembers.addValue(sb.toString());
 			}
 			
 			entry.getEntry().getAttributeSet().add(newMembers);

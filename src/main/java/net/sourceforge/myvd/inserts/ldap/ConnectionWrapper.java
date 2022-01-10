@@ -26,12 +26,11 @@ import net.sourceforge.myvd.types.Password;
 
 import java.util.UUID;
 
-import com.novell.ldap.DsmlConnection;
+
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
-import com.novell.ldap.SPMLConnection;
 import com.novell.ldap.util.DN;
 
 public class ConnectionWrapper {
@@ -187,13 +186,8 @@ public class ConnectionWrapper {
 						
 			case LDAP : ldapcon = new LDAPConnection();
 			            break;
-			case DSMLV2 : DsmlConnection con = new DsmlConnection();
-						  con.setUseSoap(interceptor.isSoap);
-						  ldapcon = con;
-						  break;
-			case SPML : SPMLConnection spml = new SPMLConnection(interceptor.spmlImpl);
-						ldapcon = spml;
-						break;
+			case DSMLV2 : 
+			case SPML : throw new LDAPException("Not supported",LDAPException.OPERATIONS_ERROR,LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR));
 			
 		}
 		

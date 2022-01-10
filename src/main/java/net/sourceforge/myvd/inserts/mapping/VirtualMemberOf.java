@@ -15,6 +15,7 @@ package net.sourceforge.myvd.inserts.mapping;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import com.novell.ldap.LDAPAttribute;
@@ -24,6 +25,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -182,7 +184,9 @@ public class VirtualMemberOf implements Insert {
 					Entry group = nres.next();
 					LDAPAttribute members = group.getEntry().getAttribute(this.searchAttribute);
 					if (members != null) {
-						for (String member : members.getStringValueArray()) {
+						LinkedList<ByteArray> memberVals = members.getAllValues();
+						for (ByteArray b : memberVals) {
+							String member = b.toString();
 							//if base?
 							
 							DistinguishedName userDN = new DistinguishedName(member);
@@ -299,8 +303,9 @@ public class VirtualMemberOf implements Insert {
 			
 			if (doAdd) {
 				boolean found = false;
-				for (String oc : entry.getEntry().getAttribute("objectClass").getStringValueArray()) {
-					if (oc.equalsIgnoreCase(this.applyToObjectClass)) {
+				LinkedList<ByteArray> ocs = entry.getEntry().getAttribute("objectClass").getAllValues();
+				for (ByteArray oc : ocs) {
+					if (oc.toString().equalsIgnoreCase(this.applyToObjectClass)) {
 						found = true;
 					}
 				}
@@ -355,7 +360,7 @@ public class VirtualMemberOf implements Insert {
 					memberof.addValue(group.getEntry().getDN());
 				}
 				
-				if (memberof.getStringValueArray() != null && memberof.getStringValueArray().length > 0) {
+				if (memberof.getAllValues() != null && ! memberof.getAllValues().isEmpty()) {
 					entry.getEntry().getAttributeSet().add(memberof);
 				}
 				
