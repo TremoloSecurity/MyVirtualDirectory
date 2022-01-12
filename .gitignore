@@ -79,3 +79,4 @@ local.properties
 /test/**/apacheds-data
 /test/opends-1.0b7/db
 /test/opends-1.0b7/logs
+/.factorypath

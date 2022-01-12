@@ -18,6 +18,7 @@ package net.sourceforge.myvd.inserts.ad;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Stack;
 
@@ -30,6 +31,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -226,15 +228,15 @@ public class GeneratePosixGID implements Insert {
 		
 		
 		
-		Enumeration<String> enumer = oc.getStringValues();
 		
+		LinkedList<ByteArray> attrvals = oc.getAllValues();
 		boolean isUser = false;
 		boolean isGroup = false;
 		boolean joinedUserOcFound = false;
 		boolean joinedGroupOcFound = false;
 		
-		while (enumer.hasMoreElements()) {
-			String objectClass =  enumer.nextElement();
+		for (ByteArray b : attrvals) {
+			String objectClass =  b.toString();
 			
 			if (objectClass.equalsIgnoreCase("user")) {
 				isUser = true;

@@ -15,11 +15,14 @@
  */
 package net.sourceforge.myvd.types;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPControl;
 import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 public class Entry {
@@ -53,14 +56,29 @@ public class Entry {
 			return;
 		}
 		
-		String[] vals = attribute.getStringValueArray();
-		for (int i=0,m=vals.length;i<m;i++) {
-			String newVal = map.get(vals[i].toLowerCase());
+
+		LinkedList<ByteArray> vals = attribute.getAllValues();
+		LinkedList<ByteArray> newVals = new LinkedList<ByteArray>();
+		for (ByteArray b : vals) {
+			String val = null;
+			try {
+				val = new String(b.getValue(),"UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				//can't happen
+			}
+			String newVal = map.get(val.toLowerCase());
 			if (newVal != null) {
-				attribute.removeValue(vals[i]);
-				attribute.addValue(newVal);
+				try {
+					newVals.add(new ByteArray(newVal.getBytes("UTF-8")));
+				} catch (UnsupportedEncodingException e) {
+					// can't happen
+				}
+			} else {
+				newVals.add(b);
 			}
 		}
+
+		attribute.setAllValues(newVals);
 	}
 	
 	public void renameAttribute(String oldAttribName,String newAttribName) {
@@ -72,14 +90,9 @@ public class Entry {
 		}
 		entry.getAttributeSet().remove(attrib);
 		
-		LDAPAttribute newAttrib = new LDAPAttribute(newAttribName);
+		attrib.setName(newAttribName);
 		
-		byte[][] vals = attrib.getByteValueArray();
-		for (int i=0,m=vals.length;i<m;i++) {
-			newAttrib.addValue(vals[i]);
-		}
-		
-		entry.getAttributeSet().add(newAttrib);
+		entry.getAttributeSet().add(attrib);
 	}
 	
 	public void copyAttribute(String oldAttribName,String newAttribName) {
@@ -91,12 +104,9 @@ public class Entry {
 		}
 
 		
-		LDAPAttribute newAttrib = new LDAPAttribute(newAttribName);
+		LDAPAttribute newAttrib = new LDAPAttribute(attrib);
 		
-		byte[][] vals = attrib.getByteValueArray();
-		for (int i=0,m=vals.length;i<m;i++) {
-			newAttrib.addValue(vals[i]);
-		}
+		
 		
 		entry.getAttributeSet().add(newAttrib);
 	}

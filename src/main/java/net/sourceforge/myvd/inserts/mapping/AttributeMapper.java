@@ -144,13 +144,7 @@ public class AttributeMapper implements Insert {
 			String newName = this.localMap.get(mod.getAttribute().getBaseName().toLowerCase());
 			if (newName != null) {
 				LDAPAttribute newAttrib = new LDAPAttribute(newName);
-				byte[][] vals = mod.getAttribute().getByteValueArray();
-				for (int i=0,m=vals.length;i<m;i++) {
-					newAttrib.addValue(vals[i]);
-				}
-				LDAPModification newMod = new LDAPModification(mod.getOp(),newAttrib);
-				it.remove();
-				it.add(newMod);
+				mod.getAttribute().setName(newName);
 			}
 		}
 		

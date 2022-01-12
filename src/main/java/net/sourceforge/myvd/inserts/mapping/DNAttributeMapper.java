@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -31,6 +32,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPUrl;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -236,9 +238,10 @@ public class DNAttributeMapper implements Insert {
 		LDAPAttribute nattrib = new LDAPAttribute(origAttrib.getName());
 		
 		if (this.dnAttribs.contains(origAttrib.getName().toLowerCase())) {
-			Enumeration enumer = origAttrib.getStringValues();
-			while (enumer.hasMoreElements()) {
-				String dn = (String) enumer.nextElement();
+			
+			LinkedList<ByteArray> vals = origAttrib.getAllValues();
+			for (ByteArray b : vals) {
+				String dn = b.toString();
 				
 				if (outbound) {
 					if (dn.toLowerCase().endsWith(this.localBaseDN)) {
@@ -255,9 +258,10 @@ public class DNAttributeMapper implements Insert {
 				}
 			}
 		} else if (this.urlAttribs.contains(origAttrib.getName().toLowerCase())) {
-			Enumeration enumer = origAttrib.getStringValues();
-			while (enumer.hasMoreElements()) {
-				String url = (String) enumer.nextElement();
+			
+			LinkedList<ByteArray> vals = origAttrib.getAllValues();
+			for (ByteArray b : vals) {
+				String url = b.toString();
 				String urlbase = url.substring(url.indexOf('/') + 3,url.indexOf('?'));
 				String nurl;
 				
@@ -270,10 +274,7 @@ public class DNAttributeMapper implements Insert {
 				nattrib.addValue("ldap:///" + nurl + url.substring(url.indexOf('?')));
 			}
 		} else {
-			Enumeration enumer = origAttrib.getByteValues();
-			while (enumer.hasMoreElements()) {
-				nattrib.addValue((byte[]) enumer.nextElement());
-			}
+			nattrib.getAllValues().addAll(origAttrib.getAllValues());
 		}
 		
 		return nattrib;

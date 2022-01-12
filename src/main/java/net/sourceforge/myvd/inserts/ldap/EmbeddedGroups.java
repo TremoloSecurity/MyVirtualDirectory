@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Stack;
 
@@ -36,6 +37,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPUrl;
 import com.novell.ldap.controls.LDAPEntryChangeControl;
 import com.novell.ldap.controls.LDAPPersistSearchControl;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -312,10 +314,11 @@ public class EmbeddedGroups implements Insert {
 				if (members != null) {
 					
 				
-					Enumeration enumer = members.getStringValues();
-					while (enumer.hasMoreElements()) {
+					
+					LinkedList<ByteArray> vals = members.getAllValues();
+					for (ByteArray b : vals) {
 						
-						String member = (String) enumer.nextElement();
+						String member = b.toString();
 						if (groups.contains(new DN(member).toString().toLowerCase())) {
 							if (this.checkMemberInGroup(tm, member, chain)) {
 								results.finish();
@@ -346,9 +349,10 @@ public class EmbeddedGroups implements Insert {
 		
 		LDAPAttribute ocs = entry.getEntry().getAttribute("objectClass");
 		if (ocs != null) {
-			String[] vals = ocs.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				if (vals[i].equalsIgnoreCase(staticOC)) {
+			LinkedList<ByteArray> vals = ocs.getAllValues();
+
+			for (ByteArray b : vals) {
+				if (b.toString().equalsIgnoreCase(staticOC)) {
 					isGroup = true;
 				} 
 			}
@@ -370,9 +374,10 @@ public class EmbeddedGroups implements Insert {
 		
 		
 		if (isFirst) {
-			Enumeration enumer = members.getStringValues();
-			while (enumer.hasMoreElements()) {
-				String member = (String) enumer.nextElement();
+			
+			LinkedList<ByteArray> vals = members.getAllValues();
+			for (ByteArray b : vals) {
+				String member = b.toString();
 				DN memberDN = new DN(member);
 				
 				if (groups.contains(memberDN.toString().toLowerCase())) {
@@ -395,9 +400,10 @@ public class EmbeddedGroups implements Insert {
 				LDAPAttribute nmembers = entry.getAttribute(this.staticAttribute);
 				
 				if (nmembers != null) {
-					Enumeration enumer = nmembers.getStringValues();
-					while (enumer.hasMoreElements()) {
-						String member = (String) enumer.nextElement();
+					
+					LinkedList<ByteArray> vals = nmembers.getAllValues();
+					for (ByteArray b : vals) {
+						String member = b.toString();
 						DN memberDN = new DN(member);
 						if (groups.contains(memberDN.toString().toLowerCase())) {
 							this.createStaticMembers(chain, memberDN, constraints, members, false);

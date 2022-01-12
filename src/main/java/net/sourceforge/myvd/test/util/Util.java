@@ -21,6 +21,7 @@ import java.util.Iterator;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.util.ByteArray;
 
 public class Util {
 	public static boolean compareEntry(LDAPEntry entry1,LDAPEntry entry2)  {
@@ -44,6 +45,9 @@ public class Util {
 			}
 			
 			size--;
+			
+
+
 			
 			String[] vals1 = attrib1.getStringValueArray();
 			String[] vals2 = attrib2.getStringValueArray();

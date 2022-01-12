@@ -41,14 +41,7 @@ public class Attribute {
 	}
 	
 	public void rename(String newName) {
-		LDAPAttribute newAttrib = new LDAPAttribute(newName);
-		
-		byte[][] vals = this.attribute.getByteValueArray();
-		for (int i=0,m=vals.length;i<m;i++) {
-			newAttrib.addValue(vals[i]);
-		}
-		
-		this.attribute = newAttrib;
+		this.attribute.setName(newName);
 	}
 
 	@Override

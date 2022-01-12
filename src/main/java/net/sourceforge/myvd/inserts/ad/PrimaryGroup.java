@@ -17,6 +17,7 @@ package net.sourceforge.myvd.inserts.ad;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import com.novell.ldap.LDAPAttribute;
@@ -24,6 +25,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -218,9 +220,10 @@ public class PrimaryGroup implements Insert {
 		
 		LDAPAttribute ocs = entry.getEntry().getAttribute("objectClass");
 		if (ocs != null) {
-			String[] vals = ocs.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				if (vals[i].equalsIgnoreCase(this.groupObjectClass)) {
+			LinkedList<ByteArray> vals = ocs.getAllValues();
+			for (ByteArray b : vals) {
+				String val = b.toString();
+				if (val.equalsIgnoreCase(this.groupObjectClass)) {
 					return true;
 				} 
 			}

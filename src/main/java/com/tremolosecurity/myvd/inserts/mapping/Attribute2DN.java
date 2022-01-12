@@ -14,8 +14,10 @@ package com.tremolosecurity.myvd.inserts.mapping;
 
 import static org.apache.directory.ldap.client.api.search.FilterBuilder.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import org.apache.logging.log4j.Logger;
@@ -26,7 +28,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
-
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -164,9 +166,16 @@ public class Attribute2DN implements Insert {
 		LDAPAttribute attr = entry.getEntry().getAttribute(this.attributeName);
 		if (attr != null) {
 			LDAPAttribute nattr = new LDAPAttribute(this.attributeName);
-			String[] vals = attr.getStringValueArray();
-			for (String val : vals) {
-				nattr.addValue(this.attr2dn(val,chain));
+			
+			LinkedList<ByteArray> vals = attr.getAllValues();
+			for (ByteArray val : vals) {
+				String sval = null;
+				try {
+					sval = new String(val.getValue(),"UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					//can't happen
+				}
+				nattr.addValue(this.attr2dn(sval,chain));
 			}
 			entry.getEntry().getAttributeSet().remove(this.attributeName);
 			entry.getEntry().getAttributeSet().add(nattr);

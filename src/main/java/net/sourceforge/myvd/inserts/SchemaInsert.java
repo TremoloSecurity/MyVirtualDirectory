@@ -166,12 +166,8 @@ public class SchemaInsert implements Insert {
 			LDAPAttribute ldifAttrib = it.next();
 			Attribute attribName = new Attribute(ldifAttrib.getName());
 			if (allAttribs || attributes.contains(attribName)) {
-				LDAPAttribute newAttrib = new LDAPAttribute(ldifAttrib.getName());
-				Enumeration enumer = ldifAttrib.getByteValues();
-				while (enumer.hasMoreElements()) {
-					byte[] val = (byte[]) enumer.nextElement();
-					newAttrib.addValue(val);
-				}
+				LDAPAttribute newAttrib = new LDAPAttribute(ldifAttrib);
+				
 				
 				attribs.add(newAttrib);
 			}

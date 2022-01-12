@@ -137,10 +137,7 @@ public class LDAPEntrySet implements EntrySet {
 						LDAPAttribute newAttr = new LDAPAttribute(rangeAttr.name);
 						rangeAttr.attr = newAttr;
 
-						Enumeration enumer = attr.getByteValues();
-						while (enumer.hasMoreElements()) {
-							newAttr.addValue((byte[]) enumer.nextElement());
-						}
+						newAttr.getAllValues().addAll(attr.getAllValues());
 						attributesToAdd.add(newAttr);
 
 						String range = attr.getName().substring(attr.getName().indexOf('=') + 1);
@@ -216,10 +213,8 @@ public class LDAPEntrySet implements EntrySet {
 										}
 
 										if (attr != null) {
-											Enumeration enumer = attr.getByteValues();
-											while (enumer.hasMoreElements()) {
-												rangeAttr.attr.addValue((byte[]) enumer.nextElement());
-											}
+
+											rangeAttr.attr.getAllValues().addAll(attr.getAllValues());
 
 											if (!rangeAttr.done) {
 												String range = attr.getName()

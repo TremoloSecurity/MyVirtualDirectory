@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import junit.framework.TestCase;
@@ -31,6 +32,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.RDN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -96,13 +98,15 @@ public class UpdateDB  implements Insert {
 				throw new LDAPException("Location is required",LDAPException.OBJECT_CLASS_VIOLATION,"Location is required");
 			}
 			
-			String[] vals = l.getStringValueArray();
-			for (int i=0;i<vals.length;i++) {
-				ps.setString(1, vals[i]);
+			
+			LinkedList<ByteArray> vals = l.getAllValues();
+			for (ByteArray b : vals) {
+				String val = b.toString();
+				ps.setString(1, val);
 				ResultSet rs = ps.executeQuery();
 				if (! rs.next()) {
 					con.rollback();
-					throw new LDAPException("Location " + vals[i] + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + vals[i] + " does not exist");
+					throw new LDAPException("Location " + val + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + val + " does not exist");
 				}
 				
 				inst.setInt(1, 5);
@@ -248,13 +252,15 @@ public class UpdateDB  implements Insert {
 						ps = con.prepareStatement("INSERT INTO locationmap (person,location) VALUES (?,?)");
 						PreparedStatement pssel = con.prepareStatement("SELECT id FROM LOCATIONS WHERE name=?");
 						
-						String[] vals = mod.getAttribute().getStringValueArray();
-						for (int i=0;i<vals.length;i++) {
-							pssel.setString(1, vals[i]);
+						
+						LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
+						for (ByteArray b : vals) {
+							String val = b.toString();
+							pssel.setString(1, val);
 							ResultSet rs = pssel.executeQuery();
 							if (! rs.next()) {
 								con.rollback();
-								throw new LDAPException("Location " + vals[i] + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + vals[i] + " does not exist");
+								throw new LDAPException("Location " + val + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + val + " does not exist");
 							}
 							int lid = rs.getInt("id");
 							ps.setInt(1,id);
@@ -269,6 +275,7 @@ public class UpdateDB  implements Insert {
 				} else if (mod.getOp() == LDAPModification.DELETE) {
 					if (mod.getAttribute().getName().equals(db2ldap.get("name"))) {
 						String[] vals = mod.getAttribute().getStringValueArray();
+						
 						if (vals.length == 0) {
 							PreparedStatement  ps = con.prepareStatement("DELETE FROM locationmap WHERE person=?");
 							ps.setInt(1, id);

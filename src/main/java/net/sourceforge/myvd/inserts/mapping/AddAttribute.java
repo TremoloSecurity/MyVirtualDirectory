@@ -1,6 +1,7 @@
 package net.sourceforge.myvd.inserts.mapping;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import com.novell.ldap.LDAPAttribute;
@@ -8,6 +9,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -151,9 +153,9 @@ public class AddAttribute implements Insert {
 
 		LDAPAttribute attr = entry.getEntry().getAttribute("objectClass");
 		if (attr != null) {
-			String[] vals = attr.getStringValueArray();
-			for (String oc : vals) {
-				if (oc.equalsIgnoreCase(this.objectClass)) {
+			LinkedList<ByteArray> vals = attr.getAllValues();
+			for (ByteArray b : vals) {
+				if (b.toString().equalsIgnoreCase(this.objectClass)) {
 					LDAPAttribute nattr = new LDAPAttribute(this.attributeName,this.attributeValue);
 					entry.getEntry().getAttributeSet().add(nattr);
 				}

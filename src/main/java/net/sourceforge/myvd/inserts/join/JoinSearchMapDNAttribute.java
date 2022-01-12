@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -25,6 +26,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -172,8 +174,9 @@ public class JoinSearchMapDNAttribute implements Insert {
 				if (this.attributes.contains(attr.getName().toLowerCase())) {
 					LDAPAttribute newAttr = new LDAPAttribute(attr.getName());
 					newAttrs.add(newAttr);
-					for (String dn : attr.getStringValueArray()) {
-						String newDN = this.mapIn2Out(dn,chain);
+					LinkedList<ByteArray> vals = attr.getAllValues();
+					for (ByteArray b : vals) {
+						String newDN = this.mapIn2Out(b.toString(),chain);
 						newAttr.addValue(newDN);
 					}
 				}

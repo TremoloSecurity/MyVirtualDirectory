@@ -819,11 +819,7 @@ public class Joiner implements Insert {
 					LDAPAttribute currAttrib = entry.getEntry().getAttributeSet().getAttribute(name);
 					
 					if (currAttrib != null) {
-						byte[][] vals = attrib.getByteValueArray();
-						for (int i=0,m=vals.length;i<m;i++) {
-							currAttrib.addValue(vals[i]);
-						}
-						
+						currAttrib.getAllValues().addAll(attrib.getAllValues());
 					} else {
 						entry.getEntry().getAttributeSet().add(attrib);
 					}

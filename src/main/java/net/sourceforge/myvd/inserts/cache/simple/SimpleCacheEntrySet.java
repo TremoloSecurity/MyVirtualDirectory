@@ -86,14 +86,7 @@ public class SimpleCacheEntrySet implements EntrySet {
 		Iterator<LDAPAttribute> it = old.getAttributeSet().iterator();
 		while (it.hasNext()) {
 			LDAPAttribute attrib = it.next();
-			LDAPAttribute nattrib = new LDAPAttribute(attrib.getName());
-			
-			byte[][] vals = attrib.getByteValueArray();
-			
-			for (int i=0;i<vals.length;i++) {
-				nattrib.addValue(vals[i]);
-			}
-			
+			LDAPAttribute nattrib = new LDAPAttribute(attrib);
 			attribs.add(nattrib);
 		}
 		

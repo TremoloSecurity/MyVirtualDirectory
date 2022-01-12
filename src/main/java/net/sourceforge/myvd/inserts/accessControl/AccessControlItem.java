@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -37,6 +38,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPUrl;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.RDN;
 
@@ -274,9 +276,12 @@ public class AccessControlItem {
 				LDAPEntry entry = res.next().getEntry();
 				res.finish();
 				LDAPAttribute attr = entry.getAttribute("objectClass");
-				String[] vals = attr.getStringValueArray();
-				for (int i=0;i<vals.length;i++) {
-					if (vals[i].equalsIgnoreCase("groupofnames") || vals[i].equalsIgnoreCase("groupofuniquenames")) {
+				LinkedList<ByteArray> vals = attr.getAllValues();
+				for (ByteArray val : vals) {
+					String sval = null;
+					sval = new String(val.getValue(),"UTF-8");
+
+					if (sval.equalsIgnoreCase("groupofnames") || sval.equalsIgnoreCase("groupofuniquenames")) {
 						boolean passed = this.checkStaticGroup(chain);
 						if (passed) {
 							return true;
@@ -284,9 +289,10 @@ public class AccessControlItem {
 					}
 				}
 				
-				Enumeration<String> enumer = entry.getAttribute("memberurl").getStringValues();
-				while (enumer.hasMoreElements()) {
-					if (passURL(chain,enumer.nextElement())) {
+				
+				LinkedList<ByteArray> attrvals = entry.getAttribute("memberurl").getAllValues();
+				for (ByteArray b : attrvals) {
+					if (passURL(chain,b.toString())) {
 						return true;
 					}
 				}

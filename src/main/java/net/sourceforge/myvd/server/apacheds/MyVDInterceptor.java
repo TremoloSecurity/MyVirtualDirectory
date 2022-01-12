@@ -4,6 +4,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -85,6 +86,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 
 public class MyVDInterceptor extends BaseInterceptor {
 
@@ -535,9 +537,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 				LDAPAttributeSet attrs = nentry.getAttributeSet();
 				for (Object o : attrs) {
 					LDAPAttribute a = (LDAPAttribute) o;
-					byte[][] vals = a.getByteValueArray();
-					for (int i=0;i<vals.length;i++) {
-						entry.add(a.getName(),vals[i]);
+					
+					LinkedList<ByteArray> vals = a.getAllValues();
+					for (ByteArray val : vals) {
+						entry.add(a.getName(),val.getValue());
 					}
 				}
 				

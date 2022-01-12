@@ -19,6 +19,7 @@ package net.sourceforge.myvd.inserts.jdbc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -27,6 +28,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
@@ -169,12 +171,12 @@ public class CompositeAttrib implements Insert {
 			
 			if (uid == null) {
 			
-				String[] ocs = entry.getEntry().getAttribute("objectClass").getStringValueArray();
 				
+				LinkedList<ByteArray> ocs = entry.getEntry().getAttribute("objectClass").getAllValues();
 				boolean isoc = false;
 				
-				for (int i=0;i<ocs.length;i++) {
-					if (ocs[i].equalsIgnoreCase(this.objectClass)) {
+				for (ByteArray b : ocs) {
+					if (b.toString().equalsIgnoreCase(this.objectClass)) {
 						isoc = true;
 						break;
 					}

@@ -7,10 +7,15 @@
                 "projectName": "myvd-server",
                 "workingDirectory": "/Users/mlb/git/MyVirtualDirectory",
                 "args": [],
-                "vmargs": [
-                    ""
-                ],
-                "env": {},
+                "env": {
+                
+                    "PROJ_DIR":"/home/mlb/git/MyVirtualDirectory",
+                    "SCHEMA_DIR":"/etc/openldap",
+                    "SLAPD_PATH":"/usr/sbin",
+                    
+                    "TMP_DIR":"/tmp/ldap"
+                },
+                "vmArgs" : "-Dlog4j.configurationFile=/home/mlb/git/OpenUnison/unison/open-unison-webapp/src/main/webapp/WEB-INF/classes/log4j2.xml",
                 "preLaunchTask": ""
             }
         ]
@@ -23,8 +28,15 @@
                 "projectName": "myvd-server",
                 "workingDirectory": "/Users/mlb/git/MyVirtualDirectory",
                 "args": [],
-                "vmargs": [],
-                "env": {},
+                "env": {
+                
+                    "PROJ_DIR":"/home/mlb/git/MyVirtualDirectory",
+                    "SCHEMA_DIR":"/etc/openldap",
+                    "SLAPD_PATH":"/usr/sbin",
+                    
+                    "TMP_DIR":"/tmp/ldap"
+                },
+                "vmArgs" : "-Dlog4j.configurationFile=/home/mlb/git/OpenUnison/unison/open-unison-webapp/src/main/webapp/WEB-INF/classes/log4j2.xml",
                 "preLaunchTask": ""
             }
         ]
