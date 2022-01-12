@@ -264,25 +264,73 @@
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-jdbm-partition</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-mavibot-partition</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-xdbm-partition</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-core-shared</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
-			
+
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-codec-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-codec-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-util</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
@@ -291,6 +339,36 @@
 			<artifactId>apacheds-core-api</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
 
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-client-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-codec-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-aci</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-util</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
@@ -305,18 +383,40 @@
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-core-avl</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-ldif-partition</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-protocol-shared</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -328,6 +428,34 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-extras-codec-api</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-client-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-codec-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-sp</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-extras-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -335,14 +463,83 @@
 			<groupId>com.tremolosecurity.apache.directory.server</groupId>
 			<artifactId>apacheds-interceptors-schema</artifactId>
 			<version>2.0.0.AM27-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
-		  <groupId>org.apache.directory.api</groupId>
-		  <artifactId>api-ldap-codec-standalone</artifactId>
-		  <version>2.1.0</version>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-client-api</artifactId>
+			<version>2.1.1</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-client-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-codec-core</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-extras-aci</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-extras-codec-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-extras-sp</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-extras-util</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-model</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-net-mina</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-extras-codec</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tremolosecurity.directory.api</groupId>
+			<artifactId>api-ldap-codec-standalone</artifactId>
+			<version>2.1.1</version>
+		</dependency>
 
 	</dependencies>
 

@@ -556,6 +556,7 @@ public class LdapServerImpl extends DirectoryBackedService implements LdapServer
 
             if ( transport.isSSLEnabled() )
             {
+            	this.loadKeyStore();
                 chain = LdapsInitializer.init( this, ( TcpTransport ) transport );
                 ( ( DefaultIoFilterChainBuilder ) chain ).addLast("myvd-logging", new LoggingFilter(true));
             }

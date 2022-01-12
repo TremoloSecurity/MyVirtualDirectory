@@ -31,7 +31,6 @@ import com.novell.ldap.LDAPExtendedOperation;
 import net.sourceforge.myvd.chain.ExetendedOperationInterceptorChain;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
-import net.sourceforge.myvd.server.apacheds.MyVDExtendedResponse;
 import net.sourceforge.myvd.types.DistinguishedName;
 import net.sourceforge.myvd.types.ExtendedOperation;
 import net.sourceforge.myvd.types.Password;
@@ -47,6 +46,7 @@ import org.apache.directory.server.ldap.handlers.LdapRequestHandler;
 import org.apache.directory.server.core.shared.DefaultCoreSession;
 
 import org.apache.directory.api.ldap.model.message.OpaqueExtendedRequest;
+import org.apache.directory.api.ldap.model.message.OpaqueExtendedResponse;
 
 
 
@@ -123,7 +123,7 @@ public class ExtendedRequestHandler<R extends ExtendedRequest> extends LdapReque
 
             chain.nextExtendedOperations(op,new LDAPConstraints());
             
-            MyVDExtendedResponse extResp = new MyVDExtendedResponse(req.getMessageId());
+            OpaqueExtendedResponse extResp = new OpaqueExtendedResponse(req.getMessageId());
             
             
             LdapResult result = extResp.getLdapResult();

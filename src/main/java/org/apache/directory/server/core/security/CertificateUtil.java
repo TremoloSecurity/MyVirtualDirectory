@@ -193,10 +193,12 @@ public final class CertificateUtil
             
             String alias = aliases.nextElement();
             
+            /* Added pinning, so multiple keys are OK
             if ( aliases.hasMoreElements() )
             {
                 throw new KeyStoreException( "Key store contains more than one entry" );
             }
+            */
             
             if ( !keyStore.isKeyEntry( alias ) )
             {
