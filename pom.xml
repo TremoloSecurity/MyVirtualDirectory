@@ -26,9 +26,9 @@
 
 	<repositories>
 		<repository>
-			<id>tremolosecurity-dependencies</id>
+			<id>tremolosecurity-releases</id>
 			<name>Tremolo Security Inc Custom Repository</name>
-			<url>https://nexus.tremolo.io/repository/dependencies/</url>
+			<url>https://nexus.tremolo.io/repository/releases/</url>
 		</repository>
 	</repositories>
 
