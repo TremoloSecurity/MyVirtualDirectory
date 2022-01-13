@@ -375,7 +375,9 @@ public class EmbeddedGroups implements Insert {
 		
 		if (isFirst) {
 			
-			LinkedList<ByteArray> vals = members.getAllValues();
+			LinkedList<ByteArray> vals = new LinkedList<ByteArray>();
+			vals.addAll(members.getAllValues());				
+					
 			for (ByteArray b : vals) {
 				String member = b.toString();
 				DN memberDN = new DN(member);
