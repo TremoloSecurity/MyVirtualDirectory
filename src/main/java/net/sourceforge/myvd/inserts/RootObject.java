@@ -54,28 +54,28 @@ public class RootObject implements Insert {
 	@Override
 	public void add(AddInterceptorChain chain, Entry entry,
 			LDAPConstraints constraints) throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
 	@Override
 	public void bind(BindInterceptorChain chain, DistinguishedName dn,
 			Password pwd, LDAPConstraints constraints) throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
 	@Override
 	public void compare(CompareInterceptorChain chain, DistinguishedName dn,
 			Attribute attrib, LDAPConstraints constraints) throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
 	@Override
 	public void delete(DeleteInterceptorChain chain, DistinguishedName dn,
 			LDAPConstraints constraints) throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
@@ -83,7 +83,7 @@ public class RootObject implements Insert {
 	public void extendedOperation(ExetendedOperationInterceptorChain chain,
 			ExtendedOperation op, LDAPConstraints constraints)
 			throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
@@ -91,7 +91,7 @@ public class RootObject implements Insert {
 	public void modify(ModifyInterceptorChain chain, DistinguishedName dn,
 			ArrayList<LDAPModification> mods, LDAPConstraints constraints)
 			throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
@@ -128,7 +128,7 @@ public class RootObject implements Insert {
 	public void rename(RenameInterceptorChain chain, DistinguishedName dn,
 			DistinguishedName newRdn, Bool deleteOldRdn,
 			LDAPConstraints constraints) throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
@@ -137,7 +137,7 @@ public class RootObject implements Insert {
 			DistinguishedName newRdn, DistinguishedName newParentDN,
 			Bool deleteOldRdn, LDAPConstraints constraints)
 			throws LDAPException {
-		throw new LDAPException("Operation Not Supported",LDAPException.UNAVAILABLE,"");
+		throw new LDAPException("Operation Not Supported",LDAPException.NO_SUCH_OBJECT,"");
 
 	}
 
