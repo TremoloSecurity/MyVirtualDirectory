@@ -1,3 +1,24 @@
+# 1.0.13
+**bugs:**
+ - CopyAttribute is broken [\#133](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/133)
+ - LDAP Compare not implemented [\#132](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/132)
+ - base search failes with no such object with overlapping namespaces [\#134](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/134)
+
+**enhancements:**
+ - Pass better connection id information into the session [\#113](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/113)
+ 
+# 1.0.12
+
+**bugs:**
+ - Large entry performance issues [\#130](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/130)
+
+**enhancements:**
+ - Pass better connection id information into the session [\#113](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/113)
+ - Update ApacheDS integration [\#129](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/129)
+
+**tasks:**
+ - 1.0.12 release [\#125](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/125)
+
 # 1.0.11
 
 **bugs:**
