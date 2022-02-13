@@ -57,6 +57,9 @@ public class Results {
 	private int start;
 	private boolean skipDupes;
 	
+	LDAPException tmpException;
+	boolean foundObject;
+	
 	
 	public Results(InsertChain globalChain) {
 		this.results = new ArrayList<Result>();
@@ -68,6 +71,7 @@ public class Results {
 		this.start = 0;
 		this.skipDupes = true;
 		this.completed = false;
+		this.foundObject = false;
 	}
 	
 	public Results(InsertChain globalChain,int start) {
@@ -115,10 +119,36 @@ public class Results {
 			return false;
 		}
 		
-		boolean hasMore = ldapResults.entrySet.hasMore();
+		boolean hasMore = false;
+		try {
+			hasMore = ldapResults.entrySet.hasMore();
+		} catch  (LDAPException e) {
+			if (e.getResultCode() == 32) {
+				this.tmpException = e;
+				if (this.results.size() == 0) {
+					if (! foundObject) {
+						throw e;
+					} else {
+						hasMore = false;
+					}
+				} else {
+					this.ldapResults = this.results.remove(0);
+					this.finished.add(this.ldapResults);
+					return this.hasMore();
+				}
+			} else {
+				throw e;
+			}
+		}
+		
 		if (! hasMore) {
+			if (this.tmpException != null) {
+				throw tmpException;
+			}
 			return finishSet();
 		} else {
+			this.foundObject = true;
+			this.tmpException = null;
 			try {
 				this.currentEntry = nextEntry();
 				if (! this.currentEntry.isReturnEntry()) {

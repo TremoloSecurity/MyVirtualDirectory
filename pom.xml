@@ -3,7 +3,7 @@
 
 	<groupId>net.sourceforge.myvd</groupId>
 	<artifactId>myvd-server</artifactId>
-	<version>1.0.12</version>
+	<version>1.0.13</version>
 	<packaging>jar</packaging>
 
 	<name>server</name>
@@ -273,6 +273,14 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-i18n</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -289,6 +297,10 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -304,6 +316,10 @@
 				<exclusion>
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -329,6 +345,10 @@
 				<exclusion>
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-extras-util</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -368,6 +388,18 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-extras-util</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-asn1-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-i18n</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -388,6 +420,10 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -403,6 +439,10 @@
 				<exclusion>
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -456,6 +496,18 @@
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-extras-util</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-asn1-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-asn1-ber</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -471,6 +523,14 @@
 				<exclusion>
 					<groupId>org.apache.directory.api</groupId>
 					<artifactId>api-ldap-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-i18n</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-util</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

@@ -376,9 +376,7 @@ public class Router {
 				}
 			}
 
-			if (scope.getValue() == 0) {
-				break;
-			}
+
 		}
 
 		if (notFounds == localBackends.size()) {

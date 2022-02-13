@@ -112,7 +112,7 @@ public class TestglobalChain  implements Insert {
 			Int scope, Filter filter, ArrayList<Attribute> attributes,
 			Bool typesOnly, Results results, LDAPSearchConstraints constraints)
 			throws LDAPException {
-		if (base.getDN().getRDNs().size() > 0) {
+		if (base.getDN().getRDNs().size() > 0 && scope.getValue() != 0) {
 			base = new DistinguishedName(base.getDN().toString() + ",c=us");
 		} 
 		
