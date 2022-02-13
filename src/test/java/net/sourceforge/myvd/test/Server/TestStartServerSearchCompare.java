@@ -132,7 +132,7 @@ public class TestStartServerSearchCompare {
 		con.connect("127.0.0.1", 50983);
 		// con.bind(3,"ou=internal,o=mycompany","secret".getBytes());
 
-		LDAPSearchResults res = con.search("ou=internal,o=mycompany", 2, "(objectClass=*)", new String[0], false);
+		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(objectClass=*)", new String[0], false);
 		while (res.hasMore()) {
 			System.out.println(res.next().getDN());
 		}

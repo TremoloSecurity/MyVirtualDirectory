@@ -473,49 +473,7 @@ public class DefaultOperationManager implements OperationManager
             compareContext.setDn( dn );
         }
 
-        // We have to deal with the referral first
-        directoryService.getReferralManager().lockRead();
-
-        try
-        {
-            // Check if we have an ancestor for this Dn
-            Entry parentEntry = directoryService.getReferralManager().getParentReferral( dn );
-
-            if ( parentEntry != null )
-            {
-                // We have found a parent referral for the current Dn
-                Dn childDn = dn.getDescendantOf( parentEntry.getDn() );
-
-                if ( directoryService.getReferralManager().isReferral( dn ) )
-                {
-                    // This is a referral. We can delete it if the ManageDsaIt flag is true
-                    // Otherwise, we just throw a LdapReferralException
-                    if ( !compareContext.isReferralIgnored() )
-                    {
-                        // Throw a Referral Exception
-                        throw buildReferralException( parentEntry, childDn );
-                    }
-                }
-                else if ( directoryService.getReferralManager().hasParentReferral( dn ) )
-                {
-                    // Depending on the Context.REFERRAL property value, we will throw
-                    // a different exception.
-                    if ( compareContext.isReferralIgnored() )
-                    {
-                        throw buildLdapPartialResultException( childDn );
-                    }
-                    else
-                    {
-                        throw buildReferralException( parentEntry, childDn );
-                    }
-                }
-            }
-        }
-        finally
-        {
-            // Unlock the ReferralManager
-            directoryService.getReferralManager().unlock();
-        }
+        
 
         // populate the context with the old entry
         //compareContext.setOriginalEntry( getOriginalEntry( compareContext ) );
@@ -523,30 +481,9 @@ public class DefaultOperationManager implements OperationManager
         // Call the Compare method
         Interceptor head = directoryService.getInterceptor( compareContext.getNextInterceptor() );
 
-        boolean result = false;
-
-        lockRead();
-
-        try
-        {
-            Partition partition = directoryService.getPartitionNexus().getPartition( dn );
-            
-            try ( PartitionTxn partitionTxn = partition.beginReadTransaction() )
-            {
-                compareContext.setPartition( partition );
-                compareContext.setTransaction( partitionTxn );
-                
-                result = head.compare( compareContext );
-            }
-            catch ( IOException ioe )
-            {
-                throw new LdapOtherException( ioe.getMessage(), ioe );
-            }
-        }
-        finally
-        {
-            unlockRead();
-        }
+        boolean result = head.compare( compareContext );
+        
+       
 
         if ( IS_DEBUG )
         {
