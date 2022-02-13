@@ -105,7 +105,7 @@ public class Entry {
 
 		
 		LDAPAttribute newAttrib = new LDAPAttribute(attrib);
-		
+		newAttrib.setName(newAttribName);
 		
 		
 		entry.getAttributeSet().add(newAttrib);

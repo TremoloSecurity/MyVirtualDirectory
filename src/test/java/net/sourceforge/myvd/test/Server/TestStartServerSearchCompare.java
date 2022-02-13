@@ -204,6 +204,22 @@ public class TestStartServerSearchCompare {
 	}
 	
 	@Test
+	public void testCopyAttribute() throws Exception {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("127.0.0.1", 50983);
+		
+		// first do searches to make sure the objects exist
+		LDAPSearchResults res = con.search("cn=Test User,ou=internal,o=mycompany,c=us", 0, "(uid=testUser)", new String[0], false);
+		assertTrue(res.hasMore());
+		LDAPEntry entry = res.next();
+		assertNotNull(entry);
+		assertEquals("cn=Test User,ou=internal,o=mycompany,c=us",entry.getDN());
+		assertNotNull(entry.getAttribute("sub"));
+		assertEquals(entry.getAttribute("sub").getStringValue(),"testUser");
+	}
+	
+	
+	@Test
 	public void testCompare() throws Exception {
 		LDAPConnection con = new LDAPConnection();
 		con.connect("127.0.0.1", 50983);

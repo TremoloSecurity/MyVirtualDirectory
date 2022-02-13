@@ -40,13 +40,17 @@ server.BaseServer.LDAPBaseServer.config.remoteBase=dc=domain,dc=com
 server.BaseServer.LDAPBaseServer.config.proxyDN=cn=admin,dc=domain,dc=com
 server.BaseServer.LDAPBaseServer.config.proxyPass=manager
 
-server.InternalServer.chain=pwdChange,LDAPInternalServer
+server.InternalServer.chain=pwdChange,makesub,LDAPInternalServer
 server.InternalServer.nameSpace=ou=internal,o=mycompany,c=us
 server.InternalServer.weight=10
 
 server.InternalServer.pwdChange.className=net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation
 server.InternalServer.pwdChange.config.remoteBase=dc=domain,dc=com
 server.InternalServer.pwdChange.config.localBase=o=mycompany,c=us
+
+server.InternalServer.makesub.className=net.sourceforge.myvd.inserts.mapping.CopyAttirbute
+server.InternalServer.makesub.config.sourceAttribute=uid
+server.InternalServer.makesub.config.targetAttribute=sub
 
 server.InternalServer.LDAPInternalServer.className=net.sourceforge.myvd.inserts.ldap.LDAPInterceptor
 server.InternalServer.LDAPInternalServer.config.host=127.0.0.1
