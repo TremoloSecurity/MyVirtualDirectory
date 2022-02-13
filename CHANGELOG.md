@@ -1,5 +1,6 @@
 # 1.0.13
 **bugs:**
+ - Bind fails on overlapping namespaces with Root object [\#136](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/136)
  - CopyAttribute is broken [\#133](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/133)
  - LDAP Compare not implemented [\#132](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/132)
  - base search failes with no such object with overlapping namespaces [\#134](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/134)
