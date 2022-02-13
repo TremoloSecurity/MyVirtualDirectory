@@ -518,7 +518,7 @@ public class DefaultOperationManager implements OperationManager
         }
 
         // populate the context with the old entry
-        compareContext.setOriginalEntry( getOriginalEntry( compareContext ) );
+        //compareContext.setOriginalEntry( getOriginalEntry( compareContext ) );
 
         // Call the Compare method
         Interceptor head = directoryService.getInterceptor( compareContext.getNextInterceptor() );

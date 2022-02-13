@@ -55,6 +55,7 @@ import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.api.ldap.model.schema.AttributeTypeOptions;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 import org.apache.directory.api.util.StringConstants;
+import org.apache.directory.ldap.client.api.search.FilterBuilder;
 import org.apache.directory.server.core.api.CoreSession;
 import org.apache.directory.server.core.api.LdapPrincipal;
 import org.apache.directory.server.core.api.filtering.EntryFilteringCursor;
@@ -175,8 +176,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(add.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (add.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = add.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -360,8 +361,59 @@ public class MyVDInterceptor extends BaseInterceptor {
 	@Override
 	public boolean compare(CompareOperationContext compareContext)
 			throws LdapException {
-		// TODO Auto-generated method stub
-		return super.compare(compareContext);
+		
+		HashMap<Object,Object> userRequest = new HashMap<Object,Object>();
+
+		//how to track?
+		HashMap<Object,Object> userSession = this.getUserSession(compareContext);
+		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
+			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			
+		}
+		
+		setTLSSessionParams(userSession,compareContext.getSession());
+		
+		DistinguishedName bindDN;
+		byte[] password;
+		
+		if (compareContext.getSession().isAnonymous()) {
+			bindDN = new DistinguishedName("");
+			password = null;
+		} else {
+			bindDN = new DistinguishedName(compareContext.getSession().getAuthenticatedPrincipal().getDn().getName());
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+			} else {
+				password = null;
+			}
+		}
+		
+		Password pass = new Password(password);
+		
+		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+		Results res = new Results(this.globalChain);
+		
+		String compareFilter = FilterBuilder.equal(compareContext.getOid(),compareContext.getValue().getString()).toString();
+
+		try {
+			chain.nextSearch(new DistinguishedName(compareContext.getDn().toString()), new Int(0), new Filter(compareFilter), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
+			res.start();
+			if (res.hasMore()) {
+				res.next();
+				while (res.hasMore()) res.next();
+				res.finish();
+				return true;
+			} else {
+				res.finish();
+				return false;
+			}
+			
+		} catch (LDAPException e) {
+			throw generateException(e);
+		}
+
+		
+
 	}
 
 	@Override
@@ -386,8 +438,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(del.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (del.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = del.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -452,8 +504,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(has.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (has.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = has.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -512,8 +564,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(lookup.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (lookup.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = lookup.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -583,8 +635,14 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(mod.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (mod.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
+			/*if (mod.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
 				password = mod.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			} else {
+				password = null;
+			}*/
+
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -641,8 +699,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (move.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = move.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -684,8 +742,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (move.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = move.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
@@ -727,8 +785,8 @@ public class MyVDInterceptor extends BaseInterceptor {
 			password = null;
 		} else {
 			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (move.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = move.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+			if (userSession.get("MYVD_BINDPASS") != null) {
+				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
 			} else {
 				password = null;
 			}
