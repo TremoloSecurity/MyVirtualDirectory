@@ -362,6 +362,17 @@ public class TestStartServer {
 
 	}
 
+	
+	@Test 
+	public void testSearchExtensibleMatch() throws LDAPException {
+		//first test downstream
+		LDAPConnection ldap = new LDAPConnection();
+		ldap.connect("127.0.0.1",50983);
+		LDAPSearchResults res = ldap.search("o=mycompany", 2, "(&(member:1.2.840.113556.1.4.1941:=cn=somegroup)(cn=agroup))", new String[0], false);
+		assertFalse(res.hasMore());
+		
+	}
+	
 	@Test
 	public void testSearchOneLevelResults() throws LDAPException {
 
