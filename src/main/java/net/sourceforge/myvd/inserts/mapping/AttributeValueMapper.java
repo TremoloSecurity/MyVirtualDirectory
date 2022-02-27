@@ -244,6 +244,22 @@ public class AttributeValueMapper implements Insert {
 								}
 							}
 							break;
+			case EXT:
+							name = node.getName().toLowerCase();
+							String ruleid = "";
+							int sepIndex = name.indexOf(':');
+							if (sepIndex > 0) {
+								ruleid = name.substring(sepIndex + 1);
+								name = name.substring(0,sepIndex);
+							}
+							map= this.localMap.get(name);
+							if (map != null) {
+								newVal = map.get(node.getValue().toLowerCase());
+								if (newVal != null) {
+									node.setValue(newVal);
+								}
+							}
+							break;
 			case AND:
 			case OR:
 							Iterator<FilterNode> it = node.getChildren().iterator();

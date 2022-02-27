@@ -107,6 +107,7 @@ public class FilterNode implements Cloneable {
 			case LESS_THEN :
 			case GREATER_THEN :
 			case SUBSTR:
+			case EXT:
 				newNode = new FilterNode(this.type,this.name,this.value);
 				return newNode;
 			
@@ -176,6 +177,7 @@ public class FilterNode implements Cloneable {
 			case EQUALS : buf.append('(').append(this.name).append('=').append(this.value.replaceAll("[(]", "\\\\28").replaceAll("[)]", "\\\\29")).append(')'); break;
 			case GREATER_THEN : buf.append('(').append(this.name).append(">=").append(this.value.replaceAll("[(]", "\\\\\28").replaceAll("[)]", "\\\\29")).append(')'); break;
 			case LESS_THEN : buf.append('(').append(this.name).append("<=").append(this.value.replaceAll("[(]", "\\\\28").replaceAll("[)]", "\\\\29)")).append(')'); break;
+			case EXT: buf.append('(').append(this.name).append(":=").append(this.value.replaceAll("[(]", "\\\\28").replaceAll("[)]", "\\\\29)")).append(')'); break;
 			case AND : buf.append("(&");
 					   it = this.children.iterator();
 					   while (it.hasNext()) {
@@ -303,6 +305,7 @@ public class FilterNode implements Cloneable {
 					   
 			
 			case NOT : return ! this.not.checkEntry(entry);
+			case EXT: return true;
 					   
 		}
 		
@@ -324,6 +327,7 @@ public class FilterNode implements Cloneable {
 			case EQUALS :  return 3;
 			case GREATER_THEN : return 2;
 			case LESS_THEN : return 2;
+			case EXT: return 2;
 			case AND : 
 					   it = this.children.iterator();
 					   while (it.hasNext()) {

@@ -133,7 +133,35 @@ public class Filter {
                     	}
                     	break;
                     case LDAPSearchRequest.EXTENSIBLE_MATCH:
-                    	ret = new FilterNode(FilterType.EXT,(String)itr.next(),new String((byte[])itr.next()));
+					    Object extOid = itr.next();
+						Object attributeName = itr.next();
+						Object filterValue = itr.next();
+
+						StringBuilder sb = new StringBuilder();
+
+						if (attributeName instanceof String) {
+							sb.append(attributeName);
+						} else {
+							sb.append(new String((byte[]) attributeName));
+						}
+
+						sb.append(":");
+
+						if (extOid instanceof String) {
+							sb.append(extOid);
+						} else {
+							sb.append(new String((byte[]) extOid));
+						}
+
+						String filterValueText = "";
+
+						if (filterValue instanceof String) {
+							filterValueText = (String)filterValue;
+						} else {
+							filterValueText = new String((byte[]) filterValue);
+						}
+						
+                    	ret = new FilterNode(FilterType.EXT,sb.toString(),filterValueText);
                     	if (parent != null) {
                     		if (parent.getType() == FilterType.NOT) {
                     			parent.setNot(ret);

@@ -43,6 +43,7 @@ import org.apache.directory.api.ldap.model.filter.AndNode;
 import org.apache.directory.api.ldap.model.filter.AssertionType;
 import org.apache.directory.api.ldap.model.filter.EqualityNode;
 import org.apache.directory.api.ldap.model.filter.ExprNode;
+import org.apache.directory.api.ldap.model.filter.ExtensibleNode;
 import org.apache.directory.api.ldap.model.filter.FilterEncoder;
 import org.apache.directory.api.ldap.model.filter.GreaterEqNode;
 import org.apache.directory.api.ldap.model.filter.LessEqNode;
@@ -1021,7 +1022,13 @@ private Filter generateMyVDFilter(ExprNode root) {
 			return new FilterNode(FilterType.OR,children);
 		} else if (root instanceof SubstringNode) {
 			return new FilterNode(FilterType.SUBSTR,((SubstringNode) root).getAttribute(),getSubStrFilterText((SubstringNode) root));
-		} else return null;
+		} else if (root instanceof ExtensibleNode) {
+			ExtensibleNode enode = (ExtensibleNode) root;
+			return new FilterNode(FilterType.EXT,enode.getAttribute() + ":" + enode.getMatchingRuleId(),enode.getValue().getString());
+		}
+		
+		
+		else return null;
 	}
 	
 	private String getSubStrFilterText(SubstringNode node)

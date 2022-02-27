@@ -293,6 +293,21 @@ public class DNAttributeMapper implements Insert {
 					node.setValue(util.getRemoteMappedDN(new DN(node.getValue()), this.localBase, this.remoteBase).toString());
 				}
 				break;
+				
+			case EXT:
+				name = node.getName().toLowerCase();
+				String ruleid = "";
+				int sepIndex = name.indexOf(':');
+				if (sepIndex > 0) {
+					ruleid = name.substring(sepIndex + 1);
+					name = name.substring(0,sepIndex);
+				}
+				
+				if (this.dnAttribs.contains(name.toLowerCase()) && node.getValue().toLowerCase().endsWith(this.localBaseDN)) {
+					node.setValue(util.getRemoteMappedDN(new DN(node.getValue()), this.localBase, this.remoteBase).toString());
+				}
+				break;
+				
 			case SUBSTR	: 
 			
 			case GREATER_THEN :
