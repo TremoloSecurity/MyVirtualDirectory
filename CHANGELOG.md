@@ -1,3 +1,11 @@
+# 1.0.14
+
+**tasks:**
+ - 1.0.14 release [\#138](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/138)
+
+**bugs:**
+ - extensible search not implemented [\#137](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/137)
+ 
 # 1.0.13
 **bugs:**
  - Bind fails on overlapping namespaces with Root object [\#136](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/136)
