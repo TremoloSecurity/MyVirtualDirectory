@@ -807,6 +807,62 @@ public class TestStartServer {
 
 		con.disconnect();
 	}
+	
+	@Test
+	public void testIdleTimeout() throws LDAPException {
+		BindInterceptorChain bindChain;
+
+		LDAPConnection con = new LDAPConnection();
+		con.connect("127.0.0.1", 50983);
+
+		try {
+			con.bind(3, "ou=internal,o=mycompany", "nopass".getBytes());
+
+			fail("Bind succeeded");
+		} catch (LDAPException e) {
+			if (e.getResultCode() != LDAPException.INVALID_CREDENTIALS) {
+				fail("Invalid error " + e.toString());
+			}
+
+		}
+
+		//
+
+		LDAPSearchResults res = con.search("o=mycompany", 2, "(objectClass=inetOrgPerson)", new String[] { "1.1" },false);
+		
+		assertTrue(res.hasMore());
+		int i = 0;
+		while (res.hasMore()) {
+			assertNotNull(res.next());
+			i++;
+		}
+		
+		assertEquals(i,2);
+		
+		try {
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		boolean bindSucceeded = false;
+		
+		try {
+			res = con.search("o=mycompany", 2, "(objectClass=inetOrgPerson)", new String[] { "1.1" },false);
+			if (res.hasMore()) {
+				res.next();
+			}
+			bindSucceeded = true;
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		
+		
+		assertFalse(bindSucceeded);
+
+		con.disconnect();
+	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {

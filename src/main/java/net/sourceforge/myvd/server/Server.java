@@ -355,6 +355,11 @@ public class Server {
                                          ? new TcpTransport(Integer.parseInt(portString))
                                          : new TcpTransport(host, Integer.parseInt(portString));
             ldapTransport.setNeedClientAuth(true);
+            
+            String idleTimeoutMillis = props.getProperty("server.listener.idleTimeoutMillis");
+            if (idleTimeoutMillis != null) {
+            	ldapTransport.getAcceptor().addListener(new IdleIoServiceListener(Long.parseLong(idleTimeoutMillis)));
+            }
             transports.add(ldapTransport);
         }
 
@@ -413,7 +418,10 @@ public class Server {
                     ldapsTransport.setNeedClientAuth(true);
                 }
                 
-                
+                String idleTimeoutMillis = props.getProperty("server.secure.idleTimeoutMillis");
+                if (idleTimeoutMillis != null) {
+                	ldapsTransport.getAcceptor().addListener(new IdleIoServiceListener(Long.parseLong(idleTimeoutMillis)));
+                }
 
                 transports.add(ldapsTransport);
 
