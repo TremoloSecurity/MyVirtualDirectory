@@ -1,5 +1,5 @@
 server.listener.port=50983
-server.listener.idleTimeoutMillis=2000
+server.listener.idleTimeoutSeconds=2
 server.secure.listener.port=50636
 server.secure.keystore=testconfig.jks
 server.secure.keypass=start123
