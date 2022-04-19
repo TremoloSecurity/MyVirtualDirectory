@@ -114,7 +114,7 @@ class CheckIdleThread implements Runnable {
 						if (IdleIoServiceListener.logger.isDebugEnabled()) {
 							IdleIoServiceListener.logger.debug(new StringBuilder().append("Session from '").append(session.getRemoteAddress()).append("' must be closed due to inactivity").toString());
 						}
-						session.closeNow();
+						session.close(true);
 					}
 				}
 			}

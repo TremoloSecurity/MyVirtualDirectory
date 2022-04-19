@@ -247,7 +247,7 @@ public class LdapServer extends DirectoryBackedService
     private ProtocolCodecFactory codecFactory = LdapApiServiceFactory.getSingleton().getProtocolCodecFactory();
 
     /** the MINA protocol handler */
-    private final LdapProtocolHandler handler = new LdapProtocolHandler( this );
+    private final LdapProtocolHandler handler = new MyVDLdapProtocolHandler( this );
 
     /** tracks start state of the server */
     private boolean started;
