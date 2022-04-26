@@ -15,6 +15,7 @@
  */
 package net.sourceforge.myvd.chain.jdbcLdapImpl;
 
+import net.sourceforge.myvd.types.Entry;
 import net.sourceforge.myvd.types.Results;
 
 import com.novell.ldap.LDAPEntry;
@@ -50,7 +51,14 @@ public class EntrySetSearchResults extends LDAPSearchResults {
 		if (exception != null) {
 			throw exception;
 		}
-		return this.res.next().getEntry();
+		
+		Entry entry = this.res.next();
+		if (entry != null) {
+			return entry.getEntry();
+		} else {
+			return null;
+		}
+		
 	}
 
 }
