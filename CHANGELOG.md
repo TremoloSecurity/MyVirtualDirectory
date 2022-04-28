@@ -1,3 +1,15 @@
+# 1.0.15
+
+**tasks:**
+ - 1.0.15 build [\#141](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/141)
+
+**bugs:**
+ - NPE in jdbcldap entry set [\#142](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/142)
+ - UTF-8 not always respected [\#140](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/140)
+
+**enhancements:**
+ - Add support for connection idle timout [\#139](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/139)
+
 # 1.0.14
 
 **tasks:**
