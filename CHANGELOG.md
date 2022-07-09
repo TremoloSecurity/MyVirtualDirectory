@@ -1,3 +1,9 @@
+# 1.0.16
+
+**tasks:**
+ - 1.0.16 Build [\#144](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/144)
+
+
 # 1.0.15
 
 **tasks:**
