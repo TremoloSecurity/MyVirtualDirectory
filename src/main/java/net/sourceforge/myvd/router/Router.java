@@ -155,7 +155,9 @@ public class Router {
     			if (e.getResultCode() == LDAPException.INVALID_CREDENTIALS || e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
     				if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {
     					lastException = e;
-    					logger.info("found no such object");
+    					if (logger.isDebugEnabled()) {
+    						logger.debug("found no such object");
+    					}
     				}
     				num++;
     			} else {
