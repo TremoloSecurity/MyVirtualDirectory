@@ -77,6 +77,7 @@ import org.apache.directory.server.core.api.partition.PartitionNexus;
 import org.apache.directory.server.i18n.I18n;
 import org.apache.directory.server.ldap.LdapSession;
 import org.apache.directory.server.ldap.handlers.LdapRequestHandler;
+import org.apache.directory.server.ldap.handlers.MyVDSearchAbandonListener;
 import org.apache.directory.server.ldap.handlers.PersistentSearchListener;
 import org.apache.directory.server.ldap.handlers.SearchAbandonListener;
 import org.apache.directory.server.ldap.handlers.SearchTimeLimitingMonitor;
@@ -785,11 +786,14 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
         // Check if we are using the Paged Search Control
         Object control = req.getControls().get( PagedResults.OID );
 
-        if ( control != null )
+        /*
+         * ignore paged search controls
+         * 
+         * if ( control != null )
         {
             // Let's deal with the pagedControl
             return doPagedSearch( session, req, ( PagedResults ) control );
-        }
+        }*/
 
         // A normal search
         // Check that we have a cursor or not.
@@ -814,7 +818,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
 
             long requestLimit = req.getSizeLimit() == 0L ? Long.MAX_VALUE : req.getSizeLimit();
 
-            req.addAbandonListener( new SearchAbandonListener( ldapServer, cursor ) );
+            req.addAbandonListener( new MyVDSearchAbandonListener( ldapServer, cursor ) );
             setTimeLimitsOnCursor( req, session, cursor );
 
             if ( IS_DEBUG )
@@ -1116,7 +1120,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
             // Handle psearch differently
             // ===============================================================
 
-            PersistentSearch psearch = ( PersistentSearch ) req.getControls().get( PersistentSearch.OID );
+            /*PersistentSearch psearch = ( PersistentSearch ) req.getControls().get( PersistentSearch.OID );
 
             if ( psearch != null )
             {
@@ -1127,7 +1131,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
                 handlePersistentSearch( session, req, psearch );
 
                 return;
-            }
+            }*/
 
             // ===============================================================
             // Handle regular search requests from here down
@@ -1154,7 +1158,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
                     ( ( t1 - t0 ) / 1000000 ), req.getFilter() );
             }
         }
-        catch ( Exception e )
+        catch ( Throwable t )
         {
             /*
              * From RFC 2251 Section 4.11:
@@ -1168,7 +1172,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
              *
              * SO DON'T SEND BACK ANYTHING!!!!!
              */
-            if ( e instanceof OperationAbandonedException )
+            if ( t instanceof OperationAbandonedException )
             {
                 return;
             }
@@ -1180,7 +1184,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
                 persistentSearchException = true;
             }
 
-            handleException( session, req, e );
+            handleException( session, req, t );
         }
         finally
         {
@@ -1628,7 +1632,7 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
     /**
      * Handles processing with referrals without ManageDsaIT decorator.
      */
-    public void handleException( LdapSession session, ResultResponseRequest req, Exception e )
+    public void handleException( LdapSession session, ResultResponseRequest req, Throwable e )
     {
         SearchResultDone done = ( SearchResultDone ) req.getResultResponse();
         LdapResult result = done.getLdapResult();
@@ -1645,12 +1649,12 @@ public class SearchRequestHandler extends LdapRequestHandler<SearchRequest>
 
             if ( cause == null )
             {
-                cause = e;
+                cause = (Exception) e;
             }
         }
         else
         {
-            cause = e;
+            cause = (Exception) e;
         }
 
         if ( cause instanceof LdapOperationException )

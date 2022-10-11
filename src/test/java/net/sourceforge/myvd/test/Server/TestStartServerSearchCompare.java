@@ -141,6 +141,29 @@ public class TestStartServerSearchCompare {
 
 	}
 	
+	@Test
+	public void testAbandon() throws Exception {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("127.0.0.1", 50983);
+		
+		
+		
+		
+		LDAPSearchResults res = con.search("ou=internal,o=mycompany,c=us", 2, "(uid=*)", new String[0], false);
+		assertTrue(res.hasMore());
+		assertNotNull(res.next());
+		con.abandon(res);
+		
+		
+		Thread.sleep(5000);
+		
+		con.disconnect();
+		
+		
+		
+		
+		
+	}
 	
 	@Test
 	public void testNoSuchObject() throws Exception {
@@ -150,6 +173,7 @@ public class TestStartServerSearchCompare {
 		// first do searches to make sure the objects exist
 		try {
 			LDAPSearchResults res = con.search("cn=Test Userx,ou=internal,o=mycompany,c=us", 0, "(uid=testUser)", new String[0], false);
+			
 			res.hasMore();
 			res.next();
 			fail("Search succeeded");

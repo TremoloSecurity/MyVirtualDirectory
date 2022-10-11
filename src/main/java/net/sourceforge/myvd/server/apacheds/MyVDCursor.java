@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Tremolo Security, Inc. 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at 
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package net.sourceforge.myvd.server.apacheds;
 
 import net.sourceforge.myvd.types.Results;
@@ -12,9 +28,11 @@ import org.apache.directory.api.ldap.model.entry.TremoloEntry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException;
+import org.apache.directory.api.ldap.model.exception.LdapOperationErrorException;
 import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.api.ldap.model.schema.SchemaManager;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import com.novell.ldap.LDAPAttribute;
@@ -177,6 +195,36 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 			return res.hasMore();
 		} catch (LDAPException e) {
 			throw MyVDInterceptor.generateException(e);
+		} catch (Throwable t) {
+			throw new LdapOperationErrorException("error checking for the next record",t);
+		}
+	}
+	
+	
+
+	@Override
+	public void close() throws IOException {
+		
+		super.close();
+		
+		try {
+			res.finish();
+		} catch (LDAPException e) {
+			throw new IOException("Could not close results",e);
+		}
+	}
+	
+	
+
+	@Override
+	public void close(Exception cause) throws IOException {
+		
+		super.close(cause);
+		
+		try {
+			res.finish();
+		} catch (LDAPException e) {
+			throw new IOException("Could not close results",e);
 		}
 	}
 
@@ -184,6 +232,10 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 	public boolean previous() throws LdapException, CursorException {
 		
 		return false;
+		
+		
 	}
+	
+	
 
 }

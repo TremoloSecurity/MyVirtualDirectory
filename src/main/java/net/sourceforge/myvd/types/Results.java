@@ -26,6 +26,8 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.SearchResult;
 
+import org.apache.log4j.Logger;
+
 import net.sourceforge.myvd.chain.InterceptorChain;
 import net.sourceforge.myvd.chain.PostSearchCompleteInterceptorChain;
 import net.sourceforge.myvd.chain.PostSearchEntryInterceptorChain;
@@ -39,6 +41,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.util.DN;
 
 public class Results {
+	static Logger logger = Logger.getLogger(Results.class);
 	InsertChain globalChain;
 	
 	ArrayList<Result> results;
@@ -194,9 +197,18 @@ public class Results {
 	}
 	
 	public void finish() throws LDAPException {
-		Iterator<Result> it = this.results.iterator();
-		while (it.hasNext()) {
-			it.next().entrySet.abandon();
+		if (this.results != null) {
+			synchronized(this.results) {
+				
+				ArrayList<Result> nresults = new ArrayList<Result>();
+				nresults.addAll(this.results);
+				
+				for (Result r : nresults) {
+					r.entrySet.abandon();
+				}
+				
+				
+			}
 		}
 	}
 	

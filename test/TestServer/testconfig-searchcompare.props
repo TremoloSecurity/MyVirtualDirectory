@@ -58,6 +58,7 @@ server.InternalServer.LDAPInternalServer.config.port=11983
 server.InternalServer.LDAPInternalServer.config.remoteBase=ou=internal,dc=domain,dc=com
 server.InternalServer.LDAPInternalServer.config.proxyDN=cn=admin,ou=internal,dc=domain,dc=com
 server.InternalServer.LDAPInternalServer.config.proxyPass=manager
+server.InternalServer.LDAPInternalServer.config.maxOpsPerCon=0
 
 
 

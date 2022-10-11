@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Tremolo Security, Inc. 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at 
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package net.sourceforge.myvd.server.apacheds;
 
 import java.net.SocketAddress;
@@ -1150,43 +1166,51 @@ private Filter generateMyVDFilter(ExprNode root) {
     public static LdapException generateException(LDAPException e) {
 		LdapException ex;
 		
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Exception: '" + e.getMessage() + " / " + e.getLDAPErrorMessage() + "/" + e.getMatchedDN(),e);
+		}
+		
+		String errMsg = String.format("%s / %s / %s", e.getMessage(),e.getLDAPErrorMessage(),e.getMatchedDN());
+		
 		switch (e.getResultCode()) {
 		
 			
-			case 1 : ex = new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(e.getMessage(), e); break;
-			case 2 : ex = new org.apache.directory.api.ldap.model.exception.LdapProtocolErrorException(e.getMessage(), e); break;
-			case 3 : ex = new org.apache.directory.api.ldap.model.exception.LdapTimeLimitExceededException(e.getMessage()); break;
-			case 4 : ex = new org.apache.directory.api.ldap.model.exception.LdapSizeLimitExceededException(e.getMessage()); break;
+		
+			case 1 : ex = new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(errMsg, e); break;
+			case 2 : ex = new org.apache.directory.api.ldap.model.exception.LdapProtocolErrorException(errMsg, e); break;
+			case 3 : ex = new org.apache.directory.api.ldap.model.exception.LdapTimeLimitExceededException(errMsg); break;
+			case 4 : ex = new org.apache.directory.api.ldap.model.exception.LdapSizeLimitExceededException(errMsg); break;
 			case 48:
 			case 7 : ex = new org.apache.directory.api.ldap.model.exception.LdapAuthenticationNotSupportedException(ResultCodeEnum.AUTH_METHOD_NOT_SUPPORTED); break;
-			case 8 : ex = new org.apache.directory.api.ldap.model.exception.LdapStrongAuthenticationRequiredException(e.getMessage()); break;
-			case 11 : ex = new org.apache.directory.api.ldap.model.exception.LdapAdminLimitExceededException(e.getMessage()); break;
+			case 8 : ex = new org.apache.directory.api.ldap.model.exception.LdapStrongAuthenticationRequiredException(errMsg); break;
+			case 11 : ex = new org.apache.directory.api.ldap.model.exception.LdapAdminLimitExceededException(errMsg); break;
 			case 53 :
-			case 12 : ex = new org.apache.directory.api.ldap.model.exception.LdapUnwillingToPerformException(e.getMessage()); break;
-			case 13 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoPermissionException(e.getMessage()); break;
-			case 16 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(e.getMessage()); break;
-			case 17 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(e.getMessage()); break;
-			case 18 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidSearchFilterException(e.getMessage()); break;
+			case 12 : ex = new org.apache.directory.api.ldap.model.exception.LdapUnwillingToPerformException(errMsg); break;
+			case 13 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoPermissionException(errMsg); break;
+			case 16 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(errMsg); break;
+			case 17 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(errMsg); break;
+			case 18 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidSearchFilterException(errMsg); break;
 			case 21:
-			case 19 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException(ResultCodeEnum.INVALID_ATTRIBUTE_SYNTAX, e.getMessage());
-			case 20 : ex = new org.apache.directory.api.ldap.model.exception.LdapAttributeInUseException(e.getMessage()); break;
-			case 32 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchObjectException(e.getMessage()); break;
-			case 34 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidDnException(e.getMessage()); break;
-			case 49 : ex = new org.apache.directory.api.ldap.model.exception.LdapAuthenticationException(e.getMessage()); break;
-			case 50 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoPermissionException(e.getMessage()); break;
+			case 19 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException(ResultCodeEnum.INVALID_ATTRIBUTE_SYNTAX, errMsg);
+			case 20 : ex = new org.apache.directory.api.ldap.model.exception.LdapAttributeInUseException(errMsg); break;
+			case 32 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchObjectException(errMsg); break;
+			case 34 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidDnException(errMsg); break;
+			case 49 : ex = new org.apache.directory.api.ldap.model.exception.LdapAuthenticationException(errMsg); break;
+			case 50 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoPermissionException(errMsg); break;
 			case 52 :
 			case 51 : ex = new org.apache.directory.api.ldap.model.exception.LdapServiceUnavailableException(ResultCodeEnum.UNAVAILABLE); break;
-			case 54 : ex = new org.apache.directory.api.ldap.model.exception.LdapLoopDetectedException(e.getMessage());
-			case 64 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidDnException(e.getMessage()); break;
-			case 65 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(e.getMessage()); break;
-			case 66 : ex = new org.apache.directory.api.ldap.model.exception.LdapContextNotEmptyException(e.getMessage()); break;
+			case 54 : ex = new org.apache.directory.api.ldap.model.exception.LdapLoopDetectedException(errMsg);
+			case 64 : ex = new org.apache.directory.api.ldap.model.exception.LdapInvalidDnException(errMsg); break;
+			case 65 : ex = new org.apache.directory.api.ldap.model.exception.LdapNoSuchAttributeException(errMsg); break;
+			case 66 : ex = new org.apache.directory.api.ldap.model.exception.LdapContextNotEmptyException(errMsg); break;
 			case 69 :
-			case 67 : ex = new org.apache.directory.api.ldap.model.exception.LdapSchemaException(e.getMessage()); break;
-			case 68 : ex = new org.apache.directory.api.ldap.model.exception.LdapEntryAlreadyExistsException(e.getMessage()); break;
-			case 71 : ex = new org.apache.directory.api.ldap.model.exception.LdapAffectMultipleDsaException(e.getMessage()); break;
-			case 80 : ex = new org.apache.directory.api.ldap.model.exception.LdapOtherException(e.getMessage()); break;
+			case 67 : ex = new org.apache.directory.api.ldap.model.exception.LdapSchemaException(errMsg); break;
+			case 68 : ex = new org.apache.directory.api.ldap.model.exception.LdapEntryAlreadyExistsException(errMsg); break;
+			case 71 : ex = new org.apache.directory.api.ldap.model.exception.LdapAffectMultipleDsaException(errMsg); break;
+			case 80 : ex = new org.apache.directory.api.ldap.model.exception.LdapOtherException(errMsg); break;
 		    		
-			default : ex = new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(e.getMessage(), e); break;
+			default : ex = new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(errMsg, e); break;
 		}
 		
 		ex.setStackTrace(e.getStackTrace());
