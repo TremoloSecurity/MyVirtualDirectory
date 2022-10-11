@@ -105,6 +105,9 @@ public class LDAPInterceptor implements Insert {
 
     private LDAPHeartBeat heartBeat;
     public boolean useSrvDNS;
+    
+    int maxOpsPerCon;
+    long maxCheckoutTimePerCon;
 
     public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
         this.name = name;
@@ -185,6 +188,12 @@ public class LDAPInterceptor implements Insert {
             this.heartBeat = new LDAPHeartBeat(this);
             new Thread(this.heartBeat).start();
         }
+        
+        this.maxOpsPerCon = Integer.parseInt(props.getProperty("maxOpsPerCon","0"));
+        logger.info(String.format("Max Ops Per Con : %d",this.maxOpsPerCon));
+        
+        this.maxCheckoutTimePerCon = Long.parseLong(props.getProperty("maxCheckoutTimePerCon","0"));
+        logger.info(String.format("Max Millis Checkout Time %d", this.maxCheckoutTimePerCon));
 
     }
 
@@ -677,4 +686,15 @@ public class LDAPInterceptor implements Insert {
         return this.heartbeatIntervalMinis;
     }
 
+
+
+	public long getMaxCheckoutTimePerCon() {
+		return maxCheckoutTimePerCon;
+	}
+
+	public int getMaxOpsPerCon() {
+		return maxOpsPerCon;
+	}
+
+    
 }

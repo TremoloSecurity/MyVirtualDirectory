@@ -35,6 +35,8 @@ public class LDAPConnectionPool {
 	int minCons;
 	
 	
+	
+	
 	LDAPConnectionType type;
 	
 	private LDAPInterceptor interceptor;

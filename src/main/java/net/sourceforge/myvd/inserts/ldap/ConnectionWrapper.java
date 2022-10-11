@@ -43,6 +43,8 @@ public class ConnectionWrapper {
 	
 	long lastAccessed;
 	
+	int numOps;
+	
 	
 	String uuid;
 	
@@ -60,34 +62,24 @@ public class ConnectionWrapper {
 		synchronized (this.locked) {
 			if (! this.locked.getValue()) {
 				this.locked.setValue(true);
-				return false;
+				
+				if (  this.interceptor.getMaxOpsPerCon() > 0 && this.numOps > this.interceptor.getMaxOpsPerCon()  ) {
+					logger.warn("Too many operations on this connection, re-creating");
+					return closeAndConnect(true);
+				} else {
+					this.numOps++;
+					return false;
+				}
+				
+				
 			} else {
 				
-				if ((System.currentTimeMillis() - this.lastAccessed) >= this.interceptor.getMaxStailTime()) {
+				if ( ((System.currentTimeMillis() - this.lastAccessed) >= this.interceptor.getMaxStailTime())   ) {
 					logger.warn("Connection stale, re-creating");
-					final LDAPConnection localCon = this.con;
-					this.con = null;
-					new Thread() {
-
-						@Override
-						public void run() {
-							try {
-								localCon.disconnect();
-							} catch (LDAPException e) {
-								logger.warn("Could not close connection",e);
-							}
-						}
-						
-						
-					}.start();
-					try {
-						this.reConnect();
-					} catch (LDAPException e) {
-						logger.error("Could not reconnect",e);
-						this.con = null;
-					}
-					this.locked.setValue(true);
-					return false;
+					return closeAndConnect(false);
+				} else if ( this.interceptor.getMaxCheckoutTimePerCon() > 0 && (System.currentTimeMillis() - this.lastAccessed) > this.interceptor.getMaxCheckoutTimePerCon()) {
+					logger.warn("Connection checked out too long, killing and re-creating");
+					return closeAndConnect(false);
 				} else {
 					return true;
 				}
@@ -96,6 +88,33 @@ public class ConnectionWrapper {
 				
 			}
 		}
+	}
+
+	private boolean closeAndConnect(boolean keepCredentials) {
+		final LDAPConnection localCon = this.con;
+		this.con = null;
+		new Thread() {
+
+			@Override
+			public void run() {
+				try {
+					localCon.disconnect();
+				} catch (LDAPException e) {
+					logger.warn("Could not close connection",e);
+				}
+			}
+			
+			
+		}.start();
+		try {
+			this.reConnect(true);
+		} catch (LDAPException e) {
+			logger.error("Could not reconnect",e);
+			this.con = null;
+		}
+		this.locked.setValue(true);
+		this.numOps = 1;
+		return false;
 	}
 	
 	public void bind(DN bindDN,Password password) throws LDAPException {
@@ -161,13 +180,34 @@ public class ConnectionWrapper {
 	}
 	
 	public void reConnect() throws LDAPException {
+		this.reConnect(false);
+	}
+	
+	public void reConnect(boolean keepCredentials) throws LDAPException {
 		if (con != null && con.isConnectionAlive()) {
-			con.disconnect();
+			try {
+				con.disconnect();
+			} catch (Throwable t) {
+				
+				if (logger.isDebugEnabled()) {
+					logger.warn("Trying to force disconnect: " + t.getMessage(),t);
+				} else {
+					logger.warn("Trying to force disconnect: " + t.getMessage());
+				}
+			}
 		}
 		
 		this.con = this.createConnection();
-		this.bindDN = null;
-		this.pass = null;
+		
+		if (keepCredentials) {
+			if (this.bindDN != null && this.pass != null) {
+				this.reBind();
+			}
+		} else {
+			this.bindDN = null;
+			this.pass = null;
+		}
+		
 	}
 	
 	private LDAPConnection createConnection() throws LDAPException {
