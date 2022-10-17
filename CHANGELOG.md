@@ -1,3 +1,15 @@
+# 1.0.17
+
+**tasks:**
+ - 1.0.17 build [\#150](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/150)
+
+**enhancements:**
+ - Support ldap pool cleanout [\#149](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/149)
+ - Support abandon request [\#148](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/148)
+
+**bugs:**
+ - LDAP sessions not closing [\#147](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/147)
+
 # 1.0.16
 
 **tasks:**
