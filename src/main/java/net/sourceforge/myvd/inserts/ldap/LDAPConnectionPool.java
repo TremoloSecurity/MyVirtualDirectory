@@ -69,6 +69,8 @@ public class LDAPConnectionPool {
 			logger.warn("Could not initialize pool",t);
 		}
 		
+		
+		
 	}
 	
 	public ConnectionWrapper getConnection(DN bindDN,Password pass,boolean force) throws LDAPException {
@@ -86,28 +88,29 @@ public class LDAPConnectionPool {
 		
 		while (it.hasNext()) {
 			ConnectionWrapper wrapper = it.next();
-			
-			//See if the connection is locked
-			if (wrapper.wasLocked()) {
-				continue;
+			synchronized (wrapper) {
+				//See if the connection is locked
+				if (wrapper.wasLocked()) {
+					continue;
+				}
+				
+				//if there is an available connection, make sure to make a note
+				wasfound = true;
+				
+				//if we are binding, we want to return the connection
+				if (force) {
+					return wrapper;
+				}
+				
+				//check to see if the currnt connection has the right binddn
+				if ((wrapper.getBindDN() == null && bindDN.toString() == null) || (wrapper.getBindDN() != null && bindDN.equals(wrapper.getBindDN()))) {
+					return wrapper;
+				}
+				
+				//we have not yet found a connection
+				//so we can re-lock the connection
+				wrapper.unlock();
 			}
-			
-			//if there is an available connection, make sure to make a note
-			wasfound = true;
-			
-			//if we are binding, we want to return the connection
-			if (force) {
-				return wrapper;
-			}
-			
-			//check to see if the currnt connection has the right binddn
-			if ((wrapper.getBindDN() == null && bindDN.toString() == null) || (wrapper.getBindDN() != null && bindDN.equals(wrapper.getBindDN()))) {
-				return wrapper;
-			}
-			
-			//we have not yet found a connection
-			//so we can re-lock the connection
-			wrapper.unlock();
 		}
 		
 		if (wasfound) {
@@ -115,42 +118,50 @@ public class LDAPConnectionPool {
 			
 			
 			while (it.hasNext()) {
+				
 				ConnectionWrapper wrapper = it.next();
-				
-				//See if the connection is locked
-				if (wrapper.wasLocked()) {
-					continue;
-				}
-				
-				/*
-				if (wrapper == null) {
-					//System.out.println("wrapper is null");
-				}
-				
-				if (bindDN == null) {
-					//System.out.println("bindDN is null");
-				}
-				
-				if (wrapper.getBindDN() == null) {
-					//System.out.println("wrapper.getBindDN is null");
-				}
-				
-				if (bindDN.toString() == null) {
-					//System.out.println("bindDN.toString() is null");
-				}*/
-				
-				////System.out.println("?" + wrapper.getBindDN().toString());
-				
-				if (wrapper.getBindDN() != null && bindDN.toString().equals(wrapper.getBindDN().toString())) {
-					return wrapper;
-				} else {
-					try {
-						wrapper.bind(bindDN,pass);
+				synchronized( wrapper ) {
+					//See if the connection is locked
+					if (wrapper.wasLocked()) {
+						continue;
+					}
+					
+					/*
+					if (wrapper == null) {
+						//System.out.println("wrapper is null");
+					}
+					
+					if (bindDN == null) {
+						//System.out.println("bindDN is null");
+					}
+					
+					if (wrapper.getBindDN() == null) {
+						//System.out.println("wrapper.getBindDN is null");
+					}
+					
+					if (bindDN.toString() == null) {
+						//System.out.println("bindDN.toString() is null");
+					}*/
+					
+					////System.out.println("?" + wrapper.getBindDN().toString());
+					
+					if (wrapper.getBindDN() != null && bindDN.toString().equals(wrapper.getBindDN().toString())) {
 						return wrapper;
-					} catch (LDAPException e) {
-						wrapper.unlock();
-						wrapper.reBind();
-						throw e;
+					} else {
+						try {
+							wrapper.bind(bindDN,pass);
+							return wrapper;
+						} catch (LDAPException e) {
+	
+							if (e.getResultCode() == 49) {
+								System.out.println("here");
+							}
+	
+							wrapper.unlock();
+	
+							
+							throw e;
+						}
 					}
 				}
 			}
@@ -187,7 +198,10 @@ public class LDAPConnectionPool {
 	}
 	
 	public synchronized void returnConnection(ConnectionWrapper con) {
-		con.unlock();
+		synchronized(con) {
+			con.unlock();
+		}
+		
 		synchronized (this) {
 			this.notifyAll();
 		}
@@ -210,44 +224,46 @@ public class LDAPConnectionPool {
 			logger.debug("Running heartbeats for '" + this.interceptor.getHost() + "'");
 		}
 		for (ConnectionWrapper wrapper : this.pool) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Checking for '" + this.interceptor.getHost() + "' / " + wrapper);
-			}
-			//skip locked connection
-			if (! wrapper.wasLocked()) {
-				
+			synchronized(wrapper) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Sending heartbeat to '" + this.interceptor.getHost() + "' / " + wrapper);
+					logger.debug("Checking for '" + this.interceptor.getHost() + "' / " + wrapper);
 				}
-				
-				//run a heartbeat
-				try {
-					//reset the bind
-					wrapper.bind(new DN(interceptor.proxyDN),new Password(interceptor.proxyPass));
-					
-					//search
-					LDAPSearchResults res = wrapper.getConnection().search(interceptor.getRemoteBase().toString(), 0, "(objectClass=*)", new String[]{"1.1"}, false);
-					while (res.hasMore()) {
-						res.next();
-					}
+				//skip locked connection
+				if (! wrapper.wasLocked()) {
 					
 					if (logger.isDebugEnabled()) {
-						logger.debug("Heartbeat successful for '" + this.interceptor.getHost() + "' / " + wrapper);
+						logger.debug("Sending heartbeat to '" + this.interceptor.getHost() + "' / " + wrapper);
 					}
 					
-				} catch (LDAPException e) {
-					logger.warn("Could not execute ldap heartbeat for " + this.interceptor.getHost() + "/" + this.interceptor.getPort() + ", recreating connection",e);
+					//run a heartbeat
 					try {
-						wrapper.reConnect();
-					} catch (LDAPException e1) {
-						logger.warn("Could not reconnect",e1);
+						//reset the bind
+						wrapper.bind(new DN(interceptor.proxyDN),new Password(interceptor.proxyPass));
+						
+						//search
+						LDAPSearchResults res = wrapper.getConnection().search(interceptor.getRemoteBase().toString(), 0, "(objectClass=*)", new String[]{"1.1"}, false);
+						while (res.hasMore()) {
+							res.next();
+						}
+						
+						if (logger.isDebugEnabled()) {
+							logger.debug("Heartbeat successful for '" + this.interceptor.getHost() + "' / " + wrapper);
+						}
+						
+					} catch (Throwable e) {
+						logger.warn("Could not execute ldap heartbeat for " + this.interceptor.getHost() + "/" + this.interceptor.getPort() + ", recreating connection",e);
+						try {
+							wrapper.reConnect();
+						} catch (Throwable e1) {
+							logger.warn("Could not reconnect",e1);
+						}
 					}
-				}
-				
-				wrapper.unlock();
-			} else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Connection locked for '" + this.interceptor.getHost() + "' / " + wrapper);
+					
+					wrapper.unlock();
+				} else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Connection locked for '" + this.interceptor.getHost() + "' / " + wrapper);
+					}
 				}
 			}
 		}

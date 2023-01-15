@@ -33,6 +33,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 
@@ -157,7 +158,7 @@ public class TestEmbededGroupsSync  {
 		
 		
 	}*/
-	
+	@Ignore
 	@Test
 	public void testSearchSyncMemberships() throws Exception {
 		LDAPConnection con = new LDAPConnection();

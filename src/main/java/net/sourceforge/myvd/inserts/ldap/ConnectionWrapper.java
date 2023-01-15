@@ -65,9 +65,9 @@ public class ConnectionWrapper {
 				
 				if (  this.interceptor.getMaxOpsPerCon() > 0 && this.numOps > this.interceptor.getMaxOpsPerCon()  ) {
 					logger.warn("Too many operations on this connection, re-creating");
-					return closeAndConnect(true);
+					return closeAndConnect(false);
 				} else {
-					this.numOps++;
+					
 					return false;
 				}
 				
@@ -93,21 +93,9 @@ public class ConnectionWrapper {
 	private boolean closeAndConnect(boolean keepCredentials) {
 		final LDAPConnection localCon = this.con;
 		this.con = null;
-		new Thread() {
-
-			@Override
-			public void run() {
-				try {
-					localCon.disconnect();
-				} catch (LDAPException e) {
-					logger.warn("Could not close connection",e);
-				}
-			}
-			
-			
-		}.start();
+		this.interceptor.closeConnection(localCon);
 		try {
-			this.reConnect(true);
+			this.reConnect(keepCredentials);
 		} catch (LDAPException e) {
 			logger.error("Could not reconnect",e);
 			this.con = null;
@@ -132,10 +120,19 @@ public class ConnectionWrapper {
 			con.bind(3,bindDN.toString(),password.getValue(),constraints);
 			this.bindDN = bindDN;
 			this.pass = password;
-		} catch (LDAPException e) {
+		} catch (Throwable e) {
+			logger.warn(String.format("Error attempting to bind to %s: %s",bindDN.toString(),e.toString()));
+			
 			this.bindDN = null;
 			this.pass = null;
-			throw e;
+			
+			
+			
+			if (e instanceof LDAPException) {
+				throw e;
+			} else {
+				throw new LDAPException(LDAPException.resultCodeToString(LDAPException.OPERATIONS_ERROR),LDAPException.OPERATIONS_ERROR,String.format("Error binding to %s",bindDN.toString()));
+			}
 		}
 		
 	}
@@ -186,7 +183,7 @@ public class ConnectionWrapper {
 	public void reConnect(boolean keepCredentials) throws LDAPException {
 		if (con != null && con.isConnectionAlive()) {
 			try {
-				con.disconnect();
+				this.interceptor.closeConnection(con);
 			} catch (Throwable t) {
 				
 				if (logger.isDebugEnabled()) {
@@ -259,6 +256,7 @@ public class ConnectionWrapper {
 	
 	public synchronized void unlock() {
 		synchronized (this.locked) {
+			this.numOps++;
 			this.locked.setValue(false);
 		}
 	}

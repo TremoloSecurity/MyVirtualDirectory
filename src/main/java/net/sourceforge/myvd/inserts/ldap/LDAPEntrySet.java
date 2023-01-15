@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPControl;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
@@ -41,7 +42,7 @@ public class LDAPEntrySet implements EntrySet {
 	static Logger logger = Logger.getLogger(LDAPEntrySet.class);
 
 	LDAPInterceptor interceptor;
-	ConnectionWrapper wrapper;
+	LDAPConnection ldap;
 	LDAPSearchResults results;
 
 	Entry currEntry;
@@ -60,13 +61,13 @@ public class LDAPEntrySet implements EntrySet {
 	private boolean typesOnly;
 	private LDAPSearchConstraints constraints;
 
-	public LDAPEntrySet(LDAPInterceptor interceptor, ConnectionWrapper wrapper, LDAPSearchResults results,
+	public LDAPEntrySet(LDAPInterceptor interceptor, LDAPConnection ldap, LDAPSearchResults results,
 			String remoteBase, int scope, String filter, String[] attribs, boolean typesOnly,
 			LDAPSearchConstraints constraints) {
 		this.done = false;
 		this.entryFetched = true;
 		this.interceptor = interceptor;
-		this.wrapper = wrapper;
+		this.ldap = ldap;
 		this.results = results;
 		this.isFirst = true;
 		this.numRes = 0;
@@ -182,7 +183,7 @@ public class LDAPEntrySet implements EntrySet {
 
 							if (attributesToRequest.length > 0) {
 
-								LDAPSearchResults lres = this.wrapper.getConnection().search(entry.getDN(), 0,
+								LDAPSearchResults lres = ldap.search(entry.getDN(), 0,
 										"(objectClass=*)", attributesToRequest, false);
 								if (!lres.hasMore()) {
 									done = true;
@@ -265,7 +266,7 @@ public class LDAPEntrySet implements EntrySet {
 							}
 						}
 
-						this.results = this.wrapper.getConnection().search(remoteBase, scope, filter, attrs, typesOnly,
+						this.results = this.ldap.search(remoteBase, scope, filter, attrs, typesOnly,
 								this.constraints);
 						this.numRes = 0;
 						return this.getNextLDAPEntry();
@@ -273,11 +274,11 @@ public class LDAPEntrySet implements EntrySet {
 				}
 
 				this.done = true;
-				interceptor.returnLDAPConnection(this.wrapper);
+				this.ldap.disconnect();
 				return false;
 			}
 		} catch (LDAPException e) {
-			interceptor.returnLDAPConnection(wrapper);
+			this.ldap.disconnect();
 			throw e;
 		}
 	}
@@ -298,8 +299,7 @@ public class LDAPEntrySet implements EntrySet {
  
 	public void abandon() throws LDAPException {
 		// clear the LDAP connection and reconnect
-		this.wrapper.reConnect(true);
-		this.interceptor.returnLDAPConnection(this.wrapper);
+		this.ldap.disconnect();
 
 	}
 

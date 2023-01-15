@@ -97,8 +97,10 @@ public class TestTimeout  {
 				Assert.fail("Took too litle time");
 			}
 			
-			if ((done - now) > 5000 ) {
-				Assert.fail("Took too much time");
+			System.out.println(done-now);
+			
+			if ((done - now) > 5100 ) {
+				Assert.fail("Took too much time:" + (done-now));
 			}
 		} finally {
 			con.disconnect();

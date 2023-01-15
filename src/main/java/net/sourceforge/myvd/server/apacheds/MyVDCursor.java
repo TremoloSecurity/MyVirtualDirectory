@@ -64,7 +64,7 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 	@Override
 	public void after(Entry arg0) throws LdapException, CursorException {
 		//Do nothing
-		System.out.println();
+		
 	}
 
 	@Override

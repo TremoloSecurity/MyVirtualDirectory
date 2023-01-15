@@ -78,7 +78,7 @@ public class Server {
     static Logger logger = Logger.getLogger(Server.class);
 
 
-	public final static String VERSION = "1.0.17";
+	public final static String VERSION = "1.0.18";
 
     String configFile;
     Properties props;

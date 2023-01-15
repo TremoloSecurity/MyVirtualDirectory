@@ -243,6 +243,10 @@ public class InterceptorChain {
 		return this.pos;
 	}
 	
+	public void setPos(int pos) {
+		this.pos = pos;
+	}
+	
 	
 	
 	public void setBindDN(DistinguishedName dn) {

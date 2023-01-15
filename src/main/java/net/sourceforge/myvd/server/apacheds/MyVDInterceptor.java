@@ -182,63 +182,66 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
+		synchronized(userSession) {
 		
-		setTLSSessionParams(userSession,add.getSession());
 		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (add.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(add.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+			setTLSSessionParams(userSession,add.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (add.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
-			}
-		}
-		
-		Password pass = new Password(password);
-		
-		AddInterceptorChain chain = new AddInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		
-		
-		LDAPAttributeSet attrs = new LDAPAttributeSet();
-		for (Attribute attr : add.getEntry().getAttributes()) {
-			
-			LDAPAttribute lattr = attrs.getAttribute(attr.getAttributeType().getName());
-			if (lattr == null) {
-				lattr = new LDAPAttribute(attr.getAttributeType().getName());
-				attrs.add(lattr);
-			}
-			
-			
-			
-			if (attr.isHumanReadable()) {
-				for (Value v : attr) {
-					lattr.addValue(v.getString());
-				}
 			} else {
-				for (Value v : attr) {
-					lattr.addValue(v.getBytes());
+				bindDN = new DistinguishedName(add.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
 				}
 			}
 			
-		}
-		
-		LDAPEntry nentry = new LDAPEntry(add.getEntry().getDn().getName(),attrs);
-		
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		
-		
-		try {
-			chain.nextAdd(new net.sourceforge.myvd.types.Entry(nentry),cons);
-		} catch (LDAPException e) {
-			throw generateException(e);
+			Password pass = new Password(password);
 			
+			AddInterceptorChain chain = new AddInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			
+			
+			LDAPAttributeSet attrs = new LDAPAttributeSet();
+			for (Attribute attr : add.getEntry().getAttributes()) {
+				
+				LDAPAttribute lattr = attrs.getAttribute(attr.getAttributeType().getName());
+				if (lattr == null) {
+					lattr = new LDAPAttribute(attr.getAttributeType().getName());
+					attrs.add(lattr);
+				}
+				
+				
+				
+				if (attr.isHumanReadable()) {
+					for (Value v : attr) {
+						lattr.addValue(v.getString());
+					}
+				} else {
+					for (Value v : attr) {
+						lattr.addValue(v.getBytes());
+					}
+				}
+				
+			}
+			
+			LDAPEntry nentry = new LDAPEntry(add.getEntry().getDn().getName(),attrs);
+			
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			
+			
+			try {
+				chain.nextAdd(new net.sourceforge.myvd.types.Entry(nentry),cons);
+			} catch (LDAPException e) {
+				throw generateException(e);
+				
+			}
 		}
 	}
 
@@ -281,98 +284,100 @@ public class MyVDInterceptor extends BaseInterceptor {
 		
 		//how to track?
 		HashMap<Object,Object> userSession = this.getUserSession(bindContext);
-		bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
-		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (bindContext.getSession() == null) {
-			//userSession = new HashMap<Object,Object>();
-			//bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
+		synchronized (userSession) {
+			bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
 			
-			bindDN = new DistinguishedName("");
-			password = null;
+			DistinguishedName bindDN;
+			byte[] password;
 			
-			
-			
-		} else {
-			//userSession = bindContext.getSession().getUserSession();*/
-			
-		
-			if (bindContext.getSession().isAnonymous()) {
+			if (bindContext.getSession() == null) {
+				//userSession = new HashMap<Object,Object>();
+				//bindContext.getIoSession().setAttribute("MYVD_USER_SESSION", userSession);
+				
 				bindDN = new DistinguishedName("");
 				password = null;
+				
+				
+				
 			} else {
-				bindDN = new DistinguishedName(bindContext.getSession().getAuthenticatedPrincipal().getDn().getName());
-				if (bindContext.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-					password = bindContext.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
-				} else {
+				//userSession = bindContext.getSession().getUserSession();*/
+				
+			
+				if (bindContext.getSession().isAnonymous()) {
+					bindDN = new DistinguishedName("");
 					password = null;
+				} else {
+					bindDN = new DistinguishedName(bindContext.getSession().getAuthenticatedPrincipal().getDn().getName());
+					if (bindContext.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
+						password = bindContext.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+					} else {
+						password = null;
+					}
 				}
 			}
+			
+			
+			if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
+				userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
+			}
+			
+			setTLSSessionParams(userSession,bindContext.getIoSession());
+			
+			
+			
+			Password pass = new Password(password);
+			
+			/*StringBuffer sb = new StringBuffer();
+			
+			
+			for (Rdn rdn : bindContext.getDn().getRdns()) {
+				sb.append(rdn.getAva().getAttributeType().getNames().get(0)).append('=').append(rdn.getValue().getString()).append(',');
+			}
+			
+			sb.setLength(sb.length() - 1);*/
+			
+			DistinguishedName newBindDN = new DistinguishedName(bindContext.getDn().toString());
+	        Password newPass = new Password(bindContext.getCredentials());
+	        
+	        try {
+	        	BindInterceptorChain chain = new BindInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,router);
+	        	chain.nextBind(newBindDN,newPass,new LDAPConstraints());
+	        } catch (LDAPException e) {
+	        	throw MyVDInterceptor.generateException(e);
+	        }
+	        
+	        userSession.put("MYVD_BINDDN",newBindDN);
+	        userSession.put("MYVD_BINDPASS",newPass);
+	        
+	        LdapPrincipal principal = new LdapPrincipal(this.schemaManager,bindContext.getDn(),AuthenticationLevel.SIMPLE,  bindContext.getCredentials());
+	        
+	        IoSession session = bindContext.getIoSession();
+	
+	        if ( session != null )
+	        {
+	            SocketAddress clientAddress = session.getRemoteAddress();
+	            principal.setClientAddress( clientAddress );
+	            SocketAddress serverAddress = session.getServiceAddress();
+	            principal.setServerAddress( serverAddress );
+	        }
+	        
+	     
+	
+	        LdapPrincipal clonedPrincipal = null;
+			try {
+				clonedPrincipal = ( LdapPrincipal ) ( principal.clone() );
+			} catch (CloneNotSupportedException e) {
+				//not possible
+			}
+	
+	        // remove creds so there is no security risk
+	        bindContext.setCredentials( null );
+	        clonedPrincipal.setUserPassword( new byte[0] );
+	
+	        // authentication was successful
+	        CoreSession csession = new DefaultCoreSessionImpl( clonedPrincipal, directoryService );
+	        bindContext.setSession( csession );
 		}
-		
-		
-		if (userSession.get(SessionVariables.BOUND_INTERCEPTORS) == null) {
-			userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
-		}
-		
-		setTLSSessionParams(userSession,bindContext.getIoSession());
-		
-		
-		
-		Password pass = new Password(password);
-		
-		/*StringBuffer sb = new StringBuffer();
-		
-		
-		for (Rdn rdn : bindContext.getDn().getRdns()) {
-			sb.append(rdn.getAva().getAttributeType().getNames().get(0)).append('=').append(rdn.getValue().getString()).append(',');
-		}
-		
-		sb.setLength(sb.length() - 1);*/
-		
-		DistinguishedName newBindDN = new DistinguishedName(bindContext.getDn().toString());
-        Password newPass = new Password(bindContext.getCredentials());
-        
-        try {
-        	BindInterceptorChain chain = new BindInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,router);
-        	chain.nextBind(newBindDN,newPass,new LDAPConstraints());
-        } catch (LDAPException e) {
-        	throw MyVDInterceptor.generateException(e);
-        }
-        
-        userSession.put("MYVD_BINDDN",newBindDN);
-        userSession.put("MYVD_BINDPASS",newPass);
-        
-        LdapPrincipal principal = new LdapPrincipal(this.schemaManager,bindContext.getDn(),AuthenticationLevel.SIMPLE,  bindContext.getCredentials());
-        
-        IoSession session = bindContext.getIoSession();
-
-        if ( session != null )
-        {
-            SocketAddress clientAddress = session.getRemoteAddress();
-            principal.setClientAddress( clientAddress );
-            SocketAddress serverAddress = session.getServiceAddress();
-            principal.setServerAddress( serverAddress );
-        }
-        
-     
-
-        LdapPrincipal clonedPrincipal = null;
-		try {
-			clonedPrincipal = ( LdapPrincipal ) ( principal.clone() );
-		} catch (CloneNotSupportedException e) {
-			//not possible
-		}
-
-        // remove creds so there is no security risk
-        bindContext.setCredentials( null );
-        clonedPrincipal.setUserPassword( new byte[0] );
-
-        // authentication was successful
-        CoreSession csession = new DefaultCoreSessionImpl( clonedPrincipal, directoryService );
-        bindContext.setSession( csession );
 	}
 
 	@Override
@@ -388,48 +393,50 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,compareContext.getSession());
+		synchronized (userSession) {
 		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (compareContext.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(compareContext.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+			setTLSSessionParams(userSession,compareContext.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (compareContext.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
-			}
-		}
-		
-		Password pass = new Password(password);
-		
-		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		Results res = new Results(this.globalChain);
-		
-		String compareFilter = FilterBuilder.equal(compareContext.getOid(),compareContext.getValue().getString()).toString();
-
-		try {
-			chain.nextSearch(new DistinguishedName(compareContext.getDn().toString()), new Int(0), new Filter(compareFilter), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
-			res.start();
-			if (res.hasMore()) {
-				res.next();
-				while (res.hasMore()) res.next();
-				res.finish();
-				return true;
 			} else {
-				res.finish();
-				return false;
+				bindDN = new DistinguishedName(compareContext.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
+				}
 			}
 			
-		} catch (LDAPException e) {
-			throw generateException(e);
-		}
+			Password pass = new Password(password);
+			
+			SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			Results res = new Results(this.globalChain);
+			
+			String compareFilter = FilterBuilder.equal(compareContext.getOid(),compareContext.getValue().getString()).toString();
+	
+			try {
+				chain.nextSearch(new DistinguishedName(compareContext.getDn().toString()), new Int(0), new Filter(compareFilter), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
+				res.start();
+				if (res.hasMore()) {
+					res.next();
+					while (res.hasMore()) res.next();
+					res.finish();
+					return true;
+				} else {
+					res.finish();
+					return false;
+				}
+				
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 
-		
+		}
 
 	}
 
@@ -445,60 +452,41 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,del.getSession());
+		synchronized(userSession) {
 		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (del.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(del.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+			setTLSSessionParams(userSession,del.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (del.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
-			}
-		}
-		
-		Password pass = new Password(password);
-		
-		
-		/*SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		Results res = new Results(this.globalChain);
-		Entry entry = new TremoloEntry();
-		try {
-			chain.nextSearch(new DistinguishedName(del.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
-			res.next();
-			res.hasMore();
-			LDAPEntry nentry = res.next().getEntry();
-			
-			
-			entry.setDn(nentry.getDN());
-			LDAPAttributeSet attrs = nentry.getAttributeSet();
-			for (Object o : attrs) {
-				LDAPAttribute a = (LDAPAttribute) o;
-				byte[][] vals = a.getByteValueArray();
-				for (int i=0;i<vals.length;i++) {
-					entry.add(a.getName(),vals[i]);
+			} else {
+				bindDN = new DistinguishedName(del.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
 				}
 			}
-		} catch (LDAPException e1) {
-			throw generateException(e1);
-		}*/
+			
+			Password pass = new Password(password);
+			
+			
+			
+			
+			
+			DeleteInterceptorChain dchain = new DeleteInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			try {
+				dchain.nextDelete(new DistinguishedName(del.getDn().getName()), cons);
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 		
-		
-		DeleteInterceptorChain dchain = new DeleteInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		try {
-			dchain.nextDelete(new DistinguishedName(del.getDn().getName()), cons);
-		} catch (LDAPException e) {
-			throw generateException(e);
 		}
-		
-		
 	}
 
 	@Override
@@ -571,62 +559,65 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,lookup.getSession());
+		synchronized (userSession) {
 		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (lookup.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(lookup.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+			setTLSSessionParams(userSession,lookup.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (lookup.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
+			} else {
+				bindDN = new DistinguishedName(lookup.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
+				}
 			}
-		}
-		
-		Password pass = new Password(password);
-		
-		
-		SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		Results res = new Results(this.globalChain);
-		Entry entry = new TremoloEntry();
-		try {
-			chain.nextSearch(new DistinguishedName(lookup.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
-			res.start();
-			if (res.hasMore()) {
-				LDAPEntry nentry = res.next().getEntry();
-				
-				
-				
-				entry.setDn(nentry.getDN());
-				LDAPAttributeSet attrs = nentry.getAttributeSet();
-				for (Object o : attrs) {
-					LDAPAttribute a = (LDAPAttribute) o;
+			
+			Password pass = new Password(password);
+			
+			
+			SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			Results res = new Results(this.globalChain);
+			Entry entry = new TremoloEntry();
+			try {
+				chain.nextSearch(new DistinguishedName(lookup.getDn().getName()), new Int(0), new Filter("(objectClass=*)"), new ArrayList<net.sourceforge.myvd.types.Attribute>(), new Bool(false), res, new LDAPSearchConstraints());
+				res.start();
+				if (res.hasMore()) {
+					LDAPEntry nentry = res.next().getEntry();
 					
-					LinkedList<ByteArray> vals = a.getAllValues();
-					for (ByteArray val : vals) {
-						entry.add(a.getName(),val.getValue());
+					
+					
+					entry.setDn(nentry.getDN());
+					LDAPAttributeSet attrs = nentry.getAttributeSet();
+					for (Object o : attrs) {
+						LDAPAttribute a = (LDAPAttribute) o;
+						
+						LinkedList<ByteArray> vals = a.getAllValues();
+						for (ByteArray val : vals) {
+							entry.add(a.getName(),val.getValue());
+						}
 					}
+					
+					while (res.hasMore()) res.next();
+					return entry;
+				} else {
+					return null;
 				}
 				
-				while (res.hasMore()) res.next();
-				return entry;
-			} else {
-				return null;
+			} catch (LDAPException e1) {
+				if (e1.getResultCode() == 32) {
+					return null;
+				} else {
+					throw generateException(e1);
+				}
+				
+				
 			}
-			
-		} catch (LDAPException e1) {
-			if (e1.getResultCode() == 32) {
-				return null;
-			} else {
-				throw generateException(e1);
-			}
-			
-			
 		}
 	}
 
@@ -642,56 +633,58 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,mod.getSession());
-		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (mod.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(mod.getSession().getAuthenticatedPrincipal().getDn().getName());
-			/*if (mod.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
-				password = mod.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
-			} else {
-				password = null;
-			}*/
-
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
-				password = null;
-			}
-		}
-		
-		Password pass = new Password(password);
-		
-		ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
-		
-		for (Modification modification : mod.getModItems()) {
-			LDAPModification ldapMod = new LDAPModification(modification.getOperation().getValue(),new LDAPAttribute(modification.getAttribute().getAttributeType().getName()));
+		synchronized (userSession) {
+			setTLSSessionParams(userSession,mod.getSession());
 			
-			if (modification.getAttribute().isHumanReadable()) {
-				for (Value s : modification.getAttribute()) {
-					ldapMod.getAttribute().addValue(s.getString());
-				}
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (mod.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
+				password = null;
 			} else {
-				for (Value s : modification.getAttribute()) {
-					ldapMod.getAttribute().addValue(s.getBytes());
+				bindDN = new DistinguishedName(mod.getSession().getAuthenticatedPrincipal().getDn().getName());
+				/*if (mod.getSession().getAuthenticatedPrincipal().getUserPasswords() != null) {
+					password = mod.getSession().getAuthenticatedPrincipal().getUserPasswords()[0];
+				} else {
+					password = null;
+				}*/
+	
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
 				}
 			}
 			
-			mods.add(ldapMod);
-		}
-		
-		ModifyInterceptorChain chain = new ModifyInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		try {
-			chain.nextModify(new DistinguishedName(mod.getDn().getName()), mods, cons);
-		} catch (LDAPException e) {
-			throw generateException(e);
+			Password pass = new Password(password);
+			
+			ArrayList<LDAPModification> mods = new ArrayList<LDAPModification>();
+			
+			for (Modification modification : mod.getModItems()) {
+				LDAPModification ldapMod = new LDAPModification(modification.getOperation().getValue(),new LDAPAttribute(modification.getAttribute().getAttributeType().getName()));
+				
+				if (modification.getAttribute().isHumanReadable()) {
+					for (Value s : modification.getAttribute()) {
+						ldapMod.getAttribute().addValue(s.getString());
+					}
+				} else {
+					for (Value s : modification.getAttribute()) {
+						ldapMod.getAttribute().addValue(s.getBytes());
+					}
+				}
+				
+				mods.add(ldapMod);
+			}
+			
+			ModifyInterceptorChain chain = new ModifyInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			try {
+				chain.nextModify(new DistinguishedName(mod.getDn().getName()), mods, cons);
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 		}
 	}
 
@@ -706,34 +699,36 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,move.getSession());
-		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (move.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+		synchronized (userSession) {
+			setTLSSessionParams(userSession,move.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (move.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
+			} else {
+				bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
+				}
 			}
-		}
-		
-		Password pass = new Password(password);
-		
-		
-		
-		RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		try {
-			chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getRdn().getName()), new DistinguishedName(move.getNewSuperior().getName()), new Bool(true), cons);
-		} catch (LDAPException e) {
-			throw generateException(e);
+			
+			Password pass = new Password(password);
+			
+			
+			
+			RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			try {
+				chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getRdn().getName()), new DistinguishedName(move.getNewSuperior().getName()), new Bool(true), cons);
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 		}
 	}
 
@@ -749,34 +744,37 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,move.getSession());
+		synchronized (userSession) {
 		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (move.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
+			setTLSSessionParams(userSession,move.getSession());
+			
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (move.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
 				password = null;
+			} else {
+				bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
+				}
 			}
-		}
-		
-		Password pass = new Password(password);
-		
-		
-		
-		RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		try {
-			chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getNewRdn().getName()), new DistinguishedName(move.getNewSuperiorDn().getName()), new Bool(true), cons);
-		} catch (LDAPException e) {
-			throw generateException(e);
+			
+			Password pass = new Password(password);
+			
+			
+			
+			RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			try {
+				chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getNewRdn().getName()), new DistinguishedName(move.getNewSuperiorDn().getName()), new Bool(true), cons);
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 		}
 	}
 
@@ -792,35 +790,37 @@ public class MyVDInterceptor extends BaseInterceptor {
 			
 		}
 		
-		setTLSSessionParams(userSession,move.getSession());
-		
-		DistinguishedName bindDN;
-		byte[] password;
-		
-		if (move.getSession().isAnonymous()) {
-			bindDN = new DistinguishedName("");
-			password = null;
-		} else {
-			bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
-			if (userSession.get("MYVD_BINDPASS") != null) {
-				password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
-			} else {
-				password = null;
-			}
-		}
-		
-		Password pass = new Password(password);
-		
-		
-		
-		RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-		LDAPConstraints cons = new LDAPConstraints();
-		
-		try {
-			chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getNewRdn().getName()), new Bool(true), cons);
+		synchronized (userSession) {
+			setTLSSessionParams(userSession,move.getSession());
 			
-		} catch (LDAPException e) {
-			throw generateException(e);
+			DistinguishedName bindDN;
+			byte[] password;
+			
+			if (move.getSession().isAnonymous()) {
+				bindDN = new DistinguishedName("");
+				password = null;
+			} else {
+				bindDN = new DistinguishedName(move.getSession().getAuthenticatedPrincipal().getDn().getName());
+				if (userSession.get("MYVD_BINDPASS") != null) {
+					password = ((Password) userSession.get("MYVD_BINDPASS")).getValue();
+				} else {
+					password = null;
+				}
+			}
+			
+			Password pass = new Password(password);
+			
+			
+			
+			RenameInterceptorChain chain = new RenameInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+			LDAPConstraints cons = new LDAPConstraints();
+			
+			try {
+				chain.nextRename(new DistinguishedName(move.getDn().getName()), new DistinguishedName(move.getNewRdn().getName()), new Bool(true), cons);
+				
+			} catch (LDAPException e) {
+				throw generateException(e);
+			}
 		}
 	}
 
@@ -842,103 +842,106 @@ public class MyVDInterceptor extends BaseInterceptor {
 					userSession.put(SessionVariables.BOUND_INTERCEPTORS,new ArrayList<String>());
 					
 				}
+				
+				synchronized (userSession) {
 
-				Password currentSessionPassword = (Password) userSession.get("MYVD_BINDPASS");
-				
-				setTLSSessionParams(userSession,search.getSession());
-				
-				DistinguishedName bindDN;
-				byte[] password;
-				
-				if (search.getSession().isAnonymous()) {
-					bindDN = new DistinguishedName("");
-					password = null;
-				} else {
-					bindDN = new DistinguishedName(search.getSession().getAuthenticatedPrincipal().getDn().getName());
-					if (currentSessionPassword != null) {
-						password = currentSessionPassword.getValue();
-					} else {
+					Password currentSessionPassword = (Password) userSession.get("MYVD_BINDPASS");
+					
+					setTLSSessionParams(userSession,search.getSession());
+					
+					DistinguishedName bindDN;
+					byte[] password;
+					
+					if (search.getSession().isAnonymous()) {
+						bindDN = new DistinguishedName("");
 						password = null;
-					}
-				}
-				
-				Password pass = new Password(password);
-				
-				
-				SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
-				Results res = new Results(this.globalChain);
-				
-				ArrayList<net.sourceforge.myvd.types.Attribute> attrs = new ArrayList<net.sourceforge.myvd.types.Attribute>();
-				
-				if (! search.isNoAttributes()) {
-				
-					if (search.getReturningAttributes() != null) {
-						for (AttributeTypeOptions attrType : search.getReturningAttributes()) {
-							attrs.add(new net.sourceforge.myvd.types.Attribute(attrType.getAttributeType().getName()));
+					} else {
+						bindDN = new DistinguishedName(search.getSession().getAuthenticatedPrincipal().getDn().getName());
+						if (currentSessionPassword != null) {
+							password = currentSessionPassword.getValue();
+						} else {
+							password = null;
 						}
 					}
-				} else {
-					attrs.add(new net.sourceforge.myvd.types.Attribute("1.1"));
-				}
-				
-				/*StringBuffer sb = new StringBuffer();
-				
-				
-				for (Rdn rdn : search.getDn().getRdns()) {
-					sb.append(rdn.getAva().getAttributeType().getNames().get(0)).append('=').append(rdn.getValue().getString()).append(',');
-				}
-				
-				sb.setLength(sb.length() - 1);*/
-				
-				
-				
-				Filter filter = this.generateMyVDFilter(search.getFilter());
-				
-				if (filter == null) {
-					throw new LdapInvalidSearchFilterException("Unable to parse filter : '" + search.getFilter().toString() + "'");
-				}
-				
-				try {
 					
-					StringBuffer newdn = new StringBuffer();
-					boolean indq = false;
-					char last = 0;
-					for (char c : search.getDn().toString().toCharArray()) {
-						if (c == '"') {
-							indq = !indq;
-						} else if (c == ',') {
-							if (indq) {
-								
-								newdn.append("\\,");
-								
-							} else {
-								newdn.append(',');
+					Password pass = new Password(password);
+					
+					
+					SearchInterceptorChain chain = new SearchInterceptorChain(bindDN,pass,0,this.globalChain,userSession,userRequest,this.router);
+					Results res = new Results(this.globalChain);
+					
+					ArrayList<net.sourceforge.myvd.types.Attribute> attrs = new ArrayList<net.sourceforge.myvd.types.Attribute>();
+					
+					if (! search.isNoAttributes()) {
+					
+						if (search.getReturningAttributes() != null) {
+							for (AttributeTypeOptions attrType : search.getReturningAttributes()) {
+								attrs.add(new net.sourceforge.myvd.types.Attribute(attrType.getAttributeType().getName()));
 							}
-						} else {
-							newdn.append(c);
+						}
+					} else {
+						attrs.add(new net.sourceforge.myvd.types.Attribute("1.1"));
+					}
+					
+					/*StringBuffer sb = new StringBuffer();
+					
+					
+					for (Rdn rdn : search.getDn().getRdns()) {
+						sb.append(rdn.getAva().getAttributeType().getNames().get(0)).append('=').append(rdn.getValue().getString()).append(',');
+					}
+					
+					sb.setLength(sb.length() - 1);*/
+					
+					
+					
+					Filter filter = this.generateMyVDFilter(search.getFilter());
+					
+					if (filter == null) {
+						throw new LdapInvalidSearchFilterException("Unable to parse filter : '" + search.getFilter().toString() + "'");
+					}
+					
+					try {
+						
+						StringBuffer newdn = new StringBuffer();
+						boolean indq = false;
+						char last = 0;
+						for (char c : search.getDn().toString().toCharArray()) {
+							if (c == '"') {
+								indq = !indq;
+							} else if (c == ',') {
+								if (indq) {
+									
+									newdn.append("\\,");
+									
+								} else {
+									newdn.append(',');
+								}
+							} else {
+								newdn.append(c);
+							}
+							
+							last = c;
 						}
 						
-						last = c;
+						LDAPSearchConstraints ldapsc = new LDAPSearchConstraints();
+						ldapsc.setMaxResults((int)search.getSizeLimit());
+						ldapsc.setTimeLimit(search.getTimeLimit());
+						
+						
+						
+						chain.nextSearch(new DistinguishedName(newdn.toString()), new Int(search.getScope().getScope()), filter, attrs, new Bool(search.isTypesOnly()), res, ldapsc);
+						res.start();
+					} catch (LDAPException e) {
+						logger.error("Error Searching",e);
+						
+						throw this.generateException(e);
+					} catch (Throwable t) {
+						logger.error("Throwable Searching",t);
+						throw new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(t.getMessage(), t);
 					}
 					
-					LDAPSearchConstraints ldapsc = new LDAPSearchConstraints();
-					ldapsc.setMaxResults((int)search.getSizeLimit());
-					ldapsc.setTimeLimit(search.getTimeLimit());
-					
-					
-					
-					chain.nextSearch(new DistinguishedName(newdn.toString()), new Int(search.getScope().getScope()), filter, attrs, new Bool(search.isTypesOnly()), res, ldapsc);
-					res.start();
-				} catch (LDAPException e) {
-					logger.error("Error Searching",e);
-					
-					throw this.generateException(e);
-				} catch (Throwable t) {
-					logger.error("Throwable Searching",t);
-					throw new org.apache.directory.api.ldap.model.exception.LdapOperationErrorException(t.getMessage(), t);
+					return new MyVDBaseCursor(new MyVDCursor(res,this.schemaManager),search,this.schemaManager);
 				}
-				
-				return new MyVDBaseCursor(new MyVDCursor(res,this.schemaManager),search,this.schemaManager);
 	}
 
 	@Override
