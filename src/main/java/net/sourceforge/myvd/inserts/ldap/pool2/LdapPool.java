@@ -17,6 +17,8 @@ package net.sourceforge.myvd.inserts.ldap.pool2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
@@ -27,12 +29,15 @@ import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
 public class LdapPool {
 	static Logger logger = Logger.getLogger(LdapPool.class);
 	
+	Queue<Thread> threads;
+	
 	List<LdapConnection> pool;
 	LDAPInterceptor interceptor;
 	
 	public LdapPool(LDAPInterceptor interceptor) throws LDAPException {
 		this.pool = new ArrayList<LdapConnection>();
 		this.interceptor = interceptor;
+		this.threads = new ConcurrentLinkedQueue<Thread>();
 		
 		new Thread() {
 
@@ -86,7 +91,10 @@ public class LdapPool {
 				return null;
 			} else {
 				try {
-					Thread.sleep(100);
+					this.threads.add(Thread.currentThread());
+					synchronized (Thread.currentThread()) {
+						Thread.currentThread().wait(1000);
+					}
 				} catch (InterruptedException e) {
 					
 				}
@@ -99,6 +107,18 @@ public class LdapPool {
 		
 	}
 
+	public void dequeThread() {
+		synchronized (this) {
+			if (! this.threads.isEmpty()) {
+				Thread t = this.threads.poll();
+				if (t != null) {
+					logger.info("Dequeuing thread");
+					t.interrupt();
+				}
+			}
+		}
+	}
+	
 	public void executeHeartBeat() {
 		for (LdapConnection ldap : this.pool) {
 			ldap.heartbeat();
@@ -109,6 +129,13 @@ public class LdapPool {
 	public void shutDownPool() {
 		for (LdapConnection ldap : this.pool) {
 			
+		}
+		
+	}
+
+	public void checkCheckedoutConnections() {
+		for (LdapConnection ldap : this.pool) {
+			ldap.checkConnectionStatus();
 		}
 		
 	}

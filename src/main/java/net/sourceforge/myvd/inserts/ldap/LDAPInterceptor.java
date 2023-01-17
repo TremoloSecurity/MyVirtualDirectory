@@ -34,6 +34,7 @@ import net.sourceforge.myvd.chain.RenameInterceptorChain;
 import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
+import net.sourceforge.myvd.inserts.ldap.pool2.InspectCheckedoutConnections;
 import net.sourceforge.myvd.inserts.ldap.pool2.LdapPool;
 import net.sourceforge.myvd.types.Attribute;
 import net.sourceforge.myvd.types.Bool;
@@ -117,6 +118,8 @@ public class LDAPInterceptor implements Insert {
 	
 	LdapPool pool;
 	private int maxRetries;
+	
+	InspectCheckedoutConnections inspector;
 
     public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
         this.name = name;
@@ -206,7 +209,7 @@ public class LDAPInterceptor implements Insert {
         this.maxOpsPerCon = Integer.parseInt(props.getProperty("maxOpsPerCon","0"));
         logger.info(String.format("Max Ops Per Con : %d",this.maxOpsPerCon));
         
-        this.maxCheckoutTimePerCon = Long.parseLong(props.getProperty("maxCheckoutTimePerCon","0"));
+        this.maxCheckoutTimePerCon = Long.parseLong(props.getProperty("maxCheckoutTimePerCon","1000"));
         logger.info(String.format("Max Millis Checkout Time %d", this.maxCheckoutTimePerCon));
         
         this.cleanupDelay = Integer.parseInt(props.getProperty("cleanupDelayMillis","10000"));
@@ -215,6 +218,10 @@ public class LDAPInterceptor implements Insert {
 		new Thread(this.cleanup).start();
         
         this.pool = new LdapPool(this);
+        if (this.maxCheckoutTimePerCon > 0) {
+        	this.inspector = new InspectCheckedoutConnections(this);
+        	new Thread(inspector).start();
+        }
 
     }
     
@@ -695,6 +702,10 @@ public class LDAPInterceptor implements Insert {
     public void shutdown() {
         if (this.heartBeat != null) {
             this.heartBeat.stop();
+        }
+        
+        if (this.inspector != null) {
+        	this.inspector.stopInspector();
         }
 
         logger.info("Closing down all pools...");

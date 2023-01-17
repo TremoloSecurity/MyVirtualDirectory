@@ -292,7 +292,24 @@ public class LdapConnection extends com.novell.ldap.LDAPConnection {
 	}
 	
 	
-	
+	public void checkConnectionStatus() {
+		synchronized (this) {
+			if (this.locked) {
+				if ((System.currentTimeMillis() - this.lastAccessed) > this.interceptor.getMaxCheckoutTimePerCon()) {
+					logger.warn(String.format("Connection to %s:%s checkedout too long, closing and returning to the pool", this.interceptor.getHost(),this.interceptor.getPort()));
+					try {
+						this.closeAndConnect(false);
+					} catch (LDAPException e) {
+						logger.warn("Could not reconnect",e);
+					}
+					this.numCheckouts = 0;
+					this.lastAccessed = 0;
+					this.locked = false;
+				}
+			}
+		}
+		
+	}
 	
 	// override all methods
 
@@ -631,7 +648,7 @@ public class LdapConnection extends com.novell.ldap.LDAPConnection {
 		
 		synchronized (this) {
 			this.locked = false;
-			
+			this.interceptor.getConnectionPool().dequeThread();
 		}
 		
 		
@@ -642,7 +659,7 @@ public class LdapConnection extends com.novell.ldap.LDAPConnection {
 		
 		synchronized (this) {
 			this.locked = false;
-			
+			this.interceptor.getConnectionPool().dequeThread();
 		}
 	}
 
@@ -882,6 +899,9 @@ public class LdapConnection extends com.novell.ldap.LDAPConnection {
 		
 		return ldap.toString();
 	}
+
+
+	
 	
 	
 	
