@@ -36,6 +36,7 @@ import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.ldap.pool2.InspectCheckedoutConnections;
 import net.sourceforge.myvd.inserts.ldap.pool2.LdapPool;
+import net.sourceforge.myvd.inserts.ldap.pool2.LdapSearchResults;
 import net.sourceforge.myvd.types.Attribute;
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.DistinguishedName;
@@ -546,7 +547,11 @@ public class LDAPInterceptor implements Insert {
             }
 
             LDAPSearchResults res = ldap.search(remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
-            chain.addResult(results, new LDAPEntrySet(this, ldap, res, remoteBase, scope.getValue(), filter.getValue(), attribs, typesOnly.getValue(), constraints), base, scope, filter, attributes, typesOnly, constraints);
+            
+            LdapSearchResults reswrapper = new LdapSearchResults(this,remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
+            reswrapper.setResults(ldap, res);
+            
+            chain.addResult(results, new LDAPEntrySet(this, null, reswrapper, remoteBase, scope.getValue(), filter.getValue(), attribs, typesOnly.getValue(), constraints), base, scope, filter, attributes, typesOnly, constraints);
             searchSubmitted = true;
         } finally {
         	if (! searchSubmitted) {

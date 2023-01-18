@@ -118,134 +118,6 @@ public class LDAPEntrySet implements EntrySet {
 
 				dn = dn.replaceAll("[\\\\][2][C]", "\\\\,");
 
-				List<LDAPAttribute> attributesToReplace = new ArrayList<LDAPAttribute>();
-				List<LDAPAttribute> attributesToAdd = new ArrayList<LDAPAttribute>();
-				List<AttrRange> ranges = new ArrayList<AttrRange>();
-
-				for (Object o : entry.getAttributeSet()) {
-					LDAPAttribute attr = (LDAPAttribute) o;
-					if (attr.getName().contains(";range=")) {
-
-						AttrRange rangeAttr = new AttrRange();
-						ranges.add(rangeAttr);
-
-						if (logger.isDebugEnabled()) {
-							logger.info("attribute : " + attr.getName() + " is a range");
-						}
-						rangeAttr.name = attr.getName().substring(0, attr.getName().indexOf(';'));
-						attributesToReplace.add(attr);
-
-						LDAPAttribute newAttr = new LDAPAttribute(rangeAttr.name);
-						rangeAttr.attr = newAttr;
-
-						newAttr.getAllValues().addAll(attr.getAllValues());
-						attributesToAdd.add(newAttr);
-
-						String range = attr.getName().substring(attr.getName().indexOf('=') + 1);
-						logger.debug(range);
-						rangeAttr.start = Integer.parseInt(range.substring(0, range.indexOf('-')));
-						rangeAttr.end = Integer.parseInt(range.substring(range.indexOf('-') + 1));
-						rangeAttr.total = rangeAttr.start + rangeAttr.end + 1;
-						if (logger.isDebugEnabled()) {
-							logger.debug("total : " + rangeAttr.total);
-						}
-
-					}
-
-					StringBuilder sb = new StringBuilder();
-					
-					if (ranges.size() > 0) {
-						boolean done = false;
-						while (!done) {
-							ArrayList<String> attrsToRequest = new ArrayList<String>();
-
-							for (AttrRange rangeAttr : ranges) {
-								if (!rangeAttr.done) {
-									
-									sb.setLength(0);
-									sb.append(rangeAttr.name)
-									  .append(";range=" )
-									  .append(rangeAttr.end + 1)
-									  .append("-")
-									  .append(rangeAttr.end + rangeAttr.total);
-									
-									rangeAttr.currentRangeAttr = sb.toString();
-									
-									attrsToRequest.add(rangeAttr.currentRangeAttr);
-								}
-							}
-
-							if (attrsToRequest.size() == 0) {
-								done = true; break;
-							}
-							
-							String[] attributesToRequest = attrsToRequest.toArray(new String[] {});
-
-							if (attributesToRequest.length > 0) {
-
-								LDAPSearchResults lres = ldap.search(entry.getDN(), 0,
-										"(objectClass=*)", attributesToRequest, false);
-								if (!lres.hasMore()) {
-									done = true;
-									logger.warn("Could not find " + entry.getDN() + " for range lookup");
-								} else {
-									LDAPEntry nentry = lres.next();
-
-									for (AttrRange rangeAttr : ranges) {
-
-										attr = nentry.getAttribute(rangeAttr.currentRangeAttr);
-										if (attr == null) {
-											
-											sb.setLength(0);
-											sb.append(rangeAttr.name)
-											  .append(";range=")
-											  .append(rangeAttr.end + 1)
-											  .append("-*");
-											
-											String attrName = sb.toString();  //rangeAttr.name + ";range=" + (rangeAttr.end + 1) + "-*";
-											attr = nentry.getAttribute(attrName);
-
-											if (attr == null) {
-												logger.warn("no range attribute");
-
-											}
-
-											rangeAttr.done = true;
-										}
-
-										if (attr != null) {
-
-											rangeAttr.attr.getAllValues().addAll(attr.getAllValues());
-
-											if (!rangeAttr.done) {
-												String range = attr.getName()
-														.substring(attr.getName().indexOf('=') + 1);
-												logger.debug(range);
-												rangeAttr.start = Integer
-														.parseInt(range.substring(0, range.indexOf('-')));
-												rangeAttr.end = Integer
-														.parseInt(range.substring(range.indexOf('-') + 1));
-											}
-										}
-
-									}
-								}
-
-							}
-
-						}
-					}
-				}
-
-				for (LDAPAttribute attrToRemove : attributesToReplace) {
-					entry.getAttributeSet().remove(attrToRemove);
-				}
-
-				for (LDAPAttribute attr : attributesToAdd) {
-					entry.getAttributeSet().remove(attr);
-					entry.getAttributeSet().add(attr);
-				}
-
 				this.currEntry = new Entry(
 						new LDAPEntry(interceptor.getLocalMappedDN(new DN(dn)).toString(), entry.getAttributeSet()),
 						respControls);
@@ -253,6 +125,10 @@ public class LDAPEntrySet implements EntrySet {
 				this.entryFetched = false;
 				return true;
 			} else {
+				return false;
+			}
+			
+			/*else {
 
 				if (this.interceptor.isUsePaging()) {
 					if (this.numRes == this.interceptor.getPageSize()) {
@@ -274,11 +150,11 @@ public class LDAPEntrySet implements EntrySet {
 				}
 
 				this.done = true;
-				this.ldap.disconnect();
+				if (this.ldap != null) ldap.disconnect();
 				return false;
-			}
+			}*/
 		} catch (LDAPException e) {
-			this.ldap.disconnect();
+			if (this.ldap != null) this.ldap.disconnect();
 			throw e;
 		}
 	}
@@ -299,7 +175,7 @@ public class LDAPEntrySet implements EntrySet {
  
 	public void abandon() throws LDAPException {
 		// clear the LDAP connection and reconnect
-		this.ldap.disconnect();
+		if (this.ldap != null) ldap.disconnect();
 
 	}
 
