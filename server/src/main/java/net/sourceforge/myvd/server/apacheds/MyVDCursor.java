@@ -43,7 +43,7 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 	@Override
 	public void after(Entry arg0) throws LdapException, CursorException {
 		//Do nothing
-		System.out.println();
+		//System.out.println();
 	}
 
 	@Override
@@ -74,13 +74,13 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 
 	@Override
 	public void before(Entry arg0) throws LdapException, CursorException {
-		System.out.println();
+		//System.out.println();
 		
 	}
 
 	@Override
 	public void beforeFirst() throws LdapException, CursorException {
-		System.out.println();
+		//System.out.println();
 		
 	}
 

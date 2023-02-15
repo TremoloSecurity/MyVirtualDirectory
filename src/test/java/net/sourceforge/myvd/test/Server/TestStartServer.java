@@ -32,7 +32,7 @@ import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.Server;
 import net.sourceforge.myvd.test.chain.TestChain;

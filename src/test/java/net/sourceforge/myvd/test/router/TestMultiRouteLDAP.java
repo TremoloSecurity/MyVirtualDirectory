@@ -31,7 +31,7 @@ import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.test.chain.TestChain;
 import net.sourceforge.myvd.test.util.OpenLDAPUtils;
@@ -78,7 +78,7 @@ import static org.junit.Assert.*;
 public class TestMultiRouteLDAP  {
 
 
-	static LDAPInterceptor baseInterceptor;
+	static LDAPInterceptorExperimental baseInterceptor;
 	static InsertChain chain;
 	static Router router;
 	private static StartOpenLDAP baseServer;
@@ -98,7 +98,7 @@ public class TestMultiRouteLDAP  {
 		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
 		//setup the ldap interceptors
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		Properties props = new Properties();
 		props.put("host","localhost");
 		props.put("port","10983");
@@ -119,7 +119,7 @@ public class TestMultiRouteLDAP  {
 		router.addBackend("LDAPBase",ns.getBase().getDN(),ns);
 		
 		
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		props = new Properties();
 		props.put("host","localhost");
 		props.put("port","11983");
@@ -136,7 +136,7 @@ public class TestMultiRouteLDAP  {
 		baseInterceptor.configure("LDAPInternal",props,ns);
 		router.addBackend("LDAPInternal",ns.getBase().getDN(),ns);
 		
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		props = new Properties();
 		props.put("host","localhost");
 		props.put("port","12983");

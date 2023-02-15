@@ -262,10 +262,10 @@ public class MyVDInterceptor extends BaseInterceptor {
 		}
 		
 		if (filter != null) {
-			SSLSession tlssession = filter.getSslSession(ioSession);
+			SSLSession tlssession =  filter.getSslSession(ioSession);
 			if (tlssession != null) {
 				try {
-					TlsParameters tlsParams = new TlsParameters(tlssession.getCipherSuite(),tlssession.getPeerCertificateChain());
+					TlsParameters tlsParams = new TlsParameters(tlssession.getCipherSuite(),(java.security.cert.X509Certificate[]) tlssession.getPeerCertificates());
 					userSession.put(SessionVariables.TLS_PARAMS, tlsParams);
 				} catch (SSLPeerUnverifiedException e) {
 					//no need to log this

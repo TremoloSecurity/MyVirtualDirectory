@@ -32,7 +32,7 @@ import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
@@ -78,7 +78,7 @@ public class TestLocalChainLDAP  {
 
 	static StartOpenLDAP server;
 
-	static LDAPInterceptor interceptor;
+	static LDAPInterceptorExperimental interceptor;
 
 	static InsertChain chain;
 
@@ -93,7 +93,7 @@ public class TestLocalChainLDAP  {
 				"cn=admin,dc=domain,dc=com", "manager");
 
 		// setup the ldap interceptor
-		interceptor = new LDAPInterceptor();
+		interceptor = new LDAPInterceptorExperimental();
 		Properties props = new Properties();
 		props.put("host", "localhost");
 		props.put("port", "10983");

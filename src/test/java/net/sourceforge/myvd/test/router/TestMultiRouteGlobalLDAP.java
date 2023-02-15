@@ -32,7 +32,7 @@ import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
 import net.sourceforge.myvd.inserts.extensions.PasswordChangeOperation;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.test.chain.TestChain;
 import net.sourceforge.myvd.test.util.OpenLDAPUtils;
@@ -79,7 +79,7 @@ import static org.junit.Assert.*;
 public class TestMultiRouteGlobalLDAP  {
 
 
-	static LDAPInterceptor baseInterceptor;
+	static LDAPInterceptorExperimental baseInterceptor;
 	static InsertChain chain;
 	static InsertChain globalChain;
 	static Router router;
@@ -101,7 +101,7 @@ public class TestMultiRouteGlobalLDAP  {
 		externalServer.startServer(System.getenv("PROJ_DIR") + "/test/ExternalUsers",12983,"cn=admin,ou=external,dc=domain,dc=com","manager");
 		
 		//setup the ldap interceptors
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		Properties props = new Properties();
 		props.put("host","localhost");
 		props.put("port","10983");
@@ -122,7 +122,7 @@ public class TestMultiRouteGlobalLDAP  {
 		router.addBackend("LDAPBase",ns.getBase().getDN(),ns);
 		
 		
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		props = new Properties();
 		props.put("host","localhost");
 		props.put("port","11983");
@@ -145,7 +145,7 @@ public class TestMultiRouteGlobalLDAP  {
 		nprops.put("localBase","o=mycompany,c=us");
 		tchain[1].configure("localPwdChange",nprops,ns);
 		
-		baseInterceptor = new LDAPInterceptor();
+		baseInterceptor = new LDAPInterceptorExperimental();
 		props = new Properties();
 		props.put("host","localhost");
 		props.put("port","12983");

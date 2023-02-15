@@ -1,6 +1,6 @@
 package net.sourceforge.myvd.types;
 
-import javax.security.cert.X509Certificate;
+import java.security.cert.X509Certificate;
 
 public class TlsParameters {
 	X509Certificate[] clientChain;

@@ -31,7 +31,7 @@ import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 import net.sourceforge.myvd.test.util.OpenLDAPUtils;
 import net.sourceforge.myvd.test.util.StartOpenLDAP;
 import net.sourceforge.myvd.test.util.Util;
@@ -77,7 +77,7 @@ public class TestLDAP  {
 
 	static StartOpenLDAP server;
 
-	static LDAPInterceptor interceptor;
+	static LDAPInterceptorExperimental interceptor;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
@@ -87,7 +87,7 @@ public class TestLDAP  {
 				System.getenv("PROJ_DIR") + "/test/TestLDAP", 10983,
 				"cn=admin,dc=domain,dc=com", "manager");
 
-		interceptor = new LDAPInterceptor();
+		interceptor = new LDAPInterceptorExperimental();
 		Properties props = new Properties();
 		props.put("host", "localhost");
 		props.put("port", "10983");

@@ -132,7 +132,17 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 			Entry entry = new TremoloEntry();
 			
 			entry.setDn(nentry.getDN());
+			
+			
+			
+			
 			LDAPAttributeSet attrs = nentry.getAttributeSet();
+			
+			
+			
+			
+			
+			
 			for (Object o : attrs) {
 				LDAPAttribute a = (LDAPAttribute) o;
 				String oid = "";
@@ -145,11 +155,11 @@ public class MyVDCursor extends AbstractCursor<Entry> {
 				
 				
 				DefaultAttribute attr = new DefaultAttribute(a.getName());
-				LinkedList<ByteArray> vals = a.getAllValues();
-				for (ByteArray b : vals) {
-					attr.add(b.getValue());
-				}
 				
+				ByteArray val = null;
+				while ((val = a.getAndRemoveFirstValue()) != null) {
+					attr.add(val.getValue());
+				}
 				
 				entry.add(attr);
 				

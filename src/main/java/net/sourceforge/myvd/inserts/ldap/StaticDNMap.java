@@ -95,7 +95,7 @@ public class StaticDNMap implements Insert {
 		if (newDN != null) {
 			dn = new DistinguishedName(newDN);
 			if (this.mapBindDN) {
-				chain.getSession().put(LDAPInterceptor.NO_MAP_BIND_DN + this.insertName, "TRUE");
+				chain.getSession().put(LDAPInterceptorExperimental.NO_MAP_BIND_DN + this.insertName, "TRUE");
 			}
 		}
 		
