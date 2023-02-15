@@ -13,39 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package net.sourceforge.myvd.inserts.ldap.pool2;
+package net.sourceforge.myvd.inserts.ldap;
 
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
-
-public class InspectCheckedoutConnections implements Runnable {
-
-	boolean keepRunning;
-	
-	LDAPInterceptorExperimental interceptor;
-	
-	public InspectCheckedoutConnections(LDAPInterceptorExperimental interceptor) {
-		this.interceptor = interceptor;
-		this.keepRunning = true;
-	}
-	
-	@Override
-	public void run() {
-		
-		while (this.keepRunning) {
-			
-			this.interceptor.getConnectionPool().checkCheckedoutConnections();
-			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				
-			}
-		}
-		
-	}
-	
-	public void stopInspector() {
-		this.keepRunning = false;
-	}
+public class LegacyLDAPInterceptor extends LDAPInterceptor {
 
 }

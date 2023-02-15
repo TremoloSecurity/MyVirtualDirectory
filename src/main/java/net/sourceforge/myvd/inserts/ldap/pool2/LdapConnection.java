@@ -47,7 +47,7 @@ import com.novell.ldap.LDAPSocketFactory;
 import com.novell.ldap.LDAPUnsolicitedNotificationListener;
 
 import net.sourceforge.myvd.inserts.ldap.LDAPConnectionType;
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 
 public class LdapConnection extends com.novell.ldap.LDAPConnection {
 	static Logger logger = Logger.getLogger(LdapConnection.class);
@@ -62,9 +62,9 @@ public class LdapConnection extends com.novell.ldap.LDAPConnection {
 	int numCheckouts;
 	long lastAccessed;
 
-	private LDAPInterceptor interceptor;
+	private LDAPInterceptorExperimental interceptor;
 
-	public LdapConnection(LDAPInterceptor interceptor) throws LDAPException {
+	public LdapConnection(LDAPInterceptorExperimental interceptor) throws LDAPException {
 		synchronized (this) {
 			this.locked = true;
 			this.numCheckouts = 0;

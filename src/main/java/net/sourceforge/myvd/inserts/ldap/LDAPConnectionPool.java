@@ -213,7 +213,7 @@ public class LDAPConnectionPool {
 			try {
 				it.next().getConnection().disconnect();
 			} catch (Throwable t) {
-				LDAPInterceptor.logger.error("Error disconnecting", t);
+				LDAPInterceptorExperimental.logger.error("Error disconnecting", t);
 			}
 		}
 		

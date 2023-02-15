@@ -41,7 +41,7 @@ public class LDAPEntrySet implements EntrySet {
 
 	static Logger logger = Logger.getLogger(LDAPEntrySet.class);
 
-	LDAPInterceptor interceptor;
+	LDAPInterceptorExperimental interceptor;
 	LDAPConnection ldap;
 	LDAPSearchResults results;
 
@@ -61,7 +61,7 @@ public class LDAPEntrySet implements EntrySet {
 	private boolean typesOnly;
 	private LDAPSearchConstraints constraints;
 
-	public LDAPEntrySet(LDAPInterceptor interceptor, LDAPConnection ldap, LDAPSearchResults results,
+	public LDAPEntrySet(LDAPInterceptorExperimental interceptor, LDAPConnection ldap, LDAPSearchResults results,
 			String remoteBase, int scope, String filter, String[] attribs, boolean typesOnly,
 			LDAPSearchConstraints constraints) {
 		this.done = false;
@@ -181,12 +181,4 @@ public class LDAPEntrySet implements EntrySet {
 
 }
 
-class AttrRange {
-	String name;
-	String currentRangeAttr;
-	int start;
-	int end;
-	int total;
-	LDAPAttribute attr;
-	boolean done;
-}
+

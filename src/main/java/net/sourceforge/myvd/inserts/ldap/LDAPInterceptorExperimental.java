@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import net.sourceforge.myvd.chain.AddInterceptorChain;
 import net.sourceforge.myvd.chain.BindInterceptorChain;
@@ -34,6 +36,9 @@ import net.sourceforge.myvd.chain.RenameInterceptorChain;
 import net.sourceforge.myvd.chain.SearchInterceptorChain;
 import net.sourceforge.myvd.core.NameSpace;
 import net.sourceforge.myvd.inserts.Insert;
+import net.sourceforge.myvd.inserts.ldap.pool2.InspectCheckedoutConnections;
+import net.sourceforge.myvd.inserts.ldap.pool2.LdapPool;
+import net.sourceforge.myvd.inserts.ldap.pool2.LdapSearchResults;
 import net.sourceforge.myvd.types.Attribute;
 import net.sourceforge.myvd.types.Bool;
 import net.sourceforge.myvd.types.DistinguishedName;
@@ -55,6 +60,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPLocalException;
 import com.novell.ldap.LDAPModification;
+import com.novell.ldap.LDAPReferralException;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.controls.LDAPPagedResultsControl;
@@ -63,10 +69,10 @@ import com.novell.ldap.util.DN;
 import org.apache.directory.ldap.client.api.search.FilterBuilder;
 import org.apache.logging.log4j.Logger;
 
-public class LDAPInterceptor implements Insert {
+public class LDAPInterceptorExperimental implements Insert {
 
     public static final String NO_MAP_BIND_DN = "NO_MAP_BIND_DN_";
-    static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPInterceptor.class);
+    static Logger logger = org.apache.logging.log4j.LogManager.getLogger(LDAPInterceptorExperimental.class);
     String host;
     int port;
     String name;
@@ -91,7 +97,7 @@ public class LDAPInterceptor implements Insert {
 
     NamingUtils utils;
 
-    LDAPConnectionPool pool;
+    //LDAPConnectionPool pool;
     LDAPSocketFactory socketFactory;
 
     String noMapBindFlag;
@@ -109,11 +115,17 @@ public class LDAPInterceptor implements Insert {
     int maxOpsPerCon;
     long maxCheckoutTimePerCon;
     
-    
     int cleanupDelay;
 	private ConnectionCleanupPool cleanup;
 	private int maxConnections;
 	private int minConnections;
+	
+	LdapPool pool;
+	private int maxRetries;
+	
+	InspectCheckedoutConnections inspector;
+	
+	ExecutorService executor;
 
     public void configure(String name, Properties props, NameSpace nameSpace) throws LDAPException {
         this.name = name;
@@ -178,7 +190,12 @@ public class LDAPInterceptor implements Insert {
 
         this.useSrvDNS = props.getProperty("useSrvDNS", "false").equalsIgnoreCase("true");
 
-        this.pool = new LDAPConnectionPool(this, Integer.parseInt(props.getProperty("minimumConnections", "5")), Integer.parseInt(props.getProperty("maximumConnections", "30")), Integer.parseInt(props.getProperty("maximumRetries", "5")), this.type, this.spmlImpl, this.isSoap);
+        
+        this.maxConnections = Integer.parseInt(props.getProperty("maximumConnections", "30"));
+        this.minConnections = Integer.parseInt(props.getProperty("minimumConnections", "5"));
+        this.maxRetries = Integer.parseInt(props.getProperty("maximumRetries", "100"));
+        
+        //this.pool = new LDAPConnectionPool(this, , , ), this.type, this.spmlImpl, this.isSoap);
 
         this.passThroughBindOnly = props.getProperty("passBindOnly", "false").equalsIgnoreCase("true");
         this.ignoreRefs = props.getProperty("ignoreRefs", "false").equalsIgnoreCase("true");
@@ -198,46 +215,62 @@ public class LDAPInterceptor implements Insert {
         this.maxOpsPerCon = Integer.parseInt(props.getProperty("maxOpsPerCon","0"));
         logger.info(String.format("Max Ops Per Con : %d",this.maxOpsPerCon));
         
-        this.maxCheckoutTimePerCon = Long.parseLong(props.getProperty("maxCheckoutTimePerCon","0"));
+        this.maxCheckoutTimePerCon = Long.parseLong(props.getProperty("maxCheckoutTimePerCon","1000"));
         logger.info(String.format("Max Millis Checkout Time %d", this.maxCheckoutTimePerCon));
         
         this.cleanupDelay = Integer.parseInt(props.getProperty("cleanupDelayMillis","10000"));
         
         this.cleanup = new ConnectionCleanupPool(this.cleanupDelay);
 		new Thread(this.cleanup).start();
+        
+        this.pool = new LdapPool(this);
+        if (this.maxCheckoutTimePerCon > 0) {
+        	this.inspector = new InspectCheckedoutConnections(this);
+        	new Thread(inspector).start();
+        }
+        
+        this.executor = Executors.newCachedThreadPool();
 
     }
+    
+    public void closeConnection(LDAPConnection con) {
+    	this.cleanup.closeConnection(con);
+    }
 
-    private ConnectionWrapper getConnection(DN bindDN, Password pass, boolean force, DN base, HashMap<Object, Object> session) throws LDAPException {
+    private LDAPConnection getConnection(DN bindDN, Password pass, boolean force, DN base, HashMap<Object, Object> session) throws LDAPException {
         return this.getConnection(bindDN, pass, force, base, session, false);
     }
 
-    private ConnectionWrapper getConnection(DN bindDN, Password pass, boolean force, DN base, HashMap<Object, Object> session, boolean forceBind) throws LDAPException {
-        ConnectionWrapper wrapper = null;
-
+    private LDAPConnection getConnection(DN bindDN, Password pass, boolean force, DN base, HashMap<Object, Object> session, boolean forceBind) throws LDAPException {
+        
+        LDAPConnection ldap = null;
+        
         if (logger.isDebugEnabled()) {
             logger.debug("Bound inserts : " + session.get(SessionVariables.BOUND_INTERCEPTORS));
         }
 
         if (this.passThroughBindOnly && !force) {
-            wrapper = pool.getConnection(new DN(this.proxyDN), new Password(this.proxyPass), force);
+            //wrapper = pool.getConnection(new DN(this.proxyDN), new Password(this.proxyPass), force);
+        	ldap = this.pool.checkOut(this.proxyDN, this.proxyPass, force, this.maxRetries);
+        	
+            
         } else if (forceBind || (!this.passThroughBindOnly && ((ArrayList<String>) session.get(SessionVariables.BOUND_INTERCEPTORS)).contains(this.name))) {
-            wrapper = pool.getConnection(bindDN, pass, force);
+            //wrapper = pool.getConnection(bindDN, pass, force);
+        	ldap = pool.checkOut(bindDN != null ? bindDN.toString() : null, pass != null ? pass.getValue() : null, force, this.maxRetries);
         } else {
-            wrapper = pool.getConnection(new DN(this.proxyDN), new Password(this.proxyPass), force);
+            //wrapper = pool.getConnection(new DN(this.proxyDN), new Password(this.proxyPass), force);
+        	ldap = pool.checkOut(this.proxyDN,this.proxyPass,force,this.maxRetries);
         }
 
-        if (wrapper == null) {
+        if (ldap == null) {
 
             throw new LDAPException("Could not get remote connection", LDAPException.SERVER_DOWN, base.toString());
         } else {
-            return wrapper;
+            return ldap;
         }
     }
 
-    protected void returnLDAPConnection(ConnectionWrapper wrapper) {
-        pool.returnConnection(wrapper);
-    }
+    
 
     protected DN getRemoteMappedDN(DN dn) {
 
@@ -256,15 +289,15 @@ public class LDAPInterceptor implements Insert {
     public void add(AddInterceptorChain chain, Entry entry,
                     LDAPConstraints constraints) throws LDAPException {
 
-        ConnectionWrapper wrapper;
+        LDAPConnection ldap;
 
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, new DN(entry.getEntry().getDN()), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, new DN(entry.getEntry().getDN()), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, new DN(entry.getEntry().getDN()), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, new DN(entry.getEntry().getDN()), chain.getSession());
         }
 
-       LDAPConnection con = wrapper.getConnection();
+       
 
         try {
             LDAPEntry remoteEntry = new LDAPEntry(this.getRemoteMappedDN(new DN(entry.getEntry().getDN())).toString(), entry.getEntry().getAttributeSet());
@@ -276,9 +309,9 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.add(remoteEntry, constraints);
+            ldap.add(remoteEntry, constraints);
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
         //TODO -- Add way to continue down the chain?
@@ -295,15 +328,26 @@ public class LDAPInterceptor implements Insert {
             mappedDN = this.getRemoteMappedDN(dn.getDN());
         }
 
-        ConnectionWrapper wrapper = this.getConnection(mappedDN, pwd, true, dn.getDN(), chain.getSession(), true);
-        LDAPConnection con = wrapper.getConnection();
+        
+        LDAPConnection ldap = null;
+        
 
         try {
-            wrapper.bind(mappedDN, pwd);
-            ArrayList<String> bound = (ArrayList<String>) chain.getSession().get(SessionVariables.BOUND_INTERCEPTORS);
+        	ldap = this.getConnection(null, null, true, dn.getDN(), chain.getSession(), true);
+            
+        	if (this.maxOpMillis > 0) {
+                if (constraints == null) {
+                    constraints = new LDAPConstraints();
+                }
+                constraints.setTimeLimit(this.maxOpMillis);
+            }
+        	
+        	ldap.bind(3, mappedDN.toString(),pwd.getValue());
+        	
+        	ArrayList<String> bound = (ArrayList<String>) chain.getSession().get(SessionVariables.BOUND_INTERCEPTORS);
             bound.add(this.name);
         } finally {
-            this.returnLDAPConnection(wrapper);
+            if (ldap != null) ldap.disconnect();
         }
 
     }
@@ -311,15 +355,15 @@ public class LDAPInterceptor implements Insert {
     public void compare(CompareInterceptorChain chain, DistinguishedName dn,
                         Attribute attrib, LDAPConstraints constraints) throws LDAPException {
 
-        ConnectionWrapper wrapper;
+        LDAPConnection ldap = null;
 
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
 
-        LDAPConnection con = wrapper.getConnection();
+        
 
         try {
             if (this.maxOpMillis > 0) {
@@ -328,34 +372,34 @@ public class LDAPInterceptor implements Insert {
                 }
                 constraints.setTimeLimit(this.maxOpMillis);
             }
-            con.compare(this.getRemoteMappedDN(dn.getDN()).toString(), attrib.getAttribute(), constraints);
+            ldap.compare(this.getRemoteMappedDN(dn.getDN()).toString(), attrib.getAttribute(), constraints);
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
 
     public void delete(DeleteInterceptorChain chain, DistinguishedName dn, LDAPConstraints constraints) throws LDAPException {
 
-        ConnectionWrapper wrapper;// = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()),chain.getBindPassword(),false,dn.getDN(),chain.getSession());
+        LDAPConnection ldap = null;
 
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
 
         try {
 
-            LDAPConnection con = wrapper.getConnection();
+            
 
             if (this.maxOpMillis > 0) {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.delete(this.getRemoteMappedDN(dn.getDN()).toString(), constraints);
+            ldap.delete(this.getRemoteMappedDN(dn.getDN()).toString(), constraints);
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
@@ -364,14 +408,15 @@ public class LDAPInterceptor implements Insert {
                                   ExtendedOperation op, LDAPConstraints constraints)
             throws LDAPException {
 
-        ConnectionWrapper wrapper;// = this.getConnection(chain.getBindDN().getDN(),chain.getBindPassword(),false,new DN(),chain.getSession());
+        LDAPConnection ldap = null;
+        
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, op.getDn().getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, op.getDn().getDN(), chain.getSession());
         } else {
 
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, op.getDn().getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, op.getDn().getDN(), chain.getSession());
         }
-        LDAPConnection con = wrapper.getConnection();
+        
 
         try {
             if (this.maxOpMillis > 0) {
@@ -381,9 +426,9 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.extendedOperation(op.getOp(), constraints);
+            ldap.extendedOperation(op.getOp(), constraints);
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
@@ -394,13 +439,14 @@ public class LDAPInterceptor implements Insert {
         LDAPModification[] ldapMods = new LDAPModification[mods.size()];
         System.arraycopy(mods.toArray(), 0, ldapMods, 0, ldapMods.length);
 
-        ConnectionWrapper wrapper;// = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()),chain.getBindPassword(),false,dn.getDN(),chain.getSession());
+        LDAPConnection ldap = null;
+        
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
-        LDAPConnection con = wrapper.getConnection();
+        
         try {
             if (this.maxOpMillis > 0) {
                 if (constraints == null) {
@@ -409,9 +455,23 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.modify(this.getRemoteMappedDN(dn.getDN()).toString(), ldapMods, constraints);
+            ldap.modify(this.getRemoteMappedDN(dn.getDN()).toString(), ldapMods, constraints);
+            
+            for (LDAPModification mod : mods) {
+            	if (mod.getAttribute().getName().equalsIgnoreCase("userPassword")) {
+            		DN bindDN = chain.getBindDN().getDN();
+            		DN opDN = dn.getDN();
+            		
+            		if (bindDN.equals(opDN)) {
+            			// we've updated the current connection's password, let's reset it
+            			chain.getBindPassword().setValue(mod.getAttribute().getByteValue());
+            			chain.getSession().put("MYVD_BINDPASS", new Password(chain.getBindPassword().getValue()));
+            		}
+            	}
+            }
+            
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
@@ -420,8 +480,6 @@ public class LDAPInterceptor implements Insert {
                        Int scope, Filter filter, ArrayList<Attribute> attributes, Bool typesOnly,
                        Results results, LDAPSearchConstraints constraints) throws LDAPException {
 
-    	
-    	boolean searchSubmitted = false;
         String[] attribs = new String[attributes.size()];
 
         Iterator<Attribute> it = attributes.iterator();
@@ -430,14 +488,16 @@ public class LDAPInterceptor implements Insert {
             attribs[i] = it.next().getAttribute().getName();
         }
 
-        ConnectionWrapper wrapper;// = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()),chain.getBindPassword(),false,base.getDN(),chain.getSession());
+        LDAPConnection ldap = null;
+        
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, base.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, base.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, base.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, base.getDN(), chain.getSession());
         }
-        LDAPConnection con = wrapper.getConnection();
-
+        
+        boolean searchSubmitted = false;
+        
         try {
             String remoteBase = this.getRemoteMappedDN(base.getDN()).toString();
             if (remoteBase == null) {
@@ -493,13 +553,32 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            LDAPSearchResults res = con.search(remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
-            chain.addResult(results, new LegacyLDAPEntrySet(this, wrapper, res, remoteBase, scope.getValue(), filter.getValue(), attribs, typesOnly.getValue(), constraints), base, scope, filter, attributes, typesOnly, constraints);
+            LDAPSearchResults res = ldap.search(remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
+            
+            LDAPEntry firstEntry = null;
+            while (res.hasMore()) {
+            	try {
+            		firstEntry = res.next();
+            		break;
+            	} catch (LDAPReferralException re) {
+            		if (this.ignoreRefs) {
+            			continue;
+					} else {
+						throw re;
+					}
+            	}
+            }
+            
+            LdapSearchResults reswrapper = new LdapSearchResults(this,remoteBase, scope.getValue(), convertedFilter, attribs, typesOnly.getValue(), constraints);
+            reswrapper.setResults(ldap,firstEntry, res);
+            
+            chain.addResult(results, new LDAPEntrySet(this, null, reswrapper, remoteBase, scope.getValue(), filter.getValue(), attribs, typesOnly.getValue(), constraints), base, scope, filter, attributes, typesOnly, constraints);
             searchSubmitted = true;
         } finally {
         	if (! searchSubmitted) {
-        		this.returnLDAPConnection(wrapper);
+        		ldap.disconnect();
         	}
+            
         }
 
     }
@@ -581,13 +660,13 @@ public class LDAPInterceptor implements Insert {
 
         String oldDN = this.getRemoteMappedDN(dn.getDN()).toString();
 
-        ConnectionWrapper wrapper;  //= this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()),chain.getBindPassword(),false,dn.getDN(),chain.getSession());
+        LDAPConnection ldap = null;
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
-        LDAPConnection con = wrapper.getConnection();
+        
 
         try {
             if (this.maxOpMillis > 0) {
@@ -597,9 +676,9 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.rename(oldDN, newRdn.getDN().toString(), deleteOldRdn.getValue());
+            ldap.rename(oldDN, newRdn.getDN().toString(), deleteOldRdn.getValue());
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
@@ -608,13 +687,13 @@ public class LDAPInterceptor implements Insert {
         String oldDN = this.getRemoteMappedDN(dn.getDN()).toString();
         String newPDN = this.getRemoteMappedDN(newParentDN.getDN()).toString();
 
-        ConnectionWrapper wrapper;// = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()),chain.getBindPassword(),false,dn.getDN(),chain.getSession());
+        LDAPConnection ldap = null;
         if (chain.getSession().containsKey(noMapBindFlag)) {
-            wrapper = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(chain.getBindDN().getDN(), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         } else {
-            wrapper = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
+            ldap = this.getConnection(this.getRemoteMappedDN(chain.getBindDN().getDN()), chain.getBindPassword(), false, dn.getDN(), chain.getSession());
         }
-        LDAPConnection con = wrapper.getConnection();
+        
 
         try {
 
@@ -625,9 +704,9 @@ public class LDAPInterceptor implements Insert {
                 constraints.setTimeLimit(this.maxOpMillis);
             }
 
-            con.rename(oldDN, newRdn.getDN().toString(), newPDN, deleteOldRdn.getValue());
+            ldap.rename(oldDN, newRdn.getDN().toString(), newPDN, deleteOldRdn.getValue());
         } finally {
-            this.returnLDAPConnection(wrapper);
+            ldap.disconnect();
         }
 
     }
@@ -650,9 +729,14 @@ public class LDAPInterceptor implements Insert {
         if (this.heartBeat != null) {
             this.heartBeat.stop();
         }
+        
+        if (this.inspector != null) {
+        	this.inspector.stopInspector();
+        }
 
         logger.info("Closing down all pools...");
         this.pool.shutDownPool();
+        this.cleanup.stopRunning();
         logger.info("Pool shutdown...");
 
     }
@@ -693,9 +777,7 @@ public class LDAPInterceptor implements Insert {
         return this.maxStaleTime;
     }
 
-    public LDAPConnectionPool getConnectionPool() {
-        return this.pool;
-    }
+    
 
     public long getHeartBeatMillis() {
         return this.heartbeatIntervalMinis;
@@ -710,9 +792,38 @@ public class LDAPInterceptor implements Insert {
 	public int getMaxOpsPerCon() {
 		return maxOpsPerCon;
 	}
+	
+	public int getCleanupDelay() {
+		return this.cleanupDelay;
+	}
 
-	public void closeConnection(LDAPConnection con) {
-    	this.cleanup.closeConnection(con);
-    }
+	public int getMaxConnections() {
+		return this.maxConnections;
+	}
+
+	public String getBindDN() {
+		return this.proxyDN;
+	}
+
+	public byte[] getBindPassword() {
+		return this.proxyPass;
+	}
+
+	public LDAPConnectionType getType() {
+		return this.type;
+	}
+
+	public int getMinConnections() {
+		return this.minConnections;
+	}
+
+	public LdapPool getConnectionPool() {
+		return this.pool;
+	}
+	
+	public ExecutorService getThreadPool() {
+		return this.executor;
+	}
+
     
 }

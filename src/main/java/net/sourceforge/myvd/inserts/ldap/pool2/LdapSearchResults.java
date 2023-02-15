@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -31,12 +33,14 @@ import com.novell.ldap.LDAPControl;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPMessage;
+import com.novell.ldap.LDAPReferralException;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.controls.LDAPPagedResultsControl;
 import com.novell.ldap.controls.LDAPPagedResultsResponse;
+import com.novell.ldap.util.ByteArray;
 
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 
 public class LdapSearchResults extends LDAPSearchResults {
 	static Logger logger = Logger.getLogger(LdapSearchResults.class);
@@ -44,7 +48,7 @@ public class LdapSearchResults extends LDAPSearchResults {
 	
 	ConcurrentLinkedQueue<LdapResult> messages;
 	boolean done;
-	LDAPInterceptor interceptor;
+	LDAPInterceptorExperimental interceptor;
 	
 	private String remoteBase;
 	private int scope;
@@ -52,10 +56,10 @@ public class LdapSearchResults extends LDAPSearchResults {
 	private String[] attrs;
 	private boolean typesOnly;
 	LDAPSearchConstraints constraints;
+	LDAPControl[] responseControls;
 	
 	
-	
-	public LdapSearchResults(LDAPInterceptor interceptor,String remoteBase, int scope, String filter, String[] attribs, boolean typesOnly, LDAPSearchConstraints constraints) {
+	public LdapSearchResults(LDAPInterceptorExperimental interceptor,String remoteBase, int scope, String filter, String[] attribs, boolean typesOnly, LDAPSearchConstraints constraints) {
 		this.messages = new ConcurrentLinkedQueue<LdapResult>();
 		this.done = false;
 		this.interceptor = interceptor;
@@ -67,33 +71,61 @@ public class LdapSearchResults extends LDAPSearchResults {
 		this.constraints = constraints;
 	}
 	
-	public void setResults(LDAPConnection ldap,LDAPSearchResults res) {
+	public void setResults(LDAPConnection ldap,LDAPEntry firstEntry,LDAPSearchResults res) throws LDAPException {
+		this.responseControls = res.getResponseControls();
+		if (firstEntry != null) {
+			handleRangeAttributes(ldap,firstEntry);
 		
-		new Thread() {
-			public void run() {
-				if (loadResults(ldap,res)) {
-					messages.add(new LdapResult(true));
+			messages.add(new LdapResult(firstEntry));
+			
+			this.interceptor.getThreadPool().submit(
+			
+			new Runnable() {
+				public void run() {
+					if (loadResults(ldap,res,1)) {
+						messages.add(new LdapResult(true));
+					}
+					
+					
+					
+					
+					try {
+						ldap.disconnect();
+					} catch (LDAPException e) {
+						//do nothing
+					}
+					
 				}
-				
-				
-				
-				
-				try {
-					ldap.disconnect();
-				} catch (LDAPException e) {
-					//do nothing
-				}
-				
+			});
+			
+		} else {
+			messages.add(new LdapResult(true));
+			try {
+				ldap.disconnect();
+			} catch (LDAPException e) {
+				//do nothing
 			}
-		}.start();
+		}
+		
+		
 	}
 	
-	private boolean loadResults(LDAPConnection ldap,LDAPSearchResults res) {
+	private boolean loadResults(LDAPConnection ldap,LDAPSearchResults res,int start) {
 		
-		int numResults = 0;
+		int numResults = start;
 		try {
 			while (res.hasMore()) {
-				LDAPEntry entry = res.next();
+				LDAPEntry entry = null;
+				try {
+					entry = res.next();
+				} catch (LDAPReferralException re) {
+					if (this.interceptor.isIgnoreRefs()) {
+						continue;
+					} else {
+						throw re;
+					}
+				}
+				
 				numResults++;
 		
 				handleRangeAttributes(ldap,entry);
@@ -114,7 +146,7 @@ public class LdapSearchResults extends LDAPSearchResults {
 						}
 						
 						LDAPSearchResults pagedRes = ldap.search(remoteBase, scope, filter, attrs, typesOnly,this.constraints);
-						return loadResults(ldap,pagedRes);
+						return loadResults(ldap,pagedRes,0);
 					}
 				}
 			} 
@@ -133,13 +165,15 @@ public class LdapSearchResults extends LDAPSearchResults {
 	
 	
 	private void handleRangeAttributes(LDAPConnection ldap,LDAPEntry entry) throws LDAPException {
-		List<LDAPAttribute> attributesToReplace = new ArrayList<LDAPAttribute>();
-		List<LDAPAttribute> attributesToAdd = new ArrayList<LDAPAttribute>();
+		
 		List<AttrRange> ranges = new ArrayList<AttrRange>();
 		
 		// first loop through attributes to see if there are any ranges
-		for (Object o : entry.getAttributeSet()) {
-			LDAPAttribute attr = (LDAPAttribute) o;
+		Set attributeNames = new HashSet();
+		attributeNames.addAll(entry.getAttributeSet().keySet());
+		
+		for (Object o : attributeNames) {
+			LDAPAttribute attr = (LDAPAttribute) entry.getAttribute((String)o);
 			
 			if (attr.getName().contains(";range=")) {
 				AttrRange rangeAttr = new AttrRange();
@@ -149,19 +183,23 @@ public class LdapSearchResults extends LDAPSearchResults {
 					logger.info("attribute : " + attr.getName() + " is a range");
 				}
 				rangeAttr.name = attr.getName().substring(0, attr.getName().indexOf(';'));
-				attributesToReplace.add(attr);
+				
 
-				LDAPAttribute newAttr = new LDAPAttribute(rangeAttr.name);
-				rangeAttr.attr = newAttr;
+				
+				rangeAttr.attr = attr;
 
-				newAttr.getAllValues().addAll(attr.getAllValues());
-				attributesToAdd.add(newAttr);
+				
 
 				String range = attr.getName().substring(attr.getName().indexOf('=') + 1);
 				logger.debug(range);
 				rangeAttr.start = Integer.parseInt(range.substring(0, range.indexOf('-')));
 				rangeAttr.end = Integer.parseInt(range.substring(range.indexOf('-') + 1));
 				rangeAttr.total = rangeAttr.start + rangeAttr.end + 1;
+				
+				
+				attr.removeRange(entry);
+				
+				
 				if (logger.isDebugEnabled()) {
 					logger.debug("total : " + rangeAttr.total);
 				}
@@ -233,8 +271,15 @@ public class LdapSearchResults extends LDAPSearchResults {
 
 							if (attr != null) {
 
-								rangeAttr.attr.getAllValues().addAll(attr.getAllValues());
+								
 
+								ByteArray vals = null;
+								while ((vals = attr.getAndRemoveFirstValue()) != null) {
+									rangeAttr.attr.getAllValues().add(vals);
+								}
+								
+
+								
 								if (!rangeAttr.done) {
 									String range = attr.getName()
 											.substring(attr.getName().indexOf('=') + 1);
@@ -254,14 +299,7 @@ public class LdapSearchResults extends LDAPSearchResults {
 			}
 		}
 		
-		for (LDAPAttribute attrToRemove : attributesToReplace) {
-			entry.getAttributeSet().remove(attrToRemove);
-		}
-
-		for (LDAPAttribute attr : attributesToAdd) {
-			entry.getAttributeSet().remove(attr);
-			entry.getAttributeSet().add(attr);
-		}
+		
 	}
 	
 	@Override
@@ -283,8 +321,7 @@ public class LdapSearchResults extends LDAPSearchResults {
 
 	@Override
 	public LDAPControl[] getResponseControls() {
-		// TODO Auto-generated method stub
-		return super.getResponseControls();
+		return this.responseControls;
 	}
 
 	

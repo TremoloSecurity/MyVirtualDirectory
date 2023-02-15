@@ -24,25 +24,47 @@ public class LDAPHeartBeat implements Runnable {
 	
 	boolean stillRunning;
 
-	private LDAPInterceptor insert;
+	private LDAPInterceptorExperimental insert;
+	private LDAPInterceptor legacy;
+	
+	public LDAPHeartBeat(LDAPInterceptorExperimental ldapInterceptor) {
+		this.stillRunning = true;
+		this.insert = ldapInterceptor;
+		this.legacy = null;
+	}
 	
 	public LDAPHeartBeat(LDAPInterceptor ldapInterceptor) {
 		this.stillRunning = true;
-		this.insert = ldapInterceptor;
+		this.insert = null;
+		this.legacy = ldapInterceptor;
 	}
 
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(insert.getHeartBeatMillis());
+			if (this.insert != null) {
+				Thread.sleep(insert.getHeartBeatMillis());
+			} else {
+				Thread.sleep(legacy.getHeartBeatMillis());
+			}
+			
 		} catch (InterruptedException e1) {
 			//do nothing
 		}
 		
 		while (stillRunning) {
-			this.insert.getConnectionPool().executeHeartBeat();
+			if (this.insert != null) {
+				this.insert.getConnectionPool().executeHeartBeat();
+			} else {
+				this.legacy.getConnectionPool().executeHeartBeat();
+			}
 			try {
-				Thread.sleep(insert.getHeartBeatMillis());
+				if (this.insert != null) {
+					Thread.sleep(insert.getHeartBeatMillis());
+				} else {
+					Thread.sleep(this.legacy.getHeartBeatMillis());
+				}
+				
 			} catch (InterruptedException e) {
 				//do nothing
 			}

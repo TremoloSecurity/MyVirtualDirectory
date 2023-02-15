@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.novell.ldap.LDAPException;
 
-import net.sourceforge.myvd.inserts.ldap.LDAPInterceptor;
+import net.sourceforge.myvd.inserts.ldap.LDAPInterceptorExperimental;
 
 public class LdapPool {
 	static Logger logger = Logger.getLogger(LdapPool.class);
@@ -32,9 +32,9 @@ public class LdapPool {
 	Queue<Thread> threads;
 	
 	List<LdapConnection> pool;
-	LDAPInterceptor interceptor;
+	LDAPInterceptorExperimental interceptor;
 	
-	public LdapPool(LDAPInterceptor interceptor) throws LDAPException {
+	public LdapPool(LDAPInterceptorExperimental interceptor) throws LDAPException {
 		this.pool = new ArrayList<LdapConnection>();
 		this.interceptor = interceptor;
 		this.threads = new ConcurrentLinkedQueue<Thread>();
@@ -60,48 +60,53 @@ public class LdapPool {
 	
 	public LdapConnection checkOut(String dn,byte[] password, boolean forceBind, int count) throws LDAPException {
 		
-		if (! forceBind) {
-			// first see if a bound connection exists for this DN
-			for (LdapConnection ldap : this.pool) {
-				synchronized (ldap) {
-					if (ldap.isAvailable(dn,password,false)) {
-						return ldap;
-					}
-				}
-			}
-		}
-		
-		// no existing account was found, get any available
-		for (LdapConnection ldap : this.pool) {
-			synchronized (ldap) {
-				if (ldap.isAvailable(dn,password,true)) {
-					return ldap;
-				}
-			}
-		}
-		
-		if (pool.size() < this.interceptor.getMaxConnections()) {
-			LdapConnection ldap = new LdapConnection(this.interceptor);
-			ldap.isAvailable(dn, password, true);
-			this.pool.add(ldap);
-			return ldap;
-		} else {
-			if (count < 1) {
-				logger.warn(String.format("Could not get connection to %s:%s for %s",this.interceptor.getHost(),this.interceptor.getPort(),dn));
-				return null;
-			} else {
-				try {
-					this.threads.add(Thread.currentThread());
-					synchronized (Thread.currentThread()) {
-						Thread.currentThread().wait(1000);
-					}
-				} catch (InterruptedException e) {
-					
-				}
+			if (! forceBind) {
+				// first see if a bound connection exists for this DN
 				
-				return this.checkOut(dn, password, forceBind, count - 1);
+					for (LdapConnection ldap : this.pool) {
+						synchronized (ldap) {
+							if (ldap.isAvailable(dn,password,false)) {
+								return ldap;
+							}
+						}
+					}
+				
 			}
-		}
+			
+			// no existing account was found, get any available
+			
+				for (LdapConnection ldap : this.pool) {
+					synchronized (ldap) {
+						if (ldap.isAvailable(dn,password,true)) {
+							return ldap;
+						}
+					}
+				}
+			
+			
+			if (pool.size() < this.interceptor.getMaxConnections()) {
+				LdapConnection ldap = new LdapConnection(this.interceptor);
+				ldap.isAvailable(dn, password, true);
+				this.pool.add(ldap);
+				return ldap;
+			} else {
+				if (count < 1) {
+					logger.warn(String.format("Could not get connection to %s:%s for %s",this.interceptor.getHost(),this.interceptor.getPort(),dn));
+					return null;
+				} else {
+					try {
+						this.threads.add(Thread.currentThread());
+						synchronized (Thread.currentThread()) {
+							Thread.currentThread().wait(1000);
+						}
+					} catch (InterruptedException e) {
+						
+					}
+					
+					return this.checkOut(dn, password, forceBind, count - 1);
+				}
+			}
+		
 		
 		
 		
@@ -128,7 +133,7 @@ public class LdapPool {
 
 	public void shutDownPool() {
 		for (LdapConnection ldap : this.pool) {
-			
+			ldap.shutdown();
 		}
 		
 	}
