@@ -1,3 +1,12 @@
+# 1.0.18
+
+**tasks:**
+ - myvd 1.0.18 build [\#154](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/154)
+
+**bugs:**
+ - Better support large objects [\#153](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/153)
+ - LDAP - Connections being used by multiple searches [\#152](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/152)
+
 # 1.0.17
 
 **tasks:**
