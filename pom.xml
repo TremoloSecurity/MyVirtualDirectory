@@ -117,12 +117,12 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.77</version>
+			<version>1.78</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk18on</artifactId>
-			<version>1.77</version>
+			<version>1.78</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
@@ -658,7 +658,7 @@
 							<tasks>
 
 								<exec executable="ant">
-									<arg value="build-docs" />
+									<arg value="build-docs"/>
 								</exec>
 
 							</tasks>
