@@ -1,3 +1,8 @@
+# 1.0.22
+
+**enhancements:**
+ - Update to Java 21 [\#166](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/166)
+
 # 1.0.21
 
 **tasks:**
