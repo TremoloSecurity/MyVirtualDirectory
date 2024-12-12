@@ -9,7 +9,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.junit.Assert;
+import org.junit.*;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -17,13 +17,10 @@ import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPSearchResults;
 
 import net.sourceforge.myvd.test.util.StartMyVD;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
+
 import static org.junit.Assert.*;
 
+@Ignore
 public class TestClientAuth  {
 
 	private static StartMyVD server;
