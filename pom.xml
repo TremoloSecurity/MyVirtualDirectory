@@ -44,6 +44,19 @@
 
 	</distributionManagement>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.11.3</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>backport-util-concurrent</groupId>
@@ -101,10 +114,15 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.junit.vintage</groupId>
-		    <artifactId>junit-vintage-engine</artifactId>
-		    <version>5.11.3</version>
-		    <scope>test</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.tremolosecurity</groupId>
@@ -696,13 +714,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>3.3.1</version>
-					<dependencies>
-		                <dependency>
-		                    <groupId>org.junit.jupiter</groupId>
-		                    <artifactId>junit-jupiter-engine</artifactId>
-		                    <version>5.9.1</version>
-		                </dependency>
-		            </dependencies>
+
 					<configuration>
 						<childDelegation>true</childDelegation>
 						<forkCount>1</forkCount>
