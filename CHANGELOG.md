@@ -1,3 +1,8 @@
+# 1.0.23
+
+**tasks:**
+ - 1.0.23 [\#167](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/167)
+
 # 1.0.22
 
 **enhancements:**
