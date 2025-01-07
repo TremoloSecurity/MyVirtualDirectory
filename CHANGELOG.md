@@ -1,5 +1,8 @@
 # 1.0.23
 
+**bugs:**
+- replace mina because of CVE-2024-52046 [\#168](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/168)
+
 **tasks:**
  - 1.0.23 [\#167](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/167)
 
