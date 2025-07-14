@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.LinkedList;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConstraints;
@@ -32,6 +33,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPModification;
 import com.novell.ldap.LDAPSearchConstraints;
+import com.novell.ldap.util.ByteArray;
 import com.novell.ldap.util.DN;
 import com.novell.ldap.util.RDN;
 
@@ -278,14 +280,18 @@ public class Joiner implements Insert {
 				throw new LDAPException("Could not bind to any services",LDAPException.INVALID_CREDENTIALS,dn.getDN().toString());
 			}
 		} else {
-			String[] dns = joinDNs.getStringValueArray();
-			String[] bases = joinBases.getStringValueArray();
-			for (int i=0,m=dns.length;i<m;i++) {
+
+			LinkedList<ByteArray> dns = joinDNs.getAllValues();
+
+
+
+			for (ByteArray dnBytes : dns) {
+				String joindn = new String(dnBytes.getValue());
 				bindChain = new BindInterceptorChain(chain.getBindDN(),chain.getBindPassword(),ns.getRouter().getGlobalChain().getLength(),ns.getRouter().getGlobalChain(),chain.getSession(),chain.getRequest(),ns.getRouter());
 				try {
-					DistinguishedName binddn = new DistinguishedName(dns[i]);
+					DistinguishedName binddn = new DistinguishedName(joindn);
 					bindChain.nextBind(binddn,pwd,constraints);
-					boundNameSpaces.put(new DN(bases[i]), binddn);
+					boundNameSpaces.put(new DN(joindn), binddn);
 					primaryBindFailed.setValue(false);
 					break;
 				} catch (LDAPException e) {
@@ -294,7 +300,7 @@ public class Joiner implements Insert {
 					}
 					primaryBindFailed.setValue(true);
 					
-					boundNameSpaces.put(new DN(bases[i]), new DistinguishedName(""));
+					boundNameSpaces.put(new DN(joindn), new DistinguishedName(""));
 				}
 			}
 			
@@ -987,9 +993,10 @@ public class Joiner implements Insert {
 		ArrayList<DistinguishedName> joinedDns = new ArrayList<DistinguishedName>();
 		LDAPAttribute jdn = entry.getAttribute("joinedDns");
 		
-		String[] vals = jdn.getStringValueArray();
-		for (int i=0;i<vals.length;i++) {
-			joinedDns.add(new DistinguishedName(vals[i]));
+
+		LinkedList<ByteArray> vals = jdn.getAllValues();
+		for (ByteArray ba : vals) {
+			joinedDns.add(new DistinguishedName(new String(ba.getValue())));
 		}
 		
 		chain.getRequest().put(Joiner.MYVD_JOIN_JDN + this.name, joinedDns);

@@ -274,9 +274,10 @@ public class UpdateDB  implements Insert {
 					}
 				} else if (mod.getOp() == LDAPModification.DELETE) {
 					if (mod.getAttribute().getName().equals(db2ldap.get("name"))) {
-						String[] vals = mod.getAttribute().getStringValueArray();
+
+						LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
 						
-						if (vals.length == 0) {
+						if (vals.size() == 0) {
 							PreparedStatement  ps = con.prepareStatement("DELETE FROM locationmap WHERE person=?");
 							ps.setInt(1, id);
 							ps.executeUpdate();
@@ -286,12 +287,13 @@ public class UpdateDB  implements Insert {
 							PreparedStatement pssel = con.prepareStatement("SELECT id FROM LOCATIONS WHERE name=?");
 							
 							
-							for (int i=0;i<vals.length;i++) {
-								pssel.setString(1, vals[i]);
+							for (ByteArray b : vals) {
+								String val = new String(b.getValue());
+								pssel.setString(1, val);
 								ResultSet rs = pssel.executeQuery();
 								if (! rs.next()) {
 									con.rollback();
-									throw new LDAPException("Location " + vals[i] + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + vals[i] + " does not exist");
+									throw new LDAPException("Location " + val + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + val + " does not exist");
 								}
 								int lid = rs.getInt("id");
 								ps.setInt(1,id);
@@ -308,18 +310,20 @@ public class UpdateDB  implements Insert {
 					}
 				}  else if (mod.getOp() == LDAPModification.ADD) {
 					if (mod.getAttribute().getName().equals(db2ldap.get("name"))) {
-						String[] vals = mod.getAttribute().getStringValueArray();
+
+						LinkedList<ByteArray> vals = mod.getAttribute().getAllValues();
 						
 							PreparedStatement ps = con.prepareStatement("INSERT INTO locationmap (person,location) VALUES (?,?)");
 							PreparedStatement pssel = con.prepareStatement("SELECT id FROM LOCATIONS WHERE name=?");
 							
 							
-							for (int i=0;i<vals.length;i++) {
-								pssel.setString(1, vals[i]);
+							for (ByteArray b : vals) {
+								String val = new String(b.getValue());
+								pssel.setString(1, val);
 								ResultSet rs = pssel.executeQuery();
 								if (! rs.next()) {
 									con.rollback();
-									throw new LDAPException("Location " + vals[i] + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + vals[i] + " does not exist");
+									throw new LDAPException("Location " + val + " does not exist",LDAPException.OBJECT_CLASS_VIOLATION,"Location " + val + " does not exist");
 								}
 								int lid = rs.getInt("id");
 								ps.setInt(1,id);
