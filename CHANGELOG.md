@@ -1,3 +1,12 @@
+# 1.0.25
+
+**tasks:**
+- 1.0.25 Build [\#169](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/169)
+
+**enhancements:**
+- Remote getStringValuesArray from the code base [\#170](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/170)
+
+
 # 1.0.23
 
 **bugs:**
