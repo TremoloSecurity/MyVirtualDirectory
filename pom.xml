@@ -3,7 +3,7 @@
 
 	<groupId>net.sourceforge.myvd</groupId>
 	<artifactId>myvd-server</artifactId>
-	<version>1.0.27</version>
+	<version>1.0.28</version>
 	<packaging>jar</packaging>
 
 	<name>server</name>
@@ -246,7 +246,7 @@
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 
 		<dependency>
