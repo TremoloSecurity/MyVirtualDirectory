@@ -678,7 +678,7 @@
 							<tasks>
 
 								<exec executable="ant">
-									<arg value="build-docs" />
+									<arg value="build-docs"/>
 								</exec>
 
 							</tasks>
