@@ -31,7 +31,7 @@ import net.sourceforge.myvd.types.ExtendedOperation;
 import net.sourceforge.myvd.types.Password;
 import net.sourceforge.myvd.types.SessionVariables;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.directory.api.ldap.codec.api.ExtendedRequestDecorator;
 import org.apache.directory.api.ldap.model.message.ExtendedRequest;
 import org.apache.directory.api.ldap.model.message.ExtendedResponse;
