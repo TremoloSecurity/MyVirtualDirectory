@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-
+import net.sf.ehcache.config.CacheConfiguration;
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
@@ -78,7 +78,7 @@ public class Server {
     static Logger logger = Logger.getLogger(Server.class);
 
 
-	public final static String VERSION = "1.0.30";
+	public final static String VERSION = "1.0.31";
 
     String configFile;
     Properties props;
