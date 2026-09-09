@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import net.sf.ehcache.config.CacheConfiguration;
+
 import net.sourceforge.myvd.core.InsertChain;
 import net.sourceforge.myvd.router.Router;
 import net.sourceforge.myvd.server.apacheds.ApacheDSUtil;
