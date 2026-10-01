@@ -262,7 +262,7 @@ public class MyVDInterceptor extends BaseInterceptor {
 		}
 		
 		if (filter != null) {
-			SSLSession tlssession =  filter.getSslSession(ioSession);
+			SSLSession tlssession = (SSLSession) ioSession.getAttribute(SslFilter.SSL_SECURED);
 			if (tlssession != null) {
 				try {
 					TlsParameters tlsParams = new TlsParameters(tlssession.getCipherSuite(),(java.security.cert.X509Certificate[]) tlssession.getPeerCertificates());
