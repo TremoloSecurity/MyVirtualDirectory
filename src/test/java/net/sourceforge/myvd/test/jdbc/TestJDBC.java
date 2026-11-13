@@ -472,6 +472,43 @@ public class TestJDBC {
 		
 		con.disconnect();
 	}
+
+	@Test
+	public void testSubstringSearch() throws LDAPException {
+		LDAPConnection con = new LDAPConnection();
+		con.connect("localhost",50983);
+		Util util = new Util();
+		LDAPSearchResults res = con.search("dc=nam,dc=compinternal,dc=com",2,"(&(l=N*)(l=*A))",new String[0],false);
+
+		LDAPAttributeSet attribs = new LDAPAttributeSet();
+		attribs.add(new LDAPAttribute("l","LA"));
+		attribs.getAttribute("l").addValue("NY");
+		attribs.add(new LDAPAttribute("objectClass","inetOrgPerson"));
+		attribs.add(new LDAPAttribute("uid","aalberts"));
+		attribs.add(new LDAPAttribute("givenname","Al"));
+		attribs.add(new LDAPAttribute("sn","Alberts"));
+
+		LDAPEntry entry = new LDAPEntry("uid=aalberts,dc=nam,dc=compinternal,dc=com",attribs);
+
+		if (! res.hasMore()) {
+			fail("entries not returned");
+			return;
+		}
+
+		if (! util.compareEntry(entry,res.next())) {
+			fail("1st entry failed");
+		}
+
+
+
+
+
+		if (res.hasMore()) {
+			fail("too many entries");
+		}
+
+		con.disconnect();
+	}
 	
 	@Test
 	public void testANDSearch() throws LDAPException {

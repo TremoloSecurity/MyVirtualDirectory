@@ -1003,10 +1003,10 @@ public class JdbcInsert implements Insert,JdbcPool {
                     case SUBSTR:{
                     		attribName = this.ldap2db.get(root.getName().toLowerCase());
                     		filter.append(attribName);
-                        filter.append(" LIKE '");
-                        boolean noStarLast = false;
+                        filter.append(" LIKE ?");
+                        //boolean noStarLast = false;
                         
-                        filter.append(root.getValue().replace('*','%')).append('\'');
+                        vals.add(root.getValue().replace('*','%'));
                         
                         break;
                     }
