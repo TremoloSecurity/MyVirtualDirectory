@@ -1,3 +1,12 @@
+# 1.0.33
+
+**bugs:**
+- Escape LDAP substring searches to database [\#180](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/180)
+
+**tasks:**
+- 1.0.33 build [\#179](https://github.com/TremoloSecurity/MyVirtualDirectory/issues/179)
+
+
 # 1.0.32
 
 **tasks:**
