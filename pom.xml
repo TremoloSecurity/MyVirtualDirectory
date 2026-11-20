@@ -573,12 +573,6 @@
 		
 		<dependency>
 			<groupId>com.tremolosecurity.directory.api</groupId>
-			<artifactId>api-ldap-client-api</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.tremolosecurity.directory.api</groupId>
 			<artifactId>api-ldap-codec-core</artifactId>
 			<version>2.1.1</version>
 		</dependency>
